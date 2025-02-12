@@ -6,7 +6,7 @@ In this page, you will find the standard development policy and workflow in OSBR
 
 ## 1. Setup Your Environment
 
-### Setup Your Machine
+### 1-1. Setup Your Machine
 
 Following checklist is all mandatory by our security policy:
 
@@ -23,11 +23,11 @@ Development on self-built development servers is prohibited.
 :::
 
 
-### Email Notification Settings from GitHub
+### 1-2. Email Notification Settings from GitHub
 
 Configure your email notification settings to receive notifications from GitHub. Ensure that you are notified when other developers mention you.
 
-### Setting Up the Container Runtime Environment
+### 1-3. Setting Up the Container Runtime Environment
 
 Make sure you can execute the `docker` and `docker compose` commands on your terminal. Containers will be used for development tasks such as compiling, running applications, package management, and executing tests.
 
@@ -35,11 +35,11 @@ Make sure you can execute the `docker` and `docker compose` commands on your ter
 While Docker Desktop is the standard reference, you can also use other tools like Rancher Desktop.
 :::
 
-### Editor Configuration
+### 1-4. Editor Configuration
 
 Set up your editor to enable features like auto-completion, navigation, and error checking for the languages used in the project (TypeScript, Go). Also, configure it to automatically format code upon file save. Use Prettier for TypeScript and `go fmt` for Go.
 
-### Setting Up Language Runtime Environments
+### 1-5. Setting Up Language Runtime Environments
 
 While container-based development environments are the default, also set up the runtime environment for the languages on your local machine. For Node.js, use tools like `nodebrew` that allow easy version switching.
 
@@ -47,19 +47,20 @@ While container-based development environments are the default, also set up the 
 Some tools, such as AWS CDK, might require credentials to be passed via environment variables or files when run inside containers. Due to security considerations, a non-container-based approach might be preferred in such cases.
 :::
 
-### Enabling Screenshots and Screen Recording
+### 1-6. Enabling Screenshots and Screen Recording
 
 Throughout the development process, you may need to record operations as images or videos. Set up your system to be ready for this when needed.
 
 For Mac, it is recommended to use **Skitch** for screenshots and **QuickTime Player** (`shift + command + 5`) for video recording.
 
-### Setting Up Application Execution Environments
+### 1-7. Setting Up Application Execution Environments
 
 Follow the instructions provided for each project to set up the required execution environment.
 
+
 ## 2. Workflow Overview
 
-### Scrum-Like Agile Development
+### 2-1. Scrum-Like Agile Development
 
 ::: info NOTE
 We learn from Scrum concepts but do not apply them in their entirety. We adapt them to our needs and constraints.
@@ -71,7 +72,7 @@ Reference: [Scrum Guide (2020) End Note](https://scrumguides.org/scrum-guide.htm
 
 Following practices characterize our agile style:
 
-####  1-Week Sprint
+#### 1-Week Sprint
 
 * Work is broken down into short iterations, typically 1 week.
 * To ensure continuous delivery of value and frequent opportunities for feedback.
@@ -103,7 +104,7 @@ Following practices characterize our agile style:
 * This policy is not intended to question developers' integrity but to protect them from potential conflicts within the project.
 * During retrospective sessions, these visual artifacts are reviewed as part of the sprint demo. 
 
-### GitHub Configuration
+### 2-2. GitHub Configuration
 
 Our activities are primarily centered around GitHub rather than other tools. This means our GitHub configuration provides an overview of our development workflow.
 
@@ -236,7 +237,7 @@ Difficulty estimates the complexity of a task, which may arise from unclear spec
 Sprint is a period of time during which specific work has to be completed and made ready for review. It is usually 1 week long.
 
 
-### Weekly Planning
+### 2-3. Weekly Planning
 
 All developers participate in the weekly planning meeting to discuss the progress of the project and plan the next week's work.
 
@@ -277,3 +278,98 @@ Following is the typical agenda for the weekly planning meeting.
 * Summarize key takeaways and action items.
 * Encourage feedback on the meeting's structure or areas for improvement.
 * End with a positive note to motivate the team for the upcoming sprint!
+
+
+## 3. Tutorial
+
+::: info Notice
+The `osbr-jp/tutorial` is a private repository.
+:::
+
+If you are a new developer, start by following the tutorial below on the `osbr-jp/tutorial` repository. `osbr-jp/tutorial` is a safe repository for learning and getting used to our standard workflow, so feel free to experiment and ask questions.
+
+
+### 3-1. Create your first issue
+
+#### Choose issue template
+
+Select the issue template from Addition, Modification, Refactoring, or Fix.
+
+![Choosing issue template](/static/development-guide/1.jpg)
+
+#### Fill out the form
+
+Complete all the required fields in the issue form, ensuring the details are clear and concise.
+
+![Filling out the form](/static/development-guide/2.jpg)
+
+#### Fill extra fields
+
+Provide any additional information required to align the issue with the project board. Take ownership of the issue by assigning it to yourself.
+
+![Filling extra fields](/static/development-guide/3.jpg)
+
+-------
+
+### 3-2. Working on the pull request
+
+#### Fill "Specification / Test Plan" on the pull request
+
+Describe the purpose of your changes and how they will be tested in the "Specification / Test Plan" section of the pull request.
+
+![Filling specification](/static/development-guide/4.jpg)
+
+#### Ask someone to review your specification
+
+Set the issue status to `Spec Review`. Mention the reviewer on the pull request. The reviewer will provide a comment to proceed to the next step.
+
+![Asking review](/static/development-guide/5.jpg)
+
+#### Clone the repository
+
+Set the issue status to `In Progress`. Clone the repository to your local machine and check out the branch automatically created alongside the pull request. The branch name follows the format i[issue_no]-[DATE]-[HHMM].
+
+```bash
+$ git clone git@github.com:osbr-jp/tutorial.git
+$ cd tutorial
+$ git checkout i1-20250210-1307 # example
+```
+
+#### Edit and push
+
+Edit README.md. Just put/remove another black line is enough for this tutorial. Put some commit messages like "Fix README.md" to push the changes.
+
+#### Self review and attach evidences
+
+Return to the pull request and review your changes in the Files changed tab. Provide additional context to explain the purpose of your changes and add any necessary review comments. If everything looks good, submit your review with the "Approve" option to complete the "Self Review" process. After that, record a video on your machine as evidence of the changes and attach it to the pull request description.
+
+![Self reviewing](/static/development-guide/6.jpg)
+
+Tips: `cmd + shift + 5` for taking video on your computer, finish it up with `cmd + control + esc`.
+
+#### Request review
+
+Set the issue status to `Impl Review`. Check the "Self Review" and "Evidence" checkboxes in the pull request description. Set the "Reviewers" field to the reviewer's name, and add a comment mentioning the reviewer with a nice message, and include a note about the desired review deadline if necessary.
+
+#### Merge the pull request
+
+The reviewer merges the pull request into the main branch at the same time they approve it. Afterward, the issue status changes to `Shipping`.
+
+-------
+
+### 3-3. Release
+
+#### Check the release pull request
+
+The release pull request is created automatically when the pull request is merged into `main`. Check the release branch to ensure the changes are included.
+
+![Checking release pull request](/static/development-guide/6.jpg)
+
+#### Review and merge the release pull request
+
+Approve the release pull request and merge it into the release branch. In a real development process, this operation is carried out by the team.
+
+#### Verify the release
+
+In a real development process, the release is verified by the team on the production environment.
+
