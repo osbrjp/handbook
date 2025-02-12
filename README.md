@@ -6,6 +6,4 @@ https://osbr-jp.github.io/handbook/
 
 ## Development Guide
 
-This repository, like other OSBR repositories, will be updated following the OSBR Development Guideline outlined in the Handbook.
-
-
+This repository, like other OSBR repositories, is updated by following the [guidelines](https://osbr-jp.github.io/handbook/development-guide.html) in the Handbook.
