@@ -1,0 +1,27 @@
+{
+  "name": "osbr-handbook",
+  "version": "1.0.0",
+  "description": "A transparent guide to OSBR’s culture, values, and workflows.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docs:dev": "vitepress dev doc",
+    "docs:build": "vitepress build doc",
+    "docs:preview": "vitepress preview doc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/osbr-jp/handbook.git"
+  },
+  "author": "OSBR SDN. BHD",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/osbr-jp/handbook/issues"
+  },
+  "homepage": "https://github.com/osbr-jp/handbook#readme",
+  "devDependencies": {
+    "mermaid": "^11.4.1",
+    "vitepress": "^1.6.3",
+    "vitepress-plugin-mermaid": "^2.0.17"
+  }
+}
