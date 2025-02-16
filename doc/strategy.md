@@ -1,4 +1,4 @@
-# Strategy
+# Strategy Overview
 
 [[TOC]]
 
@@ -25,7 +25,7 @@ graph BT;
       R[Research] -- "technological insights" --> SD;
     end
 
-    ED -- "proof of concept (PoC)" --> EFR[[Experimental Research]];
+    ED -- "proof of concept (PoC)" --> EFR[[Envision Project]];
 
     subgraph Client / Partner
       direction BT
@@ -36,9 +36,9 @@ graph BT;
       CD[Communication Design / Marketing Research] --"exective support"--> CDE
     end
     CD --"exective support"--> EFR
-    CCV -- "core value" --> CS[[Comercial Service]];
+    CCV -- "core value" --> CS[[Comercial Project]];
     CDE -- "liquidity enhancement" --> CS;
-    EFR -- "field study" --> U[Consumer / Business];
+    EFR -- "experimental field research" --> U[Consumer / Business];
     CS -- "enriched engagement" --> U;
 ````
 
@@ -46,66 +46,73 @@ Since our founder established "beatfast" (later renamed "Saturday Inc.") in 2013
 
 As OSBR, we expanded our visionary journey to "off-screen", as demonstrated by our projects [onray](https://www.weareonray.com/en) and [Time Crunch](https://www.wearetimecrunch.com/). These initiatives have provided invaluable feedback, inspiring us to envision even more innovative services while continuously refining our approach to deliver intuitive, impactful, and user-centered experiences that bridge the gap between the physical and digital worlds. 
 
-Leveraging this foundation—and without altering our core vision—we have shifted our mid-term focus toward enhancing digital experiences through the application of large language models (LLMs). From the "Experimental to Commercial Application" strategy we established as beatfast to the expansion into the physical domain as OSBR, we continue to evolve. By introducing innovative services powered by LLMs, we aim to empower our client businesses and accelerate their growth.
+Leveraging this foundation—and without altering our core vision—we have shifted our mid-term focus toward enhancing digital experiences through the application of large language models (LLMs). From the experimental-to-commercial strategy we established as beatfast to the expansion into the physical domain as OSBR, we continue to evolve. By introducing innovative services powered by LLMs, we aim to empower our client businesses and accelerate their growth.
 
 ## 3. Business Model
 
-Our business model is designed to sustain our operations through the Value Delivery Model outlined above. It consists of four primary models, each tailored to distinct yet complemental roles that support one another."
+Our business model is structured to align with the Value Delivery Model described above, ensuring sustainable operations while fostering innovation. The model comprises three key strategies, each designed to play a unique and complementary role in achieving our mission:
 
-### 3-1. In-House Experimental Research
+### 3-1. Envision Project
 
-This model focuses on internally conducted experimental research to develop proof-of-concept (PoC) projects. OSBR initiates the planning phase, guiding the creation of in-house experiments that deliver directly to consumers or businesses. The feedback gathered from these experiments is condensed and incorporated into semi-custom solutions, enabling iterative refinement and innovation while generating revenue.
+OSBR initiates and executes experimental research projects, referred to as "Envision Project". These projects are delivered directly to consumers or businesses, generating valuable feedback that refines our "Semi-Packaged Solution". 
+
+The "Semi-Packaged Solution" is a flexible framework composed of software artifacts and domain insights that can be tailored to meet the specific needs of a client. This model enables us to leverage our expertise to create innovative solutions while ensuring alignment with client objectives and retaining creative control over the project.
 
 ```mermaid
 ---
-title: In-House Experimental Research Model
+title: Envision Project Model
 ---
 graph TB;
-    OSBR([OSBR]) -- "PoC planning" --> ES[[In-House Experimental Research]];
-    CB -- "revenue" --> ES;
+    OSBR([OSBR]) -- "PoC planning" --> ES[[Envision Project]];
+    CB -- "feedback / revenue" --> ES;
     ES -- "delivery" --> CB([Consumer / Business]);
-    ES -- "feedback condensation" --> SPS[Semi-Custom Solution];
+    ES -- "feedback condensation" --> SPS[Semi-Packaged Solution];
 ```
 
-### 3-2. Sponsored Experimental Research
 
-In this model, clients sponsor experimental research initiatives led by OSBR. The sponsored experiments are tailored to address client-specific needs and may evolve into semi-custom solutions, rebranded and refined by OSBR. These solutions are then delivered to the target audience, generating revenue while enabling clients to benefit from cutting-edge, tailored research and innovation.
+#### Sponsored Envision Project
+
+In addition to our In-House Envision Project Model, we also offers a Sponsored Envision Project Model. OSBR undertakes experimental research projects tailored to the specific needs of clients. While OSBR retains ownership of the projects, clients are granted primary acquisition rights. 
+
+This approach is not solely focused on establishing profitability as a self-sustaining project but also aims to enhance non-monetary value, such as elevating brand image, increasing awareness, and fostering user engagement.
 
 ```mermaid
 ---
-title: Sponsored Experimental Research Model
+title: Sponsored Envision Project Model
 ---
 graph TB;
     C([Client]) -- "sponsor"  --> OSBR
-    OSBR([OSBR]) -- "PoC planning" --> ES[[Sponsored Experimental Research]];
-    OSBR -- "tailor" --> SPS[Semi-Custom Solution];
-    SPS -- "rebrand" --> ES;
-    CB -- "revenue" --> ES;
+    OSBR([OSBR]) -- "PoC planning" --> ES[[Envision Project]];
+    OSBR -- "tailor" --> SPS[Semi-Packaged Solution];
+    SPS -- "branded as" --> ES;
+    CB -- "feedback / revenue" --> ES;
     ES -- "deliver" --> CB([Consumer / Business]);
 ```
 
-### 3-3. Client Work
+### 3-2. Comercial Project
 
-This model focuses on direct client commissions where OSBR takes ownership of the project while ensuring the client retains competitive resources. Semi-custom solutions are tailored, rebranded, and developed into commercial services, which are delivered to the client’s audience. This process generates revenue while enabling clients to benefit from OSBR's expertise and innovative solutions.
+OSBR collaborates with clients to develop commercial services by leveraging its field knowledge and semi-packaged solutions. These services enable clients to maximize the value of their competitive resources while enhancing liquidity by reshaping value into forms that provide better experience and ease for users.
+
+The services are designed to deliver refined, user-focused experiences, ensuring flexibility in scaling and monetization. Feedback from these services further contributes to OSBR’s innovation cycle, driving continuous improvement and alignment with market demands.
 
 ```mermaid
 ---
-title: Client Work Model
+title: Comercial Project Model
 ---
 graph TB;
     C([Client]) -- "commission"  --> OSBR
     OSBR -- "ownership" --> C;
     C -- "competitive resource" --> ES[[Commercial Service]];
-    OSBR -- "tailor" --> SPS[Semi-Custom Solution];
-    SPS -- "rebrand" --> ES;
-    CB -- "revenue" --> ES;
+    OSBR -- "tailor" --> SPS[Semi-Packaged Solution];
+    SPS -- "branded as" --> ES;
+    CB -- "feedback / revenue" --> ES;
     ES -- "deliver" --> CB([Consumer / Business]);
 ```
 
 
-### 3-4. Ownership Transfer
+### 3-3. Ownership Transfer
 
-The ownership transfer model allows OSBR to collaborate with clients, transferring ownership of PoC initiatives or semi-custom solutions developed through in-house or sponsored experimental research. These solutions are rebranded into commercial services and delivered to consumers or businesses. The client benefits from iterative evolution while OSBR ensures value delivery and sustainability through revenue generated by these solutions.
+In cases where clients wish to take full control of an envision project, OSBR facilitates ownership transfer, providing the necessary resources and support for a seamless transition. This model empowers clients to continue developing projects independently while benefiting from OSBR’s foundational contributions.
 
 ```mermaid
 ---
@@ -114,10 +121,10 @@ title: Ownership Transfer Model
 graph TB;
     C([Client]) -- "commission" --> OSBR([OSBR]);
     OSBR([OSBR]) -- "ownership"  --> C
-    IHSES[[In-House / Sponsored Experimental Research]] -- "rebrand" --> CS[[Comercial Service]];
-    C -- "evolve" --> IHSES;
+    IHSES[[Envision Project]] -- "rebranded as" --> CS[[Comercial Service]];
+    C -- "tailor" --> IHSES;
     CS -- "deliver" --> CB([Consumer / Business]);
-    CB -- "revenue" --> CS;
+    CB -- "feedback / revenue" --> CS;
 ```
 
 ## 4. Operational Plan
