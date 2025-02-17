@@ -27,7 +27,7 @@ graph BT;
 
     ED -- "proof of concept (PoC)" --> EFR[[Envision Project]];
 
-    subgraph Client / Partner
+    subgraph CP[Client / Partner]
       direction BT
       ED -- "semi-custom solution" --> CDE[Digital Interface];
       CCV[Competitive Resource]
@@ -35,8 +35,8 @@ graph BT;
     subgraph Collaborator
       CD[Communication Design / Marketing Research] --"exective support"--> CDE
     end
-    CD --"exective support"--> EFR
-    CCV -- "core value" --> CS[[Comercial Project]];
+    EFR -. "scaling up" .-> CS;
+    CCV -- "core value" --> CS[[Commercial Service]];
     CDE -- "liquidity enhancement" --> CS;
     EFR -- "experimental field research" --> U[Consumer / Business];
     CS -- "enriched engagement" --> U;
@@ -89,7 +89,7 @@ graph TB;
     ES -- "deliver" --> CB([Consumer / Business]);
 ```
 
-### 3-2. Comercial Project
+### 3-2. Client Work for Commercial Service
 
 OSBR collaborates with clients to develop commercial services by leveraging its field knowledge and semi-packaged solutions. These services enable clients to maximize the value of their competitive resources while enhancing liquidity by reshaping value into forms that provide better experience and ease for users.
 
@@ -97,7 +97,7 @@ The services are designed to deliver refined, user-focused experiences, ensuring
 
 ```mermaid
 ---
-title: Comercial Project Model
+title: Client Work Model
 ---
 graph TB;
     C([Client]) -- "commission"  --> OSBR
@@ -121,7 +121,7 @@ title: Ownership Transfer Model
 graph TB;
     C([Client]) -- "commission" --> OSBR([OSBR]);
     OSBR([OSBR]) -- "ownership"  --> C
-    IHSES[[Envision Project]] -- "rebranded as" --> CS[[Comercial Service]];
+    IHSES[[Envision Project]] -- "rebranded as" --> CS[[Commercial Service]];
     C -- "tailor" --> IHSES;
     CS -- "deliver" --> CB([Consumer / Business]);
     CB -- "feedback / revenue" --> CS;
