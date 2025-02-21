@@ -283,10 +283,10 @@ Following is the typical agenda for the weekly planning meeting.
 ## 3. Tutorial
 
 ::: info Notice
-The `osbr-jp/tutorial` is a private repository.
+The `osbrjp/tutorial` is a private repository.
 :::
 
-If you are a new developer, start by following the tutorial below on the `osbr-jp/tutorial` repository. `osbr-jp/tutorial` is a safe repository for learning and getting used to our standard workflow, so feel free to experiment and ask questions.
+If you are a new developer, start by following the tutorial below on the `osbrjp/tutorial` repository. `osbrjp/tutorial` is a safe repository for learning and getting used to our standard workflow, so feel free to experiment and ask questions.
 
 
 ### 3-1. Create your first issue
@@ -330,7 +330,7 @@ Set the issue status to `Spec Review`. Mention the reviewer on the pull request.
 Set the issue status to `In Progress`. Clone the repository to your local machine and check out the branch automatically created alongside the pull request. The branch name follows the format i[issue_no]-[DATE]-[HHMM].
 
 ```bash
-$ git clone git@github.com:osbr-jp/tutorial.git
+$ git clone git@github.com:osbrjp/tutorial.git
 $ cd tutorial
 $ git checkout i1-20250210-1307 # example
 ```

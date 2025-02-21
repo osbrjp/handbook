@@ -19,7 +19,10 @@ export default defineConfig({
     sidebar: [
       {
         text: "About",
-        items: [{ text: "What is Handbook?", link: "/what-is-handbook" }],
+        items: [
+          { text: "What is Handbook?", link: "/what-is-handbook" },
+          { text: "Strategy Overview", link: "/strategy" },
+        ],
       },
       {
         text: "Guideline",
