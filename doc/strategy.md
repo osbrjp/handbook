@@ -165,34 +165,3 @@ A linguistic skill to enrich the contextful vocabularies, avoiding ambiguous exp
 | Graphical       | Movie                | More envisional with timeframe transformation. |
 
 These are languages that draw aspects of the same object from different viewpoints. The bottom line is not a matter of syntax, but semantics. Either syntax, with a careful insight into semantic integrity, we can describe the object more confidently, otherwise we, including AI, get lost in the mist.
-
-
-#### 4-2-3. Empathy as a skill
-
-* EQ over IQ
-* be nice, be kind, be string
-* A boss should always keep their own mood cheerful—that's part of the job too."
-
-
-#### 4-2-4. A self-directive mindset
-
-A sense of directive thinking over binary thinking. We keep wider and higher vision same time we focus.
-
-It's like a light on your hand pointing out forwading ground ensuring steps straight. And possibly we get lost when our heads up for further places with the light pointing from east to west. However, there is no right / wrong direction in fact, but only better / worse direction. And of course this is not about night walk, this is about how a self-directive mindset is importnat to get one step closer to the best direction.
-
-
-#### 4-2-5. A sense for irreplaceable responsibility
-
-In the near future, there may come a day when AI alone thinks and acts in the name of what we call "responsibility." However, it remains unclear what happens if AI is not as responsible as we expect. Some people argue that the last remaining job for humanity will be to take responsibility for AI's actions.
-
-From an optimistic perspective, this is not necessarily a dystopian forecast but rather more reasonable for human being instead of competing with AI produce high-speed, high-level intellectual outputs.
-
-
-### 4-3. Skill Development
-
-### 4-4. Team Building
-
-### 4-5. Product Roadmap
-
-### 4-6. Risk Control
-
