@@ -1,27 +1,56 @@
-# Code of Conduct
+# OSBR Code of Conduct
 
-The code of conduct is not only a show of inclusivity, it is a code that is held on to ensure that the working environment is welcoming and condusive towards all the members of OSBR.
-
-## Our Promise
-
-In creating an environment where all is welcomed regardless of; race, gender, disability, religion, appearance, opinions and expressions, the members of OSBR promise to treat **everyone** equally and with consideration, without prejudice while still holding own to our personal beliefs.
-
-## Our Standards
-
-Examples of behavior that contributes to creating a positive environment include:
-
-1. Using welcoming and inclusive language.
-2. Being respectful of differing viewpoints and experiences.
-3. Gracefully accepting constructive criticism.
-4. Focusing on what is best for the community.
-5. Showing empathy towards other community members.
+Creating a professional, inclusive, and respectful environment is a core value at OSBR. This Code of Conduct ensures that all members can work and collaborate in a welcoming and supportive space.
 
 ---
 
-Examples of unacceptable behavior by participants include:
+### Scope
 
-1. The use of sexualized language or imagery and unwelcome sexual attention or advances.
-2. Trolling, insulting/derogatory comments, and personal or political attacks.
-3. Public or private harassment.
-4. Publishing others' private information, such as a physical or electronic address, without explicit permission.
-5. Other conduct which could reasonably be considered inappropriate in a professional setting.
+> This Code of Conduct applies within all project spaces, including repositories, forums, and events. It also extends to public spaces when representing OSBR or its community.
+
+---
+
+## Our Commitment
+
+At OSBR, we are committed to fostering a community that welcomes **everyone**, regardless of race, gender, disability, religion, appearance, opinions, or expressions. We believe in treating all individuals with respect and fairness while honoring personal beliefs.
+
+---
+
+## Community Standards
+
+To maintain a positive and productive environment, we encourage:  
+✔️ Inclusive and considerate language.  
+✔️ Respect for diverse perspectives and experiences.  
+✔️ Open-mindedness when receiving feedback.  
+✔️ A focus on community well-being.  
+✔️ Kindness, empathy, and professionalism in interactions.
+
+---
+
+## Unacceptable Behavior
+
+To ensure safety and respect, the following actions are **prohibited**:  
+❌ Sexualized language, imagery, or unwelcome advances.  
+❌ Harassment, insults, trolling, or personal attacks.  
+❌ Sharing private or confidential information without consent.  
+❌ Any conduct deemed inappropriate in a professional setting.
+
+---
+
+## Enforcement
+
+We take violations seriously. If you witness or experience unacceptable behavior, report it to **info@osbrjp.com**. All reports will be reviewed, and appropriate action will be taken to maintain a safe and respectful space.
+
+---
+
+## Attribution
+
+This Code of Conduct is inspired by the **GitLab Community Code of Conduct**, available at [GitLab Code of Conduct](https://about.gitlab.com/community/contribute/code-of-conduct/).
+
+---
+
+<br><br><br>
+
+### Policy Updates
+
+_Last updated: **February 25, 2025**_
