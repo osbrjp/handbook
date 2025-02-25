@@ -22,6 +22,7 @@ export default defineConfig({
         items: [
           { text: "What is Handbook?", link: "/what-is-handbook" },
           { text: "Strategy Overview", link: "/strategy" },
+          { text: "Code of Conduct", link: "/code-of-conduct" },
         ],
       },
       {
