@@ -6,7 +6,7 @@ const mermaidPlugin = withMermaid({});
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   ...mermaidPlugin,
-  base: "/handbook", // TODO: Will be removed when the custom domain option is enabled.
+  base: "/",
   title: "The OSBR Handbook",
   description: "A transparent guide to OSBR’s culture, values, and workflows.",
   themeConfig: {
