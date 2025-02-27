@@ -52,11 +52,9 @@ Leveraging this foundation—and without altering our core vision—we have shif
 
 Our business model is structured to align with the Value Delivery Model described above, ensuring sustainable operations while fostering innovation. The model comprises three key strategies, each designed to play a unique and complementary role in achieving our mission:
 
-<a id="envision-project"></a>
+### 3-1. Envision Project
 
-### 3-1. Envisioned Projects
-
-OSBR initiates and executes experimental research projects, referred to as "Envisioned Projects". These projects are delivered directly to consumers or businesses, generating valuable feedback that refines our "Semi-Packaged Solution".
+OSBR initiates and executes experimental research projects, referred to as "Envision Project". These projects are delivered directly to consumers or businesses, generating valuable feedback that refines our "Semi-Packaged Solution".
 
 The "Semi-Packaged Solution" is a flexible framework composed of software artifacts and domain insights that can be tailored to meet the specific needs of a client. This model enables us to leverage our expertise to create innovative solutions while ensuring alignment with client objectives and retaining creative control over the project.
 
@@ -71,9 +69,9 @@ graph TB;
     ES -- "feedback condensation" --> SPS[Semi-Packaged Solution];
 ```
 
-#### Sponsored Envisioned Project
+#### Sponsored Envision Project
 
-In addition to our In-House Envisioned Project Model, we also offers a Sponsored Envisioned Project Model. OSBR undertakes experimental research projects tailored to the specific needs of clients. While OSBR retains ownership of the projects, clients are granted primary acquisition rights.
+In addition to our In-House Envision Project Model, we also offers a Sponsored Envision Project Model. OSBR undertakes experimental research projects tailored to the specific needs of clients. While OSBR retains ownership of the projects, clients are granted primary acquisition rights.
 
 This approach is not solely focused on establishing profitability as a self-sustaining project but also aims to enhance non-monetary value, such as elevating brand image, increasing awareness, and fostering user engagement.
 
