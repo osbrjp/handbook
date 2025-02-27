@@ -8,7 +8,7 @@ We are a development company working in collaboration with our parent company, O
 
 As a development team, we research and test emerging technologies to drive business growth and innovation. Our focus is on staying ahead of industry trends, making sure clients stay ahead in the digital space.
 
-Beyond digital services, we believe in turning ideas into reality. Through our [Envisioned Projects](strategy.md#envision-project), we push creative and technological boundaries with hands-on, real-world initiatives. Explore our latest work on our [website](https://www.osbrjp.com/en/)
+Beyond digital services, we believe in turning ideas into reality. Through our [Envisioned Projects](strategy.md#envision-project), we push creative and technological boundaries with hands-on, real-world initiatives. Explore our latest work on our [website.](https://www.osbrjp.com/en/)
 
 ## 2. Vision and Values
 
