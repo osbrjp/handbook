@@ -28,12 +28,15 @@ export default defineConfig({
         text: "People & Culture",
         items: [
           { text: "Code of Conduct", link: "/code-of-conduct" },
-          { text: "Talent Acquisition", link: "/talent-acquisition" },
+          { text: "Developer of Today", link: "/developer-of-today" },
         ],
       },
       {
         text: "Guideline",
-        items: [{ text: "Development Guide", link: "/development-guide" }],
+        items: [
+          { text: "Hiring Process", link: "/hiring-process" },
+          { text: "Development Guide", link: "/development-guide" },
+        ],
       },
     ],
     socialLinks: [
