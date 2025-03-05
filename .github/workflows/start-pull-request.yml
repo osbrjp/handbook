@@ -25,7 +25,7 @@ jobs:
             gh pr list \
               --repo $REPO \
               --state open \
-              --search "Closes #$ISSUE_NUM in:body" \
+              --search '"Closes \#$ISSUE_NUM" in:body' \
               --json number | jq '. | length'\
           )
           echo "OPEN_LINKED_PR_LENGTH=$open_linked_pr_length" >> $GITHUB_ENV
