@@ -1,4 +1,4 @@
-# Strategy Overview (Draft)
+# Strategy Overview
 
 [[TOC]]
 
@@ -126,42 +126,3 @@ graph TB;
     CS -- "deliver" --> CB([Consumer / Business]);
     CB -- "feedback / revenue" --> CS;
 ```
-
-## 4. Operational Plan
-
-### 4-1. Culture Cultivation
-
-At OSBR, we are in the early stages of shaping our organizational culture. As a newly established company, we recognize the importance of building a strong foundation that reflects our values, vision, and  workflows. 
-
-So by referring the [GitLab model](https://www.hbs.edu/faculty/Pages/item.aspx?num=57917), we have committed to developing the OSBR Handbook, a comprehensive guide publicly accessible as you can read this now. While our primary goal is to cultivate a strong internal culture, our open-access policy may also help refine OSBR’s identity by incorporating feedback from clients, partners, and potential collaborators.
-
-This is not just a traditional approach but rather a pragmatic way to maintain context awareness in the emerging AI-Agent era while retaining control over both the accuracy and accessibility of organization-wide knowledge for humans. For the same reason, we write text not only for humans but also for AI at the project, repository, and pull request levels.
-
-
-### 4-2. Talent Acquisition
-
-Like many early-stage startups, we are facing challenges in attracting top talent. However, with the rise of LLMs, the way we define "skill" and "capability" is dynamically shifting. Even those who were once considered top professionals are now being pushed to adapt and transform.
-
-At OSBR, we believe that talent is not just about past achievements, nor merely about adaptability or curiosity about new technologies. Rather, it is defined by the following abilities:
-
-#### 4-2-1. An attitude transcending AI artifacts with AI
-
-An ability to critically evaluate AI-generated artifacts without an attitude of unconditional acceptance or outright rejection—discerning whether they are accurate or flawed, beneficial or harmful. 
-
-In other words, it is a mindset that goes beyond AI artifacts by using AI—creating greater value rather than merely replicating it. To pursue an even greater ideal, one must sharpen a deeper intellectual appetite which AI-generated artifacts alone can never satisfy.
-
-
-#### 4-2-2. A careful insight into semantic integrity
-
-A linguistic skill to enrich the contextful vocabularies, avoiding ambiguous expressions from a word to a set of concepts, and from upstream to downstream. We priotize this skill because we believe software designing is to design a domain specific language (DSL) which enough descriptive for building the software. In this context, the meaning of "language" is expanded as following:
-
-##### Discriptive Languages
-
-| Visibility      | Name             | Memo   |
-|-----------------|------------------|--------|
-| Character Based | Natural Language     | Descriptive in every abstraction level. |
-| Character Based | Programming Language | Executable as one formal expression with no ambiguity. |
-| Graphical       | Graphic Image        | Envisional by picturing an aspect of the object. |
-| Graphical       | Movie                | More envisional with timeframe transformation. |
-
-These are languages that draw aspects of the same object from different viewpoints. The bottom line is not a matter of syntax, but semantics. Either syntax, with a careful insight into semantic integrity, we can describe the object more confidently, otherwise we, including AI, get lost in the mist.

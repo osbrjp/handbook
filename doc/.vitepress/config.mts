@@ -21,13 +21,21 @@ export default defineConfig({
         text: "About",
         items: [
           { text: "What is Handbook?", link: "/what-is-handbook" },
-          { text: "Strategy Overview", link: "/strategy" },
+          { text: "Strategy", link: "/strategy" },
+        ],
+      },
+      {
+        text: "People & Culture",
+        items: [
           { text: "Code of Conduct", link: "/code-of-conduct" },
+          { text: "Talent Acquisition", link: "/talent-acquisition" },
         ],
       },
       {
         text: "Guideline",
-        items: [{ text: "Development Guide", link: "/development-guide" }],
+        items: [
+          { text: "Development Guide", link: "/development-guide" },
+        ],
       },
     ],
     socialLinks: [
