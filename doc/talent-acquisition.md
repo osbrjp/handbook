@@ -16,7 +16,11 @@ Why should this interest you?
 
 Programmers shouldn't just be assigned to repetitive tasks or minor bug fixes. AI is already automating those tasks anways. The belief in learning by doing is something that should be hold on to.
 
+<<<<<<< HEAD
 Developers should be involved in building, testing, and iterating on real projects. Whether it’s prototyping new features, optimizing performance, or solving complex challenges. To actively contribute to meaningful work that has an impact is the point.
+=======
+Devs should be involved in building, testing, and iterating on real projects. Whether it’s prototyping new features, optimizing performance, or solving complex challenges. To actively contribute to meaningful work that has an impact is the point.
+>>>>>>> refs/remotes/origin/i23-20250226-0128
 
 Initiative and problem-solving are most welcomed. That way, every developer gets to experience the full software development lifecycle, rather than just isolated fragments of it.
 
@@ -110,19 +114,31 @@ Teamwork is an essential part of every successful project. The ability to work h
 
 ## 3. Roles & Expectations
 
+<<<<<<< HEAD
 OSBR seeks builders, innovators, and problem-solvers. If you're interested in shaping the backbone of an application, designing seamless user experiences, or pushing the boundaries of AI, we are too.
 
 There's a strong sense of collaboration over hierarchy here. That means your ideas matter, and we expect you to speak your mind!
+=======
+OSBR seeks builders, innovators, and problem-solvers. If you're interested in shaping the backbone of an application, designing seamless user experiences, or pushing the boundaries of AI, there's a place for you here.
+
+There's a strong sense of collaboration over hierarchy here. If you're looking for a place where your ideas matter, you're in the right spot.
+>>>>>>> refs/remotes/origin/i23-20250226-0128
 
 ### 3-1. Roles
 
 Here's a brief description of some roles that are available in our team. Which one describes you best?
 
+<<<<<<< HEAD
 ---
 
 #### Backend Developer
 
 - You're the architect. You enjoy designing efficient systems, and making things work behind the scenes.
+=======
+#### Backend Developer
+
+You're the architect. You enjoy designing efficient systems, and making things work behind the scenes.
+>>>>>>> refs/remotes/origin/i23-20250226-0128
 
 | **What You’ll Do**                                          | **You’ll Thrive If You...**                                   |
 | ----------------------------------------------------------- | ------------------------------------------------------------- |
@@ -130,6 +146,7 @@ Here's a brief description of some roles that are available in our team. Which o
 | Optimize databases for speed, reliability, and scalability. | Have experience with databases (SQL, NoSQL).                  |
 | Work with cloud services to ensure smooth deployments.      | Are comfortable with cloud platforms like AWS, GCP, or Azure. |
 
+<<<<<<< HEAD
 - Working Conditions:
 
 | **Category**  | **Details**                                       |
@@ -139,11 +156,17 @@ Here's a brief description of some roles that are available in our team. Which o
 | Tech Stack    | Primarily Python, Go, PostgreSQL, FastAPI         |
 | Collaboration | Works closely with frontend engineers and AI team |
 
+=======
+>>>>>>> refs/remotes/origin/i23-20250226-0128
 ---
 
 #### Frontend Developer
 
+<<<<<<< HEAD
 - You're the artist. You like turning ideas into beautiful and functional user interfaces. You care about design and making the web feel seamless.
+=======
+You're the artist. You like turning ideas into beautiful and functional user interfaces. You care about design and making the web feel seamless.
+>>>>>>> refs/remotes/origin/i23-20250226-0128
 
 | **What You’ll Do**                                                   | **You’ll Thrive If You...**                       |
 | -------------------------------------------------------------------- | ------------------------------------------------- |
@@ -151,6 +174,7 @@ Here's a brief description of some roles that are available in our team. Which o
 | Ensure a smooth, fast, and accessible experience for users.          | Have an eye for UI/UX and pixel-perfect design.   |
 | Work with designers and backend developers to bring visions to life. | Enjoy crafting smooth animations and transitions. |
 
+<<<<<<< HEAD
 - Working Conditions:
 
 | **Category**  | **Details**                                          |
@@ -160,11 +184,17 @@ Here's a brief description of some roles that are available in our team. Which o
 | Tech Stack    | Primarily JavaScript, React, TypeScript, TailwindCSS |
 | Collaboration | Works closely with designers and backend engineers   |
 
+=======
+>>>>>>> refs/remotes/origin/i23-20250226-0128
 ---
 
 #### AI Engineer
 
+<<<<<<< HEAD
 - You’re the innovator. Your fascination towards AI and its potential to revolutionize the way we work and live makes you eager to build.
+=======
+You’re the innovator. Your fascination towards AI and its potential to revolutionize the way we work and live makes you eager to build.
+>>>>>>> refs/remotes/origin/i23-20250226-0128
 
 | **What You’ll Do**                                       | **You’ll Thrive If You...**                                            |
 | -------------------------------------------------------- | ---------------------------------------------------------------------- |
@@ -172,6 +202,7 @@ Here's a brief description of some roles that are available in our team. Which o
 | Work with large datasets to extract meaningful insights. | Enjoy working with data and optimizing machine learning models.        |
 | Integrate AI into applications to enhance automation.    | Love experimenting with AI-powered solutions.                          |
 
+<<<<<<< HEAD
 - Working Conditions:
 
 | **Category**  | **Details**                                                    |
@@ -232,16 +263,52 @@ There's no mandate on a single tech stack right? It's your call to which one fit
 ### 4-2. The Mindset of a Polyglot Engineer
 
 The general consensus is that a well-rounded engineer:
+=======
+### 3-2. Expectations
+
+Although everyone carries a designated title, at OSBR, roles are not rigid boxes. We believe that programmers grow best when they have the freedom to explore different areas, collaborate across teams, and expand their skill sets. It's a culture where learning and adaptability are valued just as much as expertise.
+
+Collaboration is at the heart of what we do. Projects are rarely built in isolation, and working closely with different teams is part of the process. We see titles as starting points rather than limitations. Growth isn’t just about writing better code, it’s about becoming a well-rounded and innovative problem solver. If you agree with these concepts towards being a programmer, you're exactly like us!
+
+## 4. Technical Know-how
+
+Technical skills are more than just knowledge of tools and frameworks. The value of an engineers lies on adaptability. Of course, there is also a need for a solid foundation in core principles.
+
+### 4-1. Mastery of Core Technologies
+
+A strong understanding of fundamental technologies is essential for building reliable systems.
+
+| Field                    | Core Competencies                                         |
+| ------------------------ | --------------------------------------------------------- |
+| **Backend Development**  | API design, database management, server architecture      |
+| **Frontend Development** | UI frameworks, state management, responsive design        |
+| **AI & Data Processing** | Machine learning basics, data pipelines, model deployment |
+| **Cloud Computing**      | Cloud services, containerization, serverless architecture |
+
+Theres many softwares and programs that are able to handle these comptencies. It's your call to which one fits best for the task.
+
+### 4-2. The Mindset of a Polyglot Engineer
+
+I think the majority would agree when we say that a well-rounded engineer:
+>>>>>>> refs/remotes/origin/i23-20250226-0128
 
 - Recognises the advantage of multiple languages (Python, JavaScript, Go, Rust, etc.)
 - Cares about programming paradigms (object-oriented, functional)
 - Adapts to new languages and frameworks based on project needs
 
+<<<<<<< HEAD
 Just like this handbook is always evolving, wouldn't you agree that an engineer’s greatest strength is their ability to adapt too?
 
 ### 4-3. Collaboration and Version Control
 
 Software development is a team effort, and effective collaboration is critical anywhere. For that reason, we must be comfortable working within workflows and using version control systems like Git.
+=======
+Just like this handbook that's forever in-draft, A jack of all trades, master of none would carry more value than just A master of one. Wouldn't you agree?
+
+### 4-3. Collaboration and Version Control
+
+Software development is a team effort, and effective collaboration is critical anywhere, in any field. We, as a team, must be comfortable working within workflows, using version control systems like Git.
+>>>>>>> refs/remotes/origin/i23-20250226-0128
 
 ```mermaid
 ---
@@ -257,7 +324,11 @@ graph TB;
   F -->|Deployed Successfully| G[Project Updated]
 ```
 
+<<<<<<< HEAD
 After all, you're not alone in pushing changes to technology. You're standing on the backs of those before you and together, the impossible begins to look a little more possible.
+=======
+It's best to get to know collaborative tools and version control systems. After all, you're not alone in pushing changes to technology. You're standing on the backs of those before you and together, the impossible begins to look a little more possible.
+>>>>>>> refs/remotes/origin/i23-20250226-0128
 
 ## 5. Application Process
 
@@ -281,6 +352,7 @@ graph TB;
     E --Try Again--> A;
 ```
 
+<<<<<<< HEAD
 ### 5-1. How to Apply
 
 You can apply through the following channels:
@@ -322,10 +394,34 @@ You can apply through the following channels:
 #### Final Interview
 
 - Meet the team, discuss expectations, and understand how you'd fit within OSBR.
+=======
+### 5-1. What to Expect
+
+#### Application Submission
+
+- Applying via job platforms like Jobstreet or Hiredly. Besides that, you can email us directly.
+
+#### Initial Screening
+
+- A quick introduction to understand your experience and interests. You'd be reached via a phone call.
+
+#### Online Interview
+
+- Discuss your background, projects, and problem-solving approach. A couple of personality questions too.
+
+#### Technical Assessment
+
+- A take-home challenge or live coding session. We'll let you know beforehand and agree on a speicifc time together so you don't have to worry about timing or availability.
+
+#### Final Interview
+
+- Meet the team and we'll find out how you fit within OSBR.
+>>>>>>> refs/remotes/origin/i23-20250226-0128
 
 #### Offer & Onboarding
 
 - You're a perfect match, welcome aboard!
+<<<<<<< HEAD
 - You’ll receive your offer letter with role details and next steps.
 
 ### 5-3. Frequently Asked Questions
@@ -345,3 +441,5 @@ You can apply through the following channels:
 1. Do you accept remote applications?
 
    At the moment, we prioritize on-site positions at OSBR headquarters, but some roles may offer flexibility.
+=======
+>>>>>>> refs/remotes/origin/i23-20250226-0128
