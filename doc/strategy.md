@@ -1,4 +1,4 @@
-# Strategy Overview (Draft)
+# Strategy Overview
 
 [[TOC]]
 
