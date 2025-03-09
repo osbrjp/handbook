@@ -34,7 +34,9 @@ export default defineConfig({
       {
         text: "Guideline",
         items: [
+          { text: "On-boarding Guide", link: "/on-boarding" },
           { text: "Development Guide", link: "/development-guide" },
+          { text: "Technical Glossary", link: "/technical-glossary" },
         ],
       },
     ],
