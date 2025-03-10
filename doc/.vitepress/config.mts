@@ -3,12 +3,25 @@ import { withMermaid } from "vitepress-plugin-mermaid";
 
 const mermaidPlugin = withMermaid({});
 
+
+
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   ...mermaidPlugin,
   base: "/",
   title: "The OSBR Handbook",
   description: "A transparent guide to OSBR’s culture, values, and workflows.",
+  head: [
+    ['script', { async: '', src: `https://www.googletagmanager.com/gtag/js?id=${'G-15N43GQ2Y7'}` }],
+    [
+      'script',
+      {},
+      `window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'TAG_ID');`
+    ]
+  ],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
