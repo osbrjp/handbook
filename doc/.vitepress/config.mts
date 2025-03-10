@@ -1,7 +1,6 @@
 import { defineConfig } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
 
-
 const mermaidPlugin = withMermaid({});
 
 // https://vitepress.dev/reference/site-config
@@ -10,6 +9,9 @@ export default defineConfig({
   base: "/",
   title: "The OSBR Handbook",
   description: "A transparent guide to OSBR’s culture, values, and workflows.",
+   head: [
+    ['link', { rel: 'icon', href: 'favicon.svg', type: 'image/svg+xml'}]
+   ],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
 
