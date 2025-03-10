@@ -2,7 +2,8 @@ import { defineConfig} from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
 
 const mermaidPlugin = withMermaid({});
-const tag = process.env.GOOTLE_TAG_ID;
+
+
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -11,14 +12,14 @@ export default defineConfig({
   title: "The OSBR Handbook",
   description: "A transparent guide to OSBR’s culture, values, and workflows.",
   head: [
-    ['script', { async: '', src: `https://www.googletagmanager.com/gtag/js?id=${tag}` }],
+    ['script', { async: '', src: `https://www.googletagmanager.com/gtag/js?id=${'G-15N43GQ2Y7'}` }],
     [
       'script',
       {},
       `window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', '${tag}');`
+      gtag('config', 'G-15N43GQ2Y7');`
     ]
   ],
   themeConfig: {
