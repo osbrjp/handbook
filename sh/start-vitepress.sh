@@ -10,4 +10,5 @@ cd $PROJECT_ROOT
 
 # -------
 
+npm install
 npm run docs:dev
