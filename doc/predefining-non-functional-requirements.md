@@ -6,10 +6,10 @@ In the development process, it is necessary to define non-functional and functio
 
 ## 1. What are NFRs?
 
-Unlike functional requirements, non-functional requirements describe the quality, performance, and constraints of a system rather than specific features or behaviors.
+Unlike functional requirements, NFRs describe the quality, performance, and constraints of a system rather than specific features or behaviors.
 They set criteria for the system's operational characteristics, covering aspects like performance, security, usability, and reliability.
 
-While functional requirements ensure a system works, non-functional requirements ensure it works well in real-world conditions. Without NFRs, a system may technically function but fail to satisfy users, business goals, or legal standards.
+While functional requirements ensure a system works, NFRs ensure it works well in real-world conditions. Without NFRs, a system may technically function but fail to satisfy users, business goals, or legal standards.
 
 ::: tip NOTE
 A system might "work" without meeting NFRs, but it could fail to meet business needs or user expectations, making it practically unusable in real life. So even though they’re sometimes seen as "secondary," NFRs are crucial for real-world success.
@@ -91,7 +91,7 @@ The system should adheres to laws, regulations, and industry standards.
 
 ## 3. Why are NFRs Important?
 
-Non-functional requirements are essential for success beyond "making it work".
+NFRs are essential for success beyond "making it work".
 
 Here’s why:
 
@@ -103,7 +103,7 @@ Here’s why:
 | \*Cost Management    | NFRs guide scalable and maintainable design, preventing future technical debt.                    |
 | Reputation           | Failure to meet expectations can damage brand reputation and customer trust.                      |
 
-As shown above, non-functional requirements are not just extras to have. They are essential for delivering a product that users love, businesses can rely on, and teams can maintain over time.
+As shown above, NFRs are not just extras to have. They are essential for delivering a product that users love, businesses can rely on, and teams can maintain over time.
 
 ## 4. Common Mistakes with NFRs
 
