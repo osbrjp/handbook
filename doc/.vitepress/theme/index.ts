@@ -1,5 +1,10 @@
 // https://vitepress.dev/guide/custom-theme
+
 import DefaultTheme from 'vitepress/theme'
+import MyLayout from './MyLayout.vue'
 import './custom.css'
 
-export default DefaultTheme
+export default {
+    extends: DefaultTheme,
+    Layout: MyLayout
+}
