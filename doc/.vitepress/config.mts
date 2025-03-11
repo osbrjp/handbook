@@ -11,7 +11,8 @@ export default defineConfig({
   base: "/",
   title: "The OSBR Handbook",
   description: "A transparent guide to OSBR’s culture, values, and workflows.",
-  head: [
+   head: [
+    ['link', { rel: 'icon', href: 'favicon.svg', type: 'image/svg+xml'}],
     ['script', { async: '', src: `https://www.googletagmanager.com/gtag/js?id=${'G-15N43GQ2Y7'}` }],
     [
       'script',
@@ -24,6 +25,12 @@ export default defineConfig({
   ],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
+
+    logo: {
+      src: '/logo1.svg', 
+      alt: 'logo'
+    },
+
     nav: [
       { text: "Home", link: "/" },
       { text: "OSBR", link: "https://www.osbrjp.com" },
