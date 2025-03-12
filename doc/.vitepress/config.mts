@@ -56,6 +56,7 @@ export default defineConfig({
         items: [
           { text: "On-boarding Guide", link: "/on-boarding" },
           { text: "Development Guide", link: "/development-guide" },
+          { text: "Non-functional Requirements", link: "/predefining-non-functional-requirements"},
           { text: "Technical Glossary", link: "/technical-glossary" },
         ],
       },
