@@ -1,9 +1,7 @@
-import { defineConfig} from "vitepress";
+import { defineConfig } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
 
 const mermaidPlugin = withMermaid({});
-
-
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -11,24 +9,30 @@ export default defineConfig({
   base: "/",
   title: "The OSBR Handbook",
   description: "A transparent guide to OSBR’s culture, values, and workflows.",
-   head: [
-    ['link', { rel: 'icon', href: 'favicon.svg', type: 'image/svg+xml'}],
-    ['script', { async: '', src: `https://www.googletagmanager.com/gtag/js?id=${'G-15N43GQ2Y7'}` }],
+  head: [
+    ["link", { rel: "icon", href: "favicon.svg", type: "image/svg+xml" }],
     [
-      'script',
+      "script",
+      {
+        async: "",
+        src: `https://www.googletagmanager.com/gtag/js?id=${"G-15N43GQ2Y7"}`,
+      },
+    ],
+    [
+      "script",
       {},
       `window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-15N43GQ2Y7');`
-    ]
+      gtag('config', 'G-15N43GQ2Y7');`,
+    ],
   ],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
 
     logo: {
-      src: '/logo1.svg', 
-      alt: 'logo'
+      src: "/logo1.svg",
+      alt: "logo",
     },
 
     nav: [
@@ -56,9 +60,16 @@ export default defineConfig({
         items: [
           { text: "On-boarding Guide", link: "/on-boarding" },
           { text: "Development Guide", link: "/development-guide" },
-          { text: "Non-functional Requirements", link: "/predefining-non-functional-requirements"},
+          {
+            text: "Non-functional Requirements",
+            link: "/predefining-non-functional-requirements",
+          },
           { text: "Technical Glossary", link: "/technical-glossary" },
         ],
+      },
+      {
+        text: "Policies",
+        items: [{ text: "SHEQ Policy", link: "/sheq-policy" }],
       },
     ],
     socialLinks: [
