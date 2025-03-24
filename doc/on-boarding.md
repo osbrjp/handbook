@@ -73,6 +73,11 @@ Throughout the development process, you may need to record operations as images 
 
 For Mac, it is recommended to use **Skitch** for screenshots and **QuickTime Player** (`shift + command + 5`) for video recording.
 
+#### Subscribe to Japan & Malaysia holiday event calendar
+
+Since OSBR has employees from both Japan and Malaysia, it is important to receive notifications when the current or following day is a public holiday in both countries for other employees to better plan tasks and meetings in advance.
+
+To subscribe to a holiday calendar on macOS, open the Calendar app, go to File > New Calendar Subscription, enter the calendar's web address (like https://www.officeholidays.com/ics/malaysia), and follow the prompts to name the calendar, choose an account, and set update frequency
 
 ## 2. First Week
 
