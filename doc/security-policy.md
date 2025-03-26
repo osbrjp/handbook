@@ -153,7 +153,8 @@ Do not share screenshots containing personal data in GitHub issues, pull request
 Security Measures for Workloads
 -----------------------------
 
-Security measures for applications and their runtime environments are defined in the [Application Design Guidelines](/development/application).
+<!-- TODO: Create the Application Design Guidelines page at /development/application -->
+Security measures for applications and their runtime environments are defined in the Application Design Guidelines.
 
 Appendix 1: Protected Assets
 -----------------------------
