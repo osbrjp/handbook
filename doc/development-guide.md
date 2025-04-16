@@ -8,7 +8,7 @@ In this page, you will find the standard development policy and workflow in OSBR
 
 ### 1-1. Setup Your Machine
 
-Following checklist is all mandatory by our security policy:
+The following checklist is all mandatory by our security policy:
 
 * Use company-provided laptop or company-approved personal device.
 * Sleep mode activation within 5 minutes, mandatory reauthentication after sleep mode.
@@ -148,8 +148,8 @@ The following GitHub Actions are pre-configured in each repository.
 | --- | ---- | ----------- |
 | 1 | `start-pull-request` | Create a pull request by assigning a developer to the issue. |
 | 2 | `prepare-release` | Prepare a release pull request merging main to release. |
-| 3 | `run-tests` | Skelton action which is supposed to run tests. |
-| 4 | `release` | Skelton action which is supposed to deploy and publish release note. |
+| 3 | `run-tests` | Skeleton action which is supposed to run tests. |
+| 4 | `release` | Skeleton action which is supposed to deploy and publish release note. |
 
 #### Status
 
