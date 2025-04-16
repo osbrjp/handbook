@@ -85,7 +85,7 @@ To subscribe to a holiday calendar on macOS:
 4. And follow the prompts to name the calendar, choose an account, and set update frequency.
 
 ::: info NOTE
-You can use your preffered calendar app such as Google Calendar.
+You can use your preferred calendar app such as Google Calendar.
 :::
 
 ## 2. First Week
