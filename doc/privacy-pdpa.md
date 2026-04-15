@@ -168,4 +168,16 @@ If you are unsatisfied with our handling of your data or our response to a reque
 
 **What the law requires**: Certain classes of data users, as specified by the Minister through gazette notification, must register with the Personal Data Protection Commissioner before processing personal data.
 
-**How OSBR complies**: OSBR monitors regulatory updates and gazette notifications. If our processing activities fall within a designated class, we will register and comply with all applicable conditions.
+**How OSBR complies**: The Personal Data Protection (Class of Data Users) Order 2013 [P.U.(A) 336/2013], as amended by the Personal Data Protection (Class of Data Users) (Amendment) Order 2016 [P.U.(A) 326/2016], specifies the classes of data users required to register. OSBR's current activities do not fall within any of the specified classes. OSBR monitors regulatory updates and gazette notifications. If our processing activities fall within a designated class, we will register and comply with all applicable conditions.
+
+## 9. Data Protection Officer (PDPA Amendment Act 2024)
+
+**What the law requires**: From 1 June 2025, a data controller or data processor must appoint at least one Data Protection Officer where it processes personal data of 20,000 or more data subjects, sensitive personal data of 10,000 or more data subjects, or carries out regular and systematic monitoring of personal data.
+
+**How OSBR complies**: OSBR's current processing activities do not meet any of the specified thresholds. Should our activities reach any threshold, a Data Protection Officer will be appointed and the Commissioner notified in accordance with the applicable guidelines.
+
+## 10. Data Breach Notification (PDPA Amendment Act 2024)
+
+**What the law requires**: From 1 June 2025, a data controller must notify the Personal Data Protection Commissioner of a personal data breach as soon as practicable, and no later than 72 hours after becoming aware of the breach. Affected data subjects must also be notified where the breach is likely to cause significant harm. A register of breaches must be maintained for at least two years.
+
+**How OSBR complies**: OSBR's incident response procedures align with these requirements. Where a breach occurs, we will investigate, contain, assess, and notify in accordance with the applicable law and guidelines.

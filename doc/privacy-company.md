@@ -183,7 +183,7 @@ Work-related chat messages may contain names, messages, and shared files. Access
 
 ### 6-3. Meeting Records
 
-Meeting invitations contain participant names and email addresses. OSBR does not record audio or video of meetings unless all participants are informed and consent.
+Meeting invitations contain participant names and email addresses. OSBR does not record audio or video of meetings unless all participants are informed and consent. Where a recording is made, it is retained only for the specific purpose agreed at the time of recording and deleted when no longer needed.
 
 Business communications are used solely for the purpose for which they were shared.
 
@@ -191,12 +191,24 @@ Business communications are used solely for the purpose for which they were shar
 
 When OSBR engages with vendors, contractors, or other business partners, we collect contact details and contractual information as necessary for the business relationship. Vendor data is used solely for managing the relationship and fulfilling contractual obligations. Vendors and partners have the same data rights as any other data subject.
 
-## 8. Information We Do Not Collect
+## 8. Sensitive Personal Data
+
+Section 4 of the PDPA defines sensitive personal data as personal data relating to:
+
+- Physical or mental health
+- Political opinions
+- Religious beliefs (or other similar beliefs)
+- Commission or alleged commission of an offence
+- Biometric data (added by the PDPA Amendment Act 2024)
+
+OSBR does not collect sensitive personal data except where explicitly required by applicable law. The only category OSBR collects in the normal course of operations is **health information** — medical certificates submitted in support of medical leave, as required by the Employment Act 1955.
+
+OSBR does not collect political opinions, religious beliefs, criminal records, or biometric data from clients, team members, candidates, or service users. Where sensitive personal data is provided to OSBR incidentally, it is processed only with the data subject's explicit consent in accordance with Section 40 of the PDPA and protected with measures commensurate with its sensitivity.
+
+## 9. Other Information We Do Not Collect
 
 Unless specifically required for employment administration or compliance with applicable law, OSBR does not collect:
 
-- Sensitive personal data as defined under Section 4 of the Malaysian PDPA 2010, except where required by law (e.g., medical certificates for medical leave).
 - Browsing behaviour or usage analytics tied to identified individuals.
 - Payment card or financial account information from clients.
 - Social media profiles or personal online activity.
-- Biometric data.

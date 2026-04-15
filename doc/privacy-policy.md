@@ -97,6 +97,7 @@ Under the PDPA, you have the following rights in relation to your personal data:
 - **Correction**: Request correction of inaccurate or incomplete personal data.
 - **Deletion**: Request deletion of your personal data, subject to applicable legal retention requirements.
 - **Withdrawal of consent**: Withdraw your consent to data processing at any time.
+- **Data portability**: Where applicable under the PDPA Amendment Act 2024, request that your personal data be transmitted to another data controller.
 - **Revoke Google access**: Remove OSBR's access to your Google account through your [Google Account permissions](https://myaccount.google.com/permissions).
 - **Opt out of analytics**: Prevent Google Analytics tracking using the [Google Analytics Opt-out Browser Add-on](https://tools.google.com/dlpage/gaoptout) or your browser's cookie settings.
 - **Lodge a complaint**: File a complaint with the Personal Data Protection Commissioner of Malaysia.
@@ -121,7 +122,7 @@ OSBR software services are hosted on Google Cloud Platform. Personal data may be
 
 ## 11. Data Breach Notification
 
-In the event of a personal data breach, OSBR will investigate the breach, take steps to contain it, notify affected individuals without unreasonable delay, and report to the Personal Data Protection Commissioner where required by law.
+In the event of a personal data breach, OSBR will investigate the breach, take steps to contain it, notify affected individuals without unreasonable delay, and report to the Personal Data Protection Commissioner within the timeframe prescribed by applicable law. See [Legal Compliance — Data Breach Notification](./privacy-pdpa#_10-data-breach-notification-pdpa-amendment-act-2024) for the statutory framework.
 
 ## 12. Changes to This Policy
 
