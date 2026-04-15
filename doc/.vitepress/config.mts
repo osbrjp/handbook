@@ -71,7 +71,22 @@ export default defineConfig({
         text: "Policies",
         items: [
           { text: "SHEQ Policy", link: "/sheq-policy" },
-          { text: "Privacy Policy", link: "/privacy-policy" },
+          {
+            text: "Privacy Policy",
+            link: "/privacy-policy",
+            collapsed: false,
+            items: [
+              {
+                text: "Company Privacy Practices",
+                link: "/privacy-company",
+              },
+              {
+                text: "Legal Compliance (PDPA 2010)",
+                link: "/privacy-pdpa",
+              },
+              { text: "Systems Privacy", link: "/privacy-systems" },
+            ],
+          },
         ],
       },
     ],
