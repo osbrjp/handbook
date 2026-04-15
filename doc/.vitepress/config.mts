@@ -69,7 +69,10 @@ export default defineConfig({
       },
       {
         text: "Policies",
-        items: [{ text: "SHEQ Policy", link: "/sheq-policy" }],
+        items: [
+          { text: "SHEQ Policy", link: "/sheq-policy" },
+          { text: "Privacy Policy", link: "/privacy-policy" },
+        ],
       },
     ],
     socialLinks: [
