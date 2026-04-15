@@ -116,6 +116,7 @@ When OSBR tools access third-party APIs (e.g., Google Analytics Data API), they 
 | Authentication event logs | 30 days (Cloud Logging) | Infrastructure default |
 | Server access logs | 30 days (Cloud Logging) | Infrastructure default |
 | Google API responses | Not retained | Passthrough architecture |
+| Breach register records | At least 2 years from the date of notification to the Commissioner | PDPA Amendment Act 2024 breach notification guidelines |
 | Business communications | As required for business operations and applicable law | Business necessity |
 
 When retention periods expire, data is deleted or irreversibly anonymised in accordance with applicable law. Data subjects may request early deletion, subject to any legal retention requirements. Where a legal requirement prevents deletion, we will inform the data subject of the basis.
@@ -172,12 +173,12 @@ If you are unsatisfied with our handling of your data or our response to a reque
 
 ## 9. Data Protection Officer (PDPA Amendment Act 2024)
 
-**What the law requires**: From 1 June 2025, a data controller or data processor must appoint at least one Data Protection Officer where it processes personal data of 20,000 or more data subjects, sensitive personal data of 10,000 or more data subjects, or carries out regular and systematic monitoring of personal data.
+**What the law requires**: From 1 June 2025, under the Personal Data Protection (Amendment) Act 2024 [Act A1727], a data controller or data processor must appoint at least one Data Protection Officer where it processes personal data of 20,000 or more data subjects, sensitive personal data of 10,000 or more data subjects, or carries out regular and systematic monitoring of personal data.
 
 **How OSBR complies**: OSBR's current processing activities do not meet any of the specified thresholds. Should our activities reach any threshold, a Data Protection Officer will be appointed and the Commissioner notified in accordance with the applicable guidelines.
 
 ## 10. Data Breach Notification (PDPA Amendment Act 2024)
 
-**What the law requires**: From 1 June 2025, a data controller must notify the Personal Data Protection Commissioner of a personal data breach as soon as practicable, and no later than 72 hours after becoming aware of the breach. Affected data subjects must also be notified where the breach is likely to cause significant harm. A register of breaches must be maintained for at least two years.
+**What the law requires**: From 1 June 2025, a data controller must notify the Personal Data Protection Commissioner of a personal data breach as soon as practicable, and no later than 72 hours after becoming aware of the breach. Where the breach is likely to cause significant harm, affected data subjects must also be notified without undue delay and in any case within seven days of the notification to the Commissioner. A register of breaches must be maintained for at least two years.
 
 **How OSBR complies**: OSBR's incident response procedures align with these requirements. Where a breach occurs, we will investigate, contain, assess, and notify in accordance with the applicable law and guidelines.
