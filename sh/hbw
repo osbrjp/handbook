@@ -1,0 +1,101 @@
+#!/bin/sh -eu
+#
+# hbw — handbook wiki dispatcher for the local Docker stacks.
+# Run from anywhere inside the repo: `sh/hbw <command>`.
+
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+cd "$PROJECT_ROOT"
+
+DB_VOLUME="wikijs_wikijs_db_data"
+
+usage() {
+  cat <<'USAGE'
+Usage: hbw <command> [args]
+
+Stack lifecycle:
+  start              Build VitePress and start landing + Wiki.js stacks
+  stop               Stop both stacks
+  restart            stop then start
+  status             Show running handbook containers
+  reset              Wipe Wiki.js DB volume and start fresh (DESTRUCTIVE)
+
+Content & styling:
+  import             Import handbook content into the running Wiki.js
+  style              Apply Wiki.js CSS overrides
+  brand              Replace Wiki.js logo + title with OSBR (restarts wiki)
+
+Diagnostics:
+  logs [wiki|landing|db]   Tail logs from a service (default: wiki)
+  psql                     Open a psql shell in the DB container
+  urls                     Print the local URLs
+
+  -h, --help, help         Show this message
+USAGE
+}
+
+cmd="${1:-}"
+[ $# -gt 0 ] && shift
+
+case "$cmd" in
+  start)
+    sh/start-local.sh
+    ;;
+  stop)
+    sh/stop-local.sh
+    ;;
+  restart)
+    sh/stop-local.sh
+    sh/start-local.sh
+    ;;
+  status)
+    docker ps -a --filter "name=handbook-" --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+    ;;
+  import)
+    sh/import-wikijs-local.sh
+    ;;
+  style)
+    sh/style-wikijs-local.sh
+    ;;
+  brand)
+    sh/brand-wikijs-local.sh
+    ;;
+  logs)
+    svc="${1:-wiki}"
+    case "$svc" in
+      wiki)    docker logs -f handbook-wikijs ;;
+      landing) docker logs -f handbook-landing ;;
+      db)      docker logs -f handbook-wikijs-db ;;
+      *)       echo "Unknown service: $svc (use wiki|landing|db)" >&2; exit 1 ;;
+    esac
+    ;;
+  psql)
+    # shellcheck disable=SC1091
+    . wikijs/.env
+    docker exec -it handbook-wikijs-db psql -U "$DB_USER" -d "$DB_NAME"
+    ;;
+  urls)
+    LANDING_PORT=$(grep -E '^LANDING_PORT=' landing/.env 2>/dev/null | cut -d= -f2 || echo 8080)
+    WIKI_PORT=$(grep -E '^WIKI_PORT=' wikijs/.env 2>/dev/null | cut -d= -f2 || echo 3000)
+    echo "Landing : http://localhost:${LANDING_PORT}"
+    echo "Wiki.js : http://localhost:${WIKI_PORT}"
+    ;;
+  reset)
+    printf 'This will DELETE all Wiki.js data (admin user, pages, settings). Continue? [y/N] '
+    read -r ans
+    case "$ans" in
+      y|Y|yes|YES) ;;
+      *) echo "Cancelled."; exit 1 ;;
+    esac
+    sh/stop-local.sh
+    docker volume rm "$DB_VOLUME" 2>/dev/null || true
+    sh/start-local.sh
+    ;;
+  -h|--help|help|"")
+    usage
+    ;;
+  *)
+    echo "Unknown command: $cmd" >&2
+    usage
+    exit 1
+    ;;
+esac

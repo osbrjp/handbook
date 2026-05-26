@@ -8,8 +8,8 @@ hero:
   tagline: Transparency as our commitment to clients, team members, and future team members.
   actions:
     - theme: brand
-      text: What is Handbook?
-      link: /what-is-handbook
+      text: Enter Handbook
+      link: http://localhost:3000
     - theme: alt
       text: OSBR
       link: https://www.osbrjp.com
