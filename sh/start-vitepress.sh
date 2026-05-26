@@ -10,5 +10,10 @@ cd $PROJECT_ROOT
 
 # -------
 
-npm install
-npm run docs:dev
+if ! command -v pnpm >/dev/null 2>&1; then
+	echo "Error: pnpm is not installed." >&2
+	exit 1
+fi
+
+pnpm install
+pnpm run docs:dev

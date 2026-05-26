@@ -8,7 +8,7 @@ https://osbrjp.github.io/handbook/
 
 This repository is maintained according to the [guideline](https://osbrjp.github.io/handbook/development-guide.html), just like other OSBR repositories. 
 
-Quick start:
+Quick start (requires [pnpm](https://pnpm.io/installation)):
 
 ```sh
 $ git clone git@github.com:osbrjp/handbook.git
