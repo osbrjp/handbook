@@ -1,0 +1,75 @@
+name: osbr-handbook-poc
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-handbook}
+      POSTGRES_USER: ${DB_USER:-directus}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-directus}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-directus} -d ${DB_NAME:-handbook}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  directus:
+    image: directus/directus:11
+    restart: unless-stopped
+    ports:
+      - "8055:8055"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      KEY: ${DIRECTUS_KEY}
+      SECRET: ${DIRECTUS_SECRET}
+
+      DB_CLIENT: pg
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_DATABASE: ${DB_NAME:-handbook}
+      DB_USER: ${DB_USER:-directus}
+      DB_PASSWORD: ${DB_PASSWORD:-directus}
+
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8055}
+
+      # CORS so the Astro app (different origin/port) can call Directus with creds.
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: ${APP_ORIGIN:-http://localhost:4321}
+      CORS_CREDENTIALS: "true"
+
+      # Session cookie tuned for localhost cross-port dev (NOT production).
+      # Prod cross-domain needs SECURE=true + SAME_SITE=None + a cookie domain.
+      SESSION_COOKIE_SECURE: "false"
+      SESSION_COOKIE_SAME_SITE: "lax"
+      SESSION_COOKIE_TTL: "7d"
+      REFRESH_TOKEN_COOKIE_SECURE: "false"
+      REFRESH_TOKEN_COOKIE_SAME_SITE: "lax"
+
+      # --- Google Workspace login via the built-in OpenID driver ---
+      AUTH_PROVIDERS: "google"
+      AUTH_GOOGLE_DRIVER: "openid"
+      AUTH_GOOGLE_CLIENT_ID: ${AUTH_GOOGLE_CLIENT_ID}
+      AUTH_GOOGLE_CLIENT_SECRET: ${AUTH_GOOGLE_CLIENT_SECRET}
+      AUTH_GOOGLE_ISSUER_URL: "https://accounts.google.com"
+      AUTH_GOOGLE_IDENTIFIER_KEY: "email"
+      AUTH_GOOGLE_ICON: "google"
+      # Auto-provision new Google logins as read-only Readers.
+      AUTH_GOOGLE_ALLOW_PUBLIC_REGISTRATION: "true"
+      AUTH_GOOGLE_DEFAULT_ROLE_ID: ${READER_ROLE_ID}
+      # Allow the app's callback as a post-login redirect target.
+      AUTH_GOOGLE_REDIRECT_ALLOW_LIST: ${APP_ORIGIN:-http://localhost:4321}/auth/callback
+      # NOTE (red-team C3): Google OIDC carries NO group membership. Do not set
+      # AUTH_GOOGLE_GROUP_* — it is inert. Groups are assigned by hand in the POC.
+    volumes:
+      - uploads:/directus/uploads
+
+volumes:
+  pgdata:
+  uploads:

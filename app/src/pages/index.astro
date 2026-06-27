@@ -1,0 +1,28 @@
+---
+import Base from "../layouts/Base.astro";
+import Nav from "../components/Nav.astro";
+import { fetchNavPages, type PageRecord } from "../lib/directus";
+
+const { user, client } = Astro.locals;
+
+// Fail closed: on a backend error show an empty nav rather than crash.
+let pages: PageRecord[] = [];
+try {
+  pages = await fetchNavPages(client);
+} catch {
+  pages = [];
+}
+---
+
+<Base title="Home" user={user}>
+  <section class="hero">
+    <h1>The OSBR Handbook</h1>
+    <p>Transparency as our commitment to clients, team members, and future team members.</p>
+    {!user && (
+      <p>
+        <a href="/auth/login">Sign in with Google</a> to see internal pages.
+      </p>
+    )}
+  </section>
+  <Nav pages={pages} />
+</Base>

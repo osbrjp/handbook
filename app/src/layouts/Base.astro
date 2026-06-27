@@ -1,0 +1,47 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  user?: DirectusUser | null;
+}
+const { title, user = null } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · OSBR Handbook</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/">OSBR Handbook</a>
+      <div class="auth">
+        {
+          user ? (
+            <>
+              <span class="who">{user.first_name || user.email}</span>
+              <a href="/auth/logout">Sign out</a>
+            </>
+          ) : (
+            <a href="/auth/login">Sign in with Google</a>
+          )
+        }
+      </div>
+    </header>
+    <main class="layout">
+      <slot />
+    </main>
+    <script>
+      // Render any mermaid blocks client-side (only loads the lib if present).
+      if (document.querySelector(".mermaid")) {
+        import("mermaid").then((m) => {
+          m.default.initialize({ startOnLoad: false, theme: "neutral" });
+          m.default.run();
+        });
+      }
+    </script>
+  </body>
+</html>

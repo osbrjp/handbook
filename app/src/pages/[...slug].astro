@@ -1,0 +1,30 @@
+---
+import Base from "../layouts/Base.astro";
+import { fetchPageBySlug, type PageRecord } from "../lib/directus";
+import { renderMarkdown } from "../lib/markdown";
+import { setReaderCacheHeaders } from "../lib/access";
+
+const slug = Astro.params.slug;
+if (!slug) return new Response(null, { status: 404 });
+
+let page: PageRecord | null;
+try {
+  page = await fetchPageBySlug(Astro.locals.client, slug);
+} catch {
+  // FAIL CLOSED: never render content on a backend/auth error.
+  return new Response("Service unavailable", { status: 503 });
+}
+
+// Not-found AND forbidden both return 404 — no existence signal (red-team R2).
+if (!page) return new Response(null, { status: 404 });
+
+setReaderCacheHeaders(Astro.response.headers, page.visibility);
+const html = renderMarkdown(page.body);
+---
+
+<Base title={page.title} user={Astro.locals.user}>
+  <article class="prose">
+    <h1>{page.title}</h1>
+    <Fragment set:html={html} />
+  </article>
+</Base>
