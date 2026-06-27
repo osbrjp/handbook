@@ -27,15 +27,18 @@ Browser ──HTTP──> Astro SSR app (app/, :4321)  ──server fetch (as th
 
 ## What's verified vs deferred
 
-**Verified in this branch (no Docker needed):**
-- ✅ Astro app type-checks (`pnpm check`) and builds (`pnpm build`).
-- ✅ Markdown render pipeline — `:::` callouts, `[[TOC]]`, ```mermaid``` — unit-tested.
-- ✅ `doc/*.md` → `directus/seed/pages.json` migration runs and is unit-tested.
-- ✅ CI guardrail (`pnpm guard`) blocks module-scoped/identity-leaking clients.
+**Verified — frontend (no Docker):**
+- ✅ Astro app type-checks (`pnpm check`), builds (`pnpm build`), 17 unit tests pass (`pnpm test`), CI guard passes (`pnpm guard`).
+- ✅ Render pipeline on real content: 19 callouts / 9 TOC / 9 mermaid, 0 leaks; XSS sanitization (script/handler/`javascript:` stripped).
+- ✅ `doc/*.md` → `directus/seed/pages.json` migration.
 
-**Requires Docker + your Google OAuth client (run locally to verify):**
-- ⏳ Directus stack boot, schema bootstrap, Google login on localhost.
-- ⏳ The reader-ACL acceptance matrix (below) — the core security claim.
+**Verified live against Docker (Directus 11 + Postgres 16):**
+- ✅ Stack boots; `bootstrap.mjs` creates the `pages` collection + imports 10 pages.
+- ✅ `verify-acl.mjs` provisions policies/roles/users and the **reader-ACL acceptance matrix passes** (anon / reader / restricted-user / editor) — including editor-can-edit vs reader-403, the multi-policy **union**, and reader-sees-0-restricted (no leak).
+- ✅ Through the **custom frontend**: anon sees only public pages in home/nav/sitemap; internal & restricted → 404; a logged-in reader (via a real Directus session) sees internal but **not** restricted.
+
+**Not yet verified (needs a real Google OAuth client):**
+- ⏳ The Google → Directus OAuth handshake itself (standard Directus OpenID). The session/cookie/enforcement machinery it feeds is already proven above via a real Directus session.
 
 **Deferred to pre-prod (explicitly NOT in this POC):**
 - Automatic Google-Group → policy sync (Admin SDK + domain-wide delegation; needs a Workspace super-admin).
@@ -64,6 +67,10 @@ cd directus && docker compose up -d && cd ..
 # 4. Create the pages collection + import content
 #    (--env-file so the admin credentials from directus/.env are used)
 node --env-file=directus/.env directus/bootstrap.mjs
+
+# 4b. (optional, recommended) Provision policies/roles/test users AND run the
+#     reader-ACL acceptance matrix against the live API. Prints a PASS/FAIL table.
+node --env-file=directus/.env directus/verify-acl.mjs
 
 # 5. Create roles & policies in the Directus UI (see below), then set
 #    READER_ROLE_ID in directus/.env and: cd directus && docker compose up -d
