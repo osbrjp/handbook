@@ -61,6 +61,11 @@ services:
       AUTH_GOOGLE_IDENTIFIER_KEY: "email"
       AUTH_GOOGLE_ICON: "google"
       # Auto-provision new Google logins as read-only Readers.
+      # SECURITY (review #2): this auto-grants Reader to ANY successful Google
+      # login. It is only safe if the Google OAuth client is an "Internal"
+      # (Workspace-only) app, so only osbrjp.com accounts can complete login.
+      # If the OAuth client is "External", set this to "false" and provision
+      # Readers by hand — otherwise any Google account could read internal pages.
       AUTH_GOOGLE_ALLOW_PUBLIC_REGISTRATION: "true"
       AUTH_GOOGLE_DEFAULT_ROLE_ID: ${READER_ROLE_ID}
       # Allow the app's callback as a post-login redirect target.

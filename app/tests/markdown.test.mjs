@@ -59,3 +59,30 @@ test("gfm tables and heading ids work", () => {
 test("empty input does not throw", () => {
   assert.equal(typeof renderMarkdown(""), "string");
 });
+
+// Stored-XSS defense (security review #1): bodies are sanitized.
+test("strips <script> from page bodies", () => {
+  const html = renderMarkdown("Hello\n\n<script>alert(1)</script>\n\nworld");
+  assert.doesNotMatch(html, /<script/i);
+});
+
+test("strips javascript: URLs from links", () => {
+  const html = renderMarkdown("[click me](javascript:alert(1))");
+  assert.doesNotMatch(html, /javascript:/i);
+});
+
+test("strips inline event-handler attributes", () => {
+  const html = renderMarkdown('<img src=x onerror="alert(1)">');
+  assert.doesNotMatch(html, /onerror/i);
+});
+
+test("sanitize preserves callout / TOC / mermaid / heading ids", () => {
+  const html = renderMarkdown(
+    "[[TOC]]\n\n## Heading One\n\n::: info Note\nbody\n:::\n\n```mermaid\ngraph TD; A-->B;\n```",
+  );
+  assert.match(html, /class="callout callout-info"/);
+  assert.match(html, /class="toc"/);
+  assert.match(html, /class="mermaid"/);
+  assert.match(html, /id="heading-one"/);
+  assert.match(html, /href="#heading-one"/);
+});

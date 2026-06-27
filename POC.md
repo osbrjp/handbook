@@ -84,6 +84,13 @@ In Google Cloud Console → APIs & Services → Credentials → Create OAuth cli
 - Authorized redirect URI: `http://localhost:8055/auth/login/google/callback`
 - Put the client ID/secret into `directus/.env` (`AUTH_GOOGLE_CLIENT_ID/SECRET`).
 
+> ⚠️ **Domain restriction (required).** Configure the OAuth consent screen as an
+> **Internal** app (User type: Internal) so only OSBR Workspace accounts can log
+> in. The compose file auto-provisions any successful Google login as a Reader —
+> if the app is **External**, anyone with a Google account could read internal
+> pages, so set `AUTH_GOOGLE_ALLOW_PUBLIC_REGISTRATION=false` and provision
+> Readers by hand instead.
+
 Google permits `http://localhost` redirect URIs, so the full login loop works
 locally with no HTTPS. (Reading group membership is a *separate*, deferred concern.)
 
@@ -150,6 +157,11 @@ Also verify:
 - **Cache headers** — non-public responses set `Cache-Control: private, no-store`
   + `Vary: Cookie` (full CDN-safety is a pre-prod check).
 - **Markdown stored verbatim** — never rich-text JSON, preserving fidelity.
+- **Output sanitized** — page bodies pass through `rehype-sanitize` before
+  `set:html`, stripping `<script>`, event handlers, and `javascript:` URLs
+  (stored-XSS defense) while keeping callouts/TOC/mermaid.
+- **Login domain-restricted** — the Google OAuth app must be Internal
+  (Workspace-only); see the warning above.
 
 ## Layout
 

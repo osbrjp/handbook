@@ -14,6 +14,7 @@ import remarkDirective from "remark-directive";
 import remarkRehype from "remark-rehype";
 import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import rehypeStringify from "rehype-stringify";
 import { visit } from "unist-util-visit";
 import GithubSlugger from "github-slugger";
@@ -130,6 +131,23 @@ function normalizeVitepressAdmonitions(md: string): string {
   );
 }
 
+// Sanitize schema: page bodies are authored content and rendered with set:html,
+// so they MUST be sanitized to prevent stored XSS (a lower-trust editor planting
+// <script> that runs in a reader's authenticated session). We extend the default
+// (GitHub-safe) schema to permit the structural classes/ids our own transforms
+// add — callouts, the TOC <nav>, mermaid <div>, and heading anchors — while the
+// default still strips <script>, event handlers, and javascript: URLs.
+// clobberPrefix:"" keeps heading ids intact so [[TOC]] anchors still match.
+const sanitizeSchema = {
+  ...defaultSchema,
+  clobberPrefix: "",
+  tagNames: [...(defaultSchema.tagNames || []), "nav"],
+  attributes: {
+    ...defaultSchema.attributes,
+    "*": [...((defaultSchema.attributes && defaultSchema.attributes["*"]) || []), "className", "id"],
+  },
+};
+
 const processor = unified()
   .use(remarkParse)
   .use(remarkGfm)
@@ -140,7 +158,8 @@ const processor = unified()
   .use(rehypeRaw)
   .use(rehypeSlug)
   .use(rehypeMermaid)
-  .use(rehypeStringify, { allowDangerousHtml: true });
+  .use(rehypeSanitize, sanitizeSchema)
+  .use(rehypeStringify);
 
 export function renderMarkdown(md: string): string {
   return String(processor.processSync(normalizeVitepressAdmonitions(md || "")));
