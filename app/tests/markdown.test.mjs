@@ -17,6 +17,23 @@ test("unknown admonition type falls back to note", () => {
   assert.match(html, /callout-note/);
 });
 
+// The handbook's real content uses the SPACED form `::: type Label` — the most
+// common shape (M1). These must render as callouts, not literal text.
+test("spaced '::: type Label' admonition renders as a callout", () => {
+  const html = renderMarkdown("::: warning Notice\nBody text.\n:::");
+  assert.match(html, /class="callout callout-warning"/);
+  assert.match(html, /Notice/);
+  assert.match(html, /Body text\./);
+  assert.doesNotMatch(html, /::: warning/);
+});
+
+test("bare '::: type' (spaced, no label) renders as a callout", () => {
+  const html = renderMarkdown("::: tip\nJust a tip.\n:::");
+  assert.match(html, /class="callout callout-tip"/);
+  assert.match(html, /Just a tip\./);
+  assert.doesNotMatch(html, /::: tip/);
+});
+
 test("[[TOC]] becomes a nav of h2/h3 with matching anchors", () => {
   const html = renderMarkdown("[[TOC]]\n\n## First Thing\n\n### A Sub\n\n## Second Thing");
   assert.match(html, /<nav class="toc">/);

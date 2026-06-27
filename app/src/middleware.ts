@@ -6,8 +6,8 @@ import { publicClient, visitorClient, fetchMe } from "./lib/directus";
 // FAIL CLOSED (red-team R5): if a session token is present but the user can't be
 // resolved (expired/invalid), we drop to the PUBLIC client and treat the
 // visitor as logged-out — they then see only public content, never a stale or
-// over-privileged view. Real single-flight refresh is a pre-prod item; for the
-// POC, expiry == redirect-to-login on the next protected fetch.
+// over-privileged view. For the POC, expiry == silently drop to public view
+// (no auto-redirect to login). Single-flight refresh + redirect is a pre-prod item.
 export const onRequest = defineMiddleware(async (context, next) => {
   const token = context.cookies.get("directus_session_token")?.value ?? null;
 

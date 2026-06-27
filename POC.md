@@ -62,7 +62,8 @@ cp directus/.env.example directus/.env      # then edit (secrets, Google creds)
 cd directus && docker compose up -d && cd ..
 
 # 4. Create the pages collection + import content
-node directus/bootstrap.mjs
+#    (--env-file so the admin credentials from directus/.env are used)
+node --env-file=directus/.env directus/bootstrap.mjs
 
 # 5. Create roles & policies in the Directus UI (see below), then set
 #    READER_ROLE_ID in directus/.env and: cd directus && docker compose up -d
@@ -85,6 +86,11 @@ In Google Cloud Console → APIs & Services → Credentials → Create OAuth cli
 
 Google permits `http://localhost` redirect URIs, so the full login loop works
 locally with no HTTPS. (Reading group membership is a *separate*, deferred concern.)
+
+> ⚠️ Do **not** sign in with Google until you have created the **Reader** role,
+> set `READER_ROLE_ID` in `directus/.env`, and restarted Directus. Auto-provisioned
+> logins before the role exists become roleless users (they see nothing — fail
+> closed — but you'll then have to fix them up by hand).
 
 ## Roles & policies (manual — Directus UI)
 

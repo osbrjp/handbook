@@ -109,14 +109,24 @@ function rehypeMermaid() {
   };
 }
 
-// VitePress writes admonitions as `:::info Custom Title` (space-separated label),
-// but remark-directive expects the label in brackets: `:::info[Custom Title]`.
-// Convert opening fences so the handbook's existing content parses. Lines that
-// are just `:::type` or the closing `:::` are left untouched.
+// VitePress writes admonitions in several shapes that remark-directive does not
+// accept directly:
+//   `:::info Custom Title`   `::: info Custom Title`   `::: info`   `:::info`
+// remark-directive wants the name abutting the fence and the label in brackets:
+//   `:::info[Custom Title]`  /  `:::info`
+// Normalize opening fences so the handbook's existing content parses. The
+// closing `:::` (no name) and already-bracketed labels are left untouched.
+//
+// NOTE: the spaced `::: type label` form is what ~18 of the 19 real handbook
+// callouts use, so this must handle the optional space after the fence.
 function normalizeVitepressAdmonitions(md: string): string {
   return md.replace(
-    /^(:{3})([a-zA-Z]+)[ \t]+(\S.*)$/gm,
-    (_m, _fence, name, label) => `:::${name}[${label.trim()}]`,
+    /^(:{3})[ \t]*([a-zA-Z]+)[ \t]*(\S.*)?$/gm,
+    (_m, _fence, name, rest) => {
+      if (!rest) return `:::${name}`;
+      if (rest.startsWith("[")) return `:::${name}${rest}`; // already bracketed
+      return `:::${name}[${rest.trim()}]`;
+    },
   );
 }
 

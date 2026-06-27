@@ -12,6 +12,16 @@ try {
 } catch {
   pages = [];
 }
+
+// The nav is personalized for logged-in visitors (it can list internal pages),
+// so the authenticated home page must never be shared-cached (G3/G5). The
+// anonymous home page contains only public pages and may be cached.
+if (user) {
+  Astro.response.headers.set("Cache-Control", "private, no-store");
+  Astro.response.headers.set("Vary", "Cookie");
+} else {
+  Astro.response.headers.set("Cache-Control", "public, max-age=60, s-maxage=300");
+}
 ---
 
 <Base title="Home" user={user}>
