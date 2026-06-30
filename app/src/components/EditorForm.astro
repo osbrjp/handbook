@@ -83,19 +83,20 @@ const visibility = page?.visibility ?? "internal";
   </div>
   </details>
 
+  <details class="meta-details" open>
+  <summary class="meta-summary">Content — markdown &amp; live preview</summary>
   <div class="editor-grid">
     <div class="editor-pane">
-      <div class="pane-title">Body (markdown)</div>
       <textarea
         name="body"
         id="body"
         placeholder="Markdown — supports ::: callouts, [[TOC]] and ```mermaid``` blocks">{page?.body ?? ""}</textarea>
     </div>
     <div class="editor-pane">
-      <div class="pane-title">Live preview</div>
       <article class="prose preview-wrap" id="preview"></article>
     </div>
   </div>
+  </details>
 
   <div class="actions">
     <button type="submit" name="status" value="draft">Save draft</button>

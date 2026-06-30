@@ -697,7 +697,8 @@ a:hover {
 .meta-details[open] .meta-summary::before {
   transform: rotate(90deg);
 }
-.meta-details .editor-meta {
+.meta-details .editor-meta,
+.meta-details .editor-grid {
   padding: 0 0.9rem 0.9rem;
 }
 /* Save/Publish go bottom-right (primary commit actions). */
