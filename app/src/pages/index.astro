@@ -1,0 +1,35 @@
+---
+import Base from "../layouts/Base.astro";
+import Nav from "../components/Nav.astro";
+import { getNavPages, type PageRow } from "../lib/db/pages";
+
+const { visitor, db } = Astro.locals;
+
+let pages: PageRow[] = [];
+try {
+  pages = await getNavPages(db, visitor);
+} catch {
+  pages = [];
+}
+
+// Personalized nav for logged-in visitors must not be shared-cached (G3/G5).
+if (visitor) {
+  Astro.response.headers.set("Cache-Control", "private, no-store");
+  Astro.response.headers.set("Vary", "Cookie");
+} else {
+  Astro.response.headers.set("Cache-Control", "public, max-age=60, s-maxage=300");
+}
+---
+
+<Base title="Home" visitor={visitor}>
+  <section class="hero">
+    <h1>The OSBR Handbook</h1>
+    <p>Transparency as our commitment to clients, team members, and future team members.</p>
+    {!visitor && (
+      <p>
+        <a href="/api/auth/login">Sign in with Google</a> to see internal pages.
+      </p>
+    )}
+  </section>
+  <Nav pages={pages} />
+</Base>

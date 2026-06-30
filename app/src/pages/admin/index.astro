@@ -1,0 +1,36 @@
+---
+import Base from "../../layouts/Base.astro";
+import { requireEditor } from "../../lib/auth/requireEditor";
+import { listAllPages } from "../../lib/db/pages";
+
+const denied = requireEditor(Astro.locals);
+if (denied) return denied;
+
+Astro.response.headers.set("Cache-Control", "private, no-store");
+Astro.response.headers.set("Vary", "Cookie");
+
+const pages = await listAllPages(Astro.locals.db);
+---
+
+<Base title="Editor" visitor={Astro.locals.visitor}>
+  <h1>Pages</h1>
+  <p><a href="/admin/new">+ New page</a></p>
+  <table class="admin-list">
+    <thead>
+      <tr><th>Title</th><th>Section</th><th>Visibility</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      {
+        pages.map((p) => (
+          <tr>
+            <td>{p.title}</td>
+            <td>{p.section}</td>
+            <td><span class={`badge badge-${p.visibility}`}>{p.visibility}</span></td>
+            <td>{p.status}</td>
+            <td><a href={`/admin/edit/${p.id}`}>Edit</a> · <a href={`/${p.slug}`}>View</a></td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</Base>

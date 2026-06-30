@@ -1,0 +1,83 @@
+---
+import type { PageRow } from "../lib/db/pages";
+import type { Group } from "../lib/db/groups";
+
+interface Props {
+  page?: PageRow | null;
+  pageGroupKeys?: string[];
+  csrf: string;
+  groups: Group[];
+  sections: string[];
+}
+const { page = null, pageGroupKeys = [], csrf, groups, sections } = Astro.props;
+const visibility = page?.visibility ?? "internal";
+---
+
+<form method="POST" action="/admin/save" class="editor">
+  <input type="hidden" name="csrf" value={csrf} />
+  {page && <input type="hidden" name="id" value={page.id} />}
+  <input type="hidden" name="sort" value={page?.sort ?? 0} />
+
+  <label>Title<input name="title" value={page?.title ?? ""} required /></label>
+  <label>Slug<input name="slug" value={page?.slug ?? ""} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required /></label>
+  <label>Nav label<input name="nav_label" value={page?.nav_label ?? ""} /></label>
+  <label>Section
+    <input name="section" list="sections" value={page?.section ?? ""} required />
+    <datalist id="sections">{sections.map((s) => <option value={s} />)}</datalist>
+  </label>
+
+  <fieldset class="vis">
+    <legend>Who can read this</legend>
+    <label><input type="radio" name="visibility" value="public" checked={visibility === "public"} /> Anyone (public)</label>
+    <label><input type="radio" name="visibility" value="internal" checked={visibility === "internal"} /> Signed-in staff</label>
+    <label><input type="radio" name="visibility" value="restricted" checked={visibility === "restricted"} /> Specific groups</label>
+    <div class="groups">
+      {groups.map((g) => (
+        <label><input type="checkbox" name="groups" value={g.key} checked={pageGroupKeys.includes(g.key)} /> {g.label}</label>
+      ))}
+      <small>(applied only when "Specific groups" is selected)</small>
+    </div>
+  </fieldset>
+
+  <div class="editor-grid">
+    <label class="body-label">Body (markdown — supports ::: callouts, [[TOC]], ```mermaid```)
+      <textarea name="body" id="body" rows="22">{page?.body ?? ""}</textarea>
+    </label>
+    <div class="preview-wrap">
+      <div class="preview-title">Live preview</div>
+      <article class="prose" id="preview"></article>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="submit" name="status" value="draft">Save draft</button>
+    <button type="submit" name="status" value="published">Publish</button>
+  </div>
+</form>
+
+<script>
+  const body = document.getElementById("body") as HTMLTextAreaElement | null;
+  const preview = document.getElementById("preview");
+  let timer: ReturnType<typeof setTimeout>;
+  async function render() {
+    if (!body || !preview) return;
+    const res = await fetch("/admin/preview", {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: body.value,
+    });
+    if (!res.ok) return;
+    // Server already sanitized (rehype-sanitize) — same trust boundary as the reader page.
+    preview.innerHTML = await res.text();
+    if (preview.querySelector(".mermaid")) {
+      const m = await import("mermaid");
+      m.default.initialize({ startOnLoad: false, theme: "neutral" });
+      m.default.run({ nodes: preview.querySelectorAll(".mermaid") });
+    }
+  }
+  body?.addEventListener("input", () => {
+    clearTimeout(timer);
+    timer = setTimeout(render, 250);
+  });
+  render();
+</script>

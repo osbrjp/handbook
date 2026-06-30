@@ -1,0 +1,51 @@
+---
+import "../styles/global.css";
+import type { Visitor } from "../lib/auth/visitor";
+
+interface Props {
+  title: string;
+  visitor?: Visitor | null;
+}
+const { title, visitor = null } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · OSBR Handbook</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/">OSBR Handbook</a>
+      <div class="auth">
+        {
+          visitor ? (
+            <>
+              {visitor.role === "editor" && <a href="/admin">Editor</a>}
+              <span class="who">{visitor.email}</span>
+              <form method="POST" action="/api/auth/logout" class="logout-form">
+                <button type="submit" class="linkbtn">Sign out</button>
+              </form>
+            </>
+          ) : (
+            <a href="/api/auth/login">Sign in with Google</a>
+          )
+        }
+      </div>
+    </header>
+    <main class="layout">
+      <slot />
+    </main>
+    <script>
+      // Render any mermaid blocks client-side (only loads the lib if present).
+      if (document.querySelector(".mermaid")) {
+        import("mermaid").then((m) => {
+          m.default.initialize({ startOnLoad: false, theme: "neutral" });
+          m.default.run();
+        });
+      }
+    </script>
+  </body>
+</html>
