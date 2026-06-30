@@ -37,22 +37,36 @@ const sections = [...new Set(pages.map((p) => p.section))];
 </aside>
 
 <script is:inline>
-  // All sections collapsed by default; only sections the user explicitly opened
-  // are restored (remembered across navigation). New storage key so any old
-  // "open" state is ignored.
+  // Sidebar section open-state, per browser tab (sessionStorage):
+  //  - on a RELOAD: reset to the default (only the active page's section open,
+  //    set server-side) so a refresh collapses everything else;
+  //  - on a normal NAVIGATION: restore the sections the user had opened, so
+  //    they stay open while browsing without a refresh.
   (function () {
-    const KEY = "sbSections.v2";
+    const KEY = "sbSections";
+    const navEntry = performance.getEntriesByType("navigation")[0];
+    const isReload = navEntry && navEntry.type === "reload";
     let state = {};
-    try {
-      state = JSON.parse(localStorage.getItem(KEY) || "{}");
-    } catch (_) {}
+    if (isReload) {
+      try {
+        sessionStorage.removeItem(KEY);
+      } catch (_) {}
+    } else {
+      try {
+        state = JSON.parse(sessionStorage.getItem(KEY) || "{}");
+      } catch (_) {}
+    }
     for (const d of document.querySelectorAll(".doc-sidebar details[data-section]")) {
       const key = d.getAttribute("data-section");
-      if (state[key]) d.open = true;
+      if (!isReload && state[key]) d.open = true;
       d.addEventListener("toggle", () => {
-        state[key] = d.open;
+        let s = {};
         try {
-          localStorage.setItem(KEY, JSON.stringify(state));
+          s = JSON.parse(sessionStorage.getItem(KEY) || "{}");
+        } catch (_) {}
+        s[key] = d.open;
+        try {
+          sessionStorage.setItem(KEY, JSON.stringify(s));
         } catch (_) {}
       });
     }
