@@ -77,10 +77,46 @@ export async function getNavPages(db: D1Database, v: Visitor | null): Promise<Pa
       ? { sql: "p.status='published'", binds: [] as unknown[] }
       : readableWhere(v);
   const { results } = await db
-    .prepare(`SELECT ${NAV_COLS} FROM pages p WHERE ${base.sql} ORDER BY p.section, p.sort`)
+    .prepare(`SELECT ${NAV_COLS} FROM pages p WHERE ${base.sql} ORDER BY p.sort`)
     .bind(...base.binds)
     .all();
   return (results ?? []) as unknown as PageRow[];
+}
+
+// Sidebar = the full handbook STRUCTURE (titles/links): public + internal shown
+// to everyone, plus restricted pages the visitor may access. Distinct from
+// readableWhere (which gates CONTENT) — titles aren't secret, page bodies are.
+export async function getSidebarPages(db: D1Database, v: Visitor | null): Promise<PageRow[]> {
+  const binds: unknown[] = [];
+  let restricted = "0";
+  if (v?.role === "editor") {
+    restricted = "1";
+  } else if (v && v.groupIds.length) {
+    const ph = v.groupIds.map(() => "?").join(",");
+    restricted = `EXISTS (SELECT 1 FROM page_groups pg WHERE pg.page_id=p.id AND pg.group_id IN (${ph}))`;
+    binds.push(...v.groupIds);
+  }
+  const { results } = await db
+    .prepare(
+      `SELECT ${NAV_COLS} FROM pages p WHERE p.status='published' AND (p.visibility IN ('public','internal') OR (p.visibility='restricted' AND ${restricted})) ORDER BY p.sort`,
+    )
+    .bind(...binds)
+    .all();
+  return (results ?? []) as unknown as PageRow[];
+}
+
+// Lightweight metadata (NO body) — lets a gated route choose 404 vs sign-in prompt.
+export async function getPageVisibility(
+  db: D1Database,
+  slug: string,
+): Promise<{ title: string; visibility: Visibility } | null> {
+  const row = await db
+    .prepare(
+      "SELECT title, visibility FROM pages p WHERE p.slug=? AND p.status='published' LIMIT 1",
+    )
+    .bind(slug)
+    .first();
+  return row ? (row as { title: string; visibility: Visibility }) : null;
 }
 
 /** Editor-only: every page incl. drafts. Callers MUST gate on editor role first. */

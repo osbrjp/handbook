@@ -167,3 +167,24 @@ const processor = unified()
 export function renderMarkdown(md: string): string {
   return String(processor.processSync(normalizeVitepressAdmonitions(md || "")));
 }
+
+// Extract h2/h3 headings for the "On this page" outline. Uses the same slugger
+// as rehype-slug so the anchors match the rendered heading ids.
+export function extractHeadings(md: string): { depth: number; text: string; id: string }[] {
+  const slugger = new GithubSlugger();
+  const out: { depth: number; text: string; id: string }[] = [];
+  let inFence = false;
+  for (const line of (md || "").split("\n")) {
+    if (/^\s*```/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) continue;
+    const m = line.match(/^(#{2,3})\s+(.+?)\s*$/);
+    if (m) {
+      const text = m[2].replace(/[*_`]/g, "").trim();
+      out.push({ depth: m[1].length, text, id: slugger.slug(text) });
+    }
+  }
+  return out;
+}

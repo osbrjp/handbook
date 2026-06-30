@@ -18,6 +18,8 @@ const sections = [...new Set((await listAllPages(Astro.locals.db)).map((p) => p.
 ---
 
 <Base title="New page" visitor={Astro.locals.visitor}>
-  <h1>New page</h1>
-  <EditorForm csrf={csrf} groups={groups} sections={sections} />
+  <div class="container">
+    <h1>New page</h1>
+    <EditorForm csrf={csrf} groups={groups} sections={sections} />
+  </div>
 </Base>

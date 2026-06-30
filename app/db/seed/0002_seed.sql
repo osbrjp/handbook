@@ -15,7 +15,38 @@ INSERT INTO user_groups (email, group_id) SELECT 'leader@osbrjp.com', g.id FROM 
 INSERT INTO user_groups (email, group_id) SELECT 'editor-leader@osbrjp.com', g.id FROM groups g WHERE g.key='leadership';
 
 -- pages (published)
-INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('strategy', 'Strategy Overview', 'About', 'Strategy', 10, 'internal', 'published', '[[TOC]]
+INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('what-is-handbook', 'What is the OSBR Handbook?', 'About', 'What is Handbook?', 10, 'public', 'published', '[[TOC]]
+
+## 1. About Us
+
+We are a development company working in collaboration with our parent company, Oz Co. Ltd., a creative media agency in Japan. Together, we bring ideas to life through campaigns, website development, advertising, and graphic design.
+
+As a development team, we research and test emerging technologies to drive business growth and innovation. Our focus is on staying ahead of industry trends, making sure clients stay ahead in the digital space.
+
+Beyond digital services, we believe in turning ideas into reality. Through our [Envisioned Projects](strategy.md#envision-project), we push creative and technological boundaries with hands-on, real-world initiatives. Explore our latest work on our [website.](https://www.osbrjp.com/en/)
+
+## 2. Vision and Values
+
+OSBR strives to grow into a **global enterprise** that goes beyond providing technical solutions. We see a future where technology is made to form the **foundation of new products and innovations**.
+
+We inject meaningful value into every project we create through our business model. Expanding from **Oz in Japan**, our goal is to establish OSBR as a **powerhouse of creative media** in Malaysia while pioneering new products and constructing reputable business ideas.
+
+Our journey is built upon three core values: **Be Nice, Be Kind, Be Strong**.
+
+- Think wholeheartedly, about consumers, users, and the colleagues you work with.
+- Offer a helping hand, when others are in need.
+- Cultivate strength, because only through strength can we uplift others and make a difference.
+
+It all begins here, in **Kuala Lumpur, Malaysia**.
+
+## 3. The Handbook
+
+At OSBR, we''re actively shaping our **organizational culture** from the ground up. As a newly established company, we’re committed to building a strong foundation that reflects our **values, vision, and workflows**.
+
+By referring to the [GitLab model](https://www.hbs.edu/faculty/Pages/item.aspx?num=57917), we have committed to develop the OSBR Handbook, a comprehensive guide publicly accessible as you can read this now. While our primary goal is to cultivate a strong internal culture, our open-access policy may also help refine OSBR’s identity by incorporating feedback from clients, partners, and potential collaborators.
+
+In the **AI-Agent era**, maintaining **context-aware knowledge** is crucial. That’s why we write for both humans and AI—ensuring accuracy, accessibility, and seamless collaboration at every level of our projects, be it repository, pull requests or launched products.');
+INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('strategy', 'Strategy Overview', 'About', 'Strategy', 20, 'internal', 'published', '[[TOC]]
 
 ## 1. Vision
 
@@ -141,37 +172,6 @@ graph TB;
     CS -- "deliver" --> CB([Consumer / Business]);
     CB -- "feedback / revenue" --> CS;
 ```');
-INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('what-is-handbook', 'What is the OSBR Handbook?', 'About', 'What is Handbook?', 20, 'public', 'published', '[[TOC]]
-
-## 1. About Us
-
-We are a development company working in collaboration with our parent company, Oz Co. Ltd., a creative media agency in Japan. Together, we bring ideas to life through campaigns, website development, advertising, and graphic design.
-
-As a development team, we research and test emerging technologies to drive business growth and innovation. Our focus is on staying ahead of industry trends, making sure clients stay ahead in the digital space.
-
-Beyond digital services, we believe in turning ideas into reality. Through our [Envisioned Projects](strategy.md#envision-project), we push creative and technological boundaries with hands-on, real-world initiatives. Explore our latest work on our [website.](https://www.osbrjp.com/en/)
-
-## 2. Vision and Values
-
-OSBR strives to grow into a **global enterprise** that goes beyond providing technical solutions. We see a future where technology is made to form the **foundation of new products and innovations**.
-
-We inject meaningful value into every project we create through our business model. Expanding from **Oz in Japan**, our goal is to establish OSBR as a **powerhouse of creative media** in Malaysia while pioneering new products and constructing reputable business ideas.
-
-Our journey is built upon three core values: **Be Nice, Be Kind, Be Strong**.
-
-- Think wholeheartedly, about consumers, users, and the colleagues you work with.
-- Offer a helping hand, when others are in need.
-- Cultivate strength, because only through strength can we uplift others and make a difference.
-
-It all begins here, in **Kuala Lumpur, Malaysia**.
-
-## 3. The Handbook
-
-At OSBR, we''re actively shaping our **organizational culture** from the ground up. As a newly established company, we’re committed to building a strong foundation that reflects our **values, vision, and workflows**.
-
-By referring to the [GitLab model](https://www.hbs.edu/faculty/Pages/item.aspx?num=57917), we have committed to develop the OSBR Handbook, a comprehensive guide publicly accessible as you can read this now. While our primary goal is to cultivate a strong internal culture, our open-access policy may also help refine OSBR’s identity by incorporating feedback from clients, partners, and potential collaborators.
-
-In the **AI-Agent era**, maintaining **context-aware knowledge** is crucial. That’s why we write for both humans and AI—ensuring accuracy, accessibility, and seamless collaboration at every level of our projects, be it repository, pull requests or launched products.');
 INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('code-of-conduct', 'OSBR Code of Conduct', 'People & Culture', 'Code of Conduct', 30, 'public', 'published', 'Creating a professional, inclusive, and respectful environment is a core value at OSBR. This Code of Conduct ensures that all members can work and collaborate in a welcoming and supportive space.
 
 ::: info Scope
@@ -557,7 +557,179 @@ You can apply through the following channels:
 1. Do you accept remote applications?
 
    At the moment, we prioritize on-site positions at OSBR headquarters, but some roles may offer flexibility.');
-INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('development-guide', 'Development Guide', 'Guideline', 'Development Guide', 50, 'internal', 'published', 'In this page, you will find the standard development policy and workflow in OSBR.
+INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('on-boarding', 'On-boarding Guide', 'Guideline', 'On-boarding Guide', 50, 'internal', 'published', 'Welcome to OSBR! This guide outlines the on-boarding process for new team members.
+
+[[TOC]]
+
+## 1. First Day
+
+### 1-1. Company Introduction
+
+On the first day, new team members will receive a formal introduction to OSBR. This process includes:
+
+- **Welcome meeting**: A 30-minute session with the team lead to welcome the new member
+- **Vision and strategy presentation**: Overview of OSBR''s vision, business models, and strategic direction using the [Strategy Overview](/strategy) document
+- **Company history discussion**: Insight into OSBR''s journey, from its founding to current initiatives
+- **Q&A session**: Opportunity for new members to ask questions about the company
+
+The HR representative will schedule these sessions and provide access to relevant documentation before the meetings. New members should review the [Strategy Overview](/strategy) document in advance to make the sessions more productive.
+
+### 1-2. Account Preparation / Introduction to Internal Tools
+
+On the first day, the IT team will set up necessary accounts for new team members:
+
+| Account Type | Setup Process | Required Information |
+|--------------|---------------|----------------------|
+| **Google Workspace** | HR sends invitation to company email | Personal email for verification |
+| **Slack** | Manual invitation after Google setup | Google account |
+| **GitHub** | Manual invitation to organization | GitHub username or email |
+
+After setting up accounts, the IT team will briefly introduce you to our basic tools and how to access them. This short orientation covers just what you need to get started with our daily communication and work systems.
+
+### 1-3. Kitting
+
+#### Device Setup
+
+* Configure sleep mode to activate within 5 minutes, with mandatory reauthentication after sleep
+* Install antivirus software on Windows devices
+* Prohibit keeping files permanently on the desktop
+* Prohibit displaying text in the browser''s bookmark bar
+* Configure proxy settings for verification and production environment testing
+
+::: warning Notice
+Development on self-built development servers is prohibited.
+:::
+
+#### GitHub Email Notification Settings
+
+Configure your email notification settings to receive notifications from GitHub. Ensure that you are notified when other developers mention you.
+
+#### Container Runtime Environment Setup
+
+Make sure you can execute the `docker` and `docker compose` commands on your terminal. Containers will be used for development tasks such as compiling, running applications, package management, and executing tests.
+
+::: info NOTE
+While Docker Desktop is the standard reference, you can also use other tools like Rancher Desktop.
+:::
+
+#### Editor Configuration
+
+Set up your editor to enable features like auto-completion, navigation, and error checking for the languages used in the project (TypeScript, Go). Also, configure it to automatically format code upon file save. Use Prettier for TypeScript and `go fmt` for Go.
+
+#### Language Runtime Environment Setup
+
+While container-based development environments are the default, also set up the runtime environment for the languages on your local machine. For Node.js, use tools like `nodebrew` that allow easy version switching.
+
+::: info NOTE
+Some tools, such as AWS CDK, might require credentials to be passed via environment variables or files when run inside containers. Due to security considerations, a non-container-based approach might be preferred in such cases.
+:::
+
+#### Enable Screenshots and Screen Recording
+
+Throughout the development process, you may need to record operations as images or videos. Set up your system to be ready for this when needed.
+
+For Mac, it is recommended to use **Skitch** for screenshots and **QuickTime Player** (`shift + command + 5`) for video recording.
+
+#### Subscribe to Japan & Malaysia Holiday Event Calendar
+
+Since OSBR has employees from both Japan and Malaysia, it is important to receive notifications when the current or following day is a public holiday in either country. This helps in planning tasks and meetings more effectively.
+
+To subscribe to a holiday calendar on macOS:
+
+1. Open the Calendar app.
+2. Go to File > New Calendar Subscription.
+3. Enter the calendar''s web address (like https://www.officeholidays.com/ics/malaysia).
+4. And follow the prompts to name the calendar, choose an account, and set update frequency.
+
+::: info NOTE
+You can use your preferred calendar app such as Google Calendar.
+:::
+
+## 2. First Week
+
+### 2-1. Reading the OSBR Handbook
+
+During your first week, you should thoroughly review the OSBR Handbook to understand our company philosophy, processes, and expectations. Understanding our development flow and the intention behind our workflow is particularly important. While agile methodologies typically prioritize communication over documentation, we place significant value on documentation. To maintain agility, we focus on recording essential information with less effort in the right places, creating a system where this documentation enhances rather than hinders our agile practices. This balance allows us to preserve knowledge effectively while maintaining the flexibility and responsiveness that agile development requires.
+
+### 2-2. Tutorial
+
+During your first week, you''ll complete a hands-on tutorial that walks you through our entire development workflow. This tutorial is conducted in a safe environment using the [`osbrjp/tutorial`](https://github.com/osbrjp/tutorial) repository, where you can practice without affecting production systems.
+
+The tutorial covers these key activities:
+
+1. Creating an issue with the appropriate template
+2. Starting a pull request with detailed specifications
+3. Getting a specification review from a team member
+4. Making code changes in a properly named branch
+5. Conducting a self-review and attaching evidence (screenshots/videos)
+6. Requesting an implementation review
+7. Experiencing the release process
+
+This practical exercise will help you internalize our development practices and understand how we track, implement, review, and deploy changes. Your mentor will guide you through this process and answer any questions you have along the way.
+
+### 2-3. Meet the Team
+
+After completing the tutorial, you''ll contribute to the [`osbrjp/meet-the-team`](https://github.com/osbrjp/meet-the-team) repository to introduce yourself to your colleagues. This exercise serves two purposes: further practice with our workflow and helping the team get to know you better.
+
+The process involves:
+
+1. Creating an issue titled "Introduce [Your Name]"
+2. Working through our standard workflow with a pull request
+3. Creating your personal introduction page in the repository
+4. Writing a reflective essay on what "Be Nice, Be Kind, Be Strong" means to you
+
+Your introduction should follow the provided template and include information about your role, interests, and background. The "Be Nice, Be Kind, Be Strong" essay is an important part of our team culture, encouraging you to think about these values in your own words.
+
+This assignment helps integrate you into the team''s culture while giving you additional practice with our development workflow in a low-pressure context.
+
+### 2-4. First Handbook Assignment
+
+In your first week, you''ll make a small but meaningful contribution to the OSBR Handbook itself. While this isn''t software code, it''s equally important as it''s our live documentation that guides the entire team''s work.
+
+We believe that everyone, regardless of tenure, should be able to contribute to our documentation. While major changes to handbook rules would not be appropriate for someone who just joined, we don''t want to restrict editing only to those with longer tenure. Fresh perspectives often notice inconsistencies, unclear explanations, or opportunities for improvement that those familiar with the content might miss.
+
+For this assignment:
+
+1. Identify a small area of the handbook where you can make an improvement
+   - This could be fixing a typo, clarifying wording, adding a missing explanation, or suggesting a small enhancement
+   - Your mentor can help you find an appropriate area if needed
+
+2. Use our standard workflow (as practiced in the tutorial) to propose and implement this change
+   - Create an issue describing what you''d like to improve and why
+   - Get feedback on your approach
+   - Make the change through a pull request
+   - Attach appropriate evidence for review
+
+This exercise demonstrates our commitment to collective ownership of documentation and gives you the confidence to suggest improvements from day one. Finding ways for new team members to contribute immediately is important to us, even if those contributions start small.
+
+## 3. First Month
+
+### 3-1. Mastering Technical Terminology
+
+During your first month, you''ll need to familiarize yourself with the technical terminology commonly used at OSBR. Understanding these terms is crucial for effective communication with team members and clients.
+
+We''ve created a comprehensive technical glossary that you should review and reference as needed. The glossary includes formal definitions, common usage contexts, and related concepts for each term.
+
+Your mentor will guide you through this learning process and help identify which terms are most relevant to your specific role and projects. As part of this process, you''ll be asked to:
+
+1. Review the technical glossary
+2. Identify terms you''re unfamiliar with
+3. Learn and practice using these terms in appropriate contexts
+4. Develop insights into how different terms relate to each other and form a cohesive understanding of our technology ecosystem
+
+You can access the full technical glossary [here](/technical-glossary).
+
+
+### 3-2. Practice Project Using Our Workflow
+
+After the tutorial, you''ll work on a practice project alongside your terminology learning (3-1). This small, self-contained project applies our complete workflow in a realistic setting and typically takes **1-2 weeks**. 
+
+For this assignment, you''ll create multiple issues and pull requests while receiving guidance from your mentor. You''ll experience the entire process from planning to implementation to release, with feedback on both technical implementation and process adherence. The project uses actual production technologies and frameworks relevant to your future work, bridging the gap between tutorials and real projects while providing a safe learning environment.
+
+### 3-3. Research Assignment for Your First Real Project
+
+Before joining your first real project, you''ll research the project''s domain and technical requirements. This includes reviewing documentation, studying the technology stack, understanding business requirements, and identifying potential contributions. Your mentor will guide this process and connect you with team members. At month''s end, you''ll present your findings to the project team, marking your transition to active participation.');
+INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('development-guide', 'Development Guide', 'Guideline', 'Development Guide', 60, 'internal', 'published', 'In this page, you will find the standard development policy and workflow in OSBR.
 
 [[TOC]]
 
@@ -929,178 +1101,6 @@ Approve the release pull request and merge it into the release branch. In a real
 #### Verify the release
 
 In a real development process, the release is verified by the team on the production environment.');
-INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('on-boarding', 'On-boarding Guide', 'Guideline', 'On-boarding Guide', 60, 'internal', 'published', 'Welcome to OSBR! This guide outlines the on-boarding process for new team members.
-
-[[TOC]]
-
-## 1. First Day
-
-### 1-1. Company Introduction
-
-On the first day, new team members will receive a formal introduction to OSBR. This process includes:
-
-- **Welcome meeting**: A 30-minute session with the team lead to welcome the new member
-- **Vision and strategy presentation**: Overview of OSBR''s vision, business models, and strategic direction using the [Strategy Overview](/strategy) document
-- **Company history discussion**: Insight into OSBR''s journey, from its founding to current initiatives
-- **Q&A session**: Opportunity for new members to ask questions about the company
-
-The HR representative will schedule these sessions and provide access to relevant documentation before the meetings. New members should review the [Strategy Overview](/strategy) document in advance to make the sessions more productive.
-
-### 1-2. Account Preparation / Introduction to Internal Tools
-
-On the first day, the IT team will set up necessary accounts for new team members:
-
-| Account Type | Setup Process | Required Information |
-|--------------|---------------|----------------------|
-| **Google Workspace** | HR sends invitation to company email | Personal email for verification |
-| **Slack** | Manual invitation after Google setup | Google account |
-| **GitHub** | Manual invitation to organization | GitHub username or email |
-
-After setting up accounts, the IT team will briefly introduce you to our basic tools and how to access them. This short orientation covers just what you need to get started with our daily communication and work systems.
-
-### 1-3. Kitting
-
-#### Device Setup
-
-* Configure sleep mode to activate within 5 minutes, with mandatory reauthentication after sleep
-* Install antivirus software on Windows devices
-* Prohibit keeping files permanently on the desktop
-* Prohibit displaying text in the browser''s bookmark bar
-* Configure proxy settings for verification and production environment testing
-
-::: warning Notice
-Development on self-built development servers is prohibited.
-:::
-
-#### GitHub Email Notification Settings
-
-Configure your email notification settings to receive notifications from GitHub. Ensure that you are notified when other developers mention you.
-
-#### Container Runtime Environment Setup
-
-Make sure you can execute the `docker` and `docker compose` commands on your terminal. Containers will be used for development tasks such as compiling, running applications, package management, and executing tests.
-
-::: info NOTE
-While Docker Desktop is the standard reference, you can also use other tools like Rancher Desktop.
-:::
-
-#### Editor Configuration
-
-Set up your editor to enable features like auto-completion, navigation, and error checking for the languages used in the project (TypeScript, Go). Also, configure it to automatically format code upon file save. Use Prettier for TypeScript and `go fmt` for Go.
-
-#### Language Runtime Environment Setup
-
-While container-based development environments are the default, also set up the runtime environment for the languages on your local machine. For Node.js, use tools like `nodebrew` that allow easy version switching.
-
-::: info NOTE
-Some tools, such as AWS CDK, might require credentials to be passed via environment variables or files when run inside containers. Due to security considerations, a non-container-based approach might be preferred in such cases.
-:::
-
-#### Enable Screenshots and Screen Recording
-
-Throughout the development process, you may need to record operations as images or videos. Set up your system to be ready for this when needed.
-
-For Mac, it is recommended to use **Skitch** for screenshots and **QuickTime Player** (`shift + command + 5`) for video recording.
-
-#### Subscribe to Japan & Malaysia Holiday Event Calendar
-
-Since OSBR has employees from both Japan and Malaysia, it is important to receive notifications when the current or following day is a public holiday in either country. This helps in planning tasks and meetings more effectively.
-
-To subscribe to a holiday calendar on macOS:
-
-1. Open the Calendar app.
-2. Go to File > New Calendar Subscription.
-3. Enter the calendar''s web address (like https://www.officeholidays.com/ics/malaysia).
-4. And follow the prompts to name the calendar, choose an account, and set update frequency.
-
-::: info NOTE
-You can use your preferred calendar app such as Google Calendar.
-:::
-
-## 2. First Week
-
-### 2-1. Reading the OSBR Handbook
-
-During your first week, you should thoroughly review the OSBR Handbook to understand our company philosophy, processes, and expectations. Understanding our development flow and the intention behind our workflow is particularly important. While agile methodologies typically prioritize communication over documentation, we place significant value on documentation. To maintain agility, we focus on recording essential information with less effort in the right places, creating a system where this documentation enhances rather than hinders our agile practices. This balance allows us to preserve knowledge effectively while maintaining the flexibility and responsiveness that agile development requires.
-
-### 2-2. Tutorial
-
-During your first week, you''ll complete a hands-on tutorial that walks you through our entire development workflow. This tutorial is conducted in a safe environment using the [`osbrjp/tutorial`](https://github.com/osbrjp/tutorial) repository, where you can practice without affecting production systems.
-
-The tutorial covers these key activities:
-
-1. Creating an issue with the appropriate template
-2. Starting a pull request with detailed specifications
-3. Getting a specification review from a team member
-4. Making code changes in a properly named branch
-5. Conducting a self-review and attaching evidence (screenshots/videos)
-6. Requesting an implementation review
-7. Experiencing the release process
-
-This practical exercise will help you internalize our development practices and understand how we track, implement, review, and deploy changes. Your mentor will guide you through this process and answer any questions you have along the way.
-
-### 2-3. Meet the Team
-
-After completing the tutorial, you''ll contribute to the [`osbrjp/meet-the-team`](https://github.com/osbrjp/meet-the-team) repository to introduce yourself to your colleagues. This exercise serves two purposes: further practice with our workflow and helping the team get to know you better.
-
-The process involves:
-
-1. Creating an issue titled "Introduce [Your Name]"
-2. Working through our standard workflow with a pull request
-3. Creating your personal introduction page in the repository
-4. Writing a reflective essay on what "Be Nice, Be Kind, Be Strong" means to you
-
-Your introduction should follow the provided template and include information about your role, interests, and background. The "Be Nice, Be Kind, Be Strong" essay is an important part of our team culture, encouraging you to think about these values in your own words.
-
-This assignment helps integrate you into the team''s culture while giving you additional practice with our development workflow in a low-pressure context.
-
-### 2-4. First Handbook Assignment
-
-In your first week, you''ll make a small but meaningful contribution to the OSBR Handbook itself. While this isn''t software code, it''s equally important as it''s our live documentation that guides the entire team''s work.
-
-We believe that everyone, regardless of tenure, should be able to contribute to our documentation. While major changes to handbook rules would not be appropriate for someone who just joined, we don''t want to restrict editing only to those with longer tenure. Fresh perspectives often notice inconsistencies, unclear explanations, or opportunities for improvement that those familiar with the content might miss.
-
-For this assignment:
-
-1. Identify a small area of the handbook where you can make an improvement
-   - This could be fixing a typo, clarifying wording, adding a missing explanation, or suggesting a small enhancement
-   - Your mentor can help you find an appropriate area if needed
-
-2. Use our standard workflow (as practiced in the tutorial) to propose and implement this change
-   - Create an issue describing what you''d like to improve and why
-   - Get feedback on your approach
-   - Make the change through a pull request
-   - Attach appropriate evidence for review
-
-This exercise demonstrates our commitment to collective ownership of documentation and gives you the confidence to suggest improvements from day one. Finding ways for new team members to contribute immediately is important to us, even if those contributions start small.
-
-## 3. First Month
-
-### 3-1. Mastering Technical Terminology
-
-During your first month, you''ll need to familiarize yourself with the technical terminology commonly used at OSBR. Understanding these terms is crucial for effective communication with team members and clients.
-
-We''ve created a comprehensive technical glossary that you should review and reference as needed. The glossary includes formal definitions, common usage contexts, and related concepts for each term.
-
-Your mentor will guide you through this learning process and help identify which terms are most relevant to your specific role and projects. As part of this process, you''ll be asked to:
-
-1. Review the technical glossary
-2. Identify terms you''re unfamiliar with
-3. Learn and practice using these terms in appropriate contexts
-4. Develop insights into how different terms relate to each other and form a cohesive understanding of our technology ecosystem
-
-You can access the full technical glossary [here](/technical-glossary).
-
-
-### 3-2. Practice Project Using Our Workflow
-
-After the tutorial, you''ll work on a practice project alongside your terminology learning (3-1). This small, self-contained project applies our complete workflow in a realistic setting and typically takes **1-2 weeks**. 
-
-For this assignment, you''ll create multiple issues and pull requests while receiving guidance from your mentor. You''ll experience the entire process from planning to implementation to release, with feedback on both technical implementation and process adherence. The project uses actual production technologies and frameworks relevant to your future work, bridging the gap between tutorials and real projects while providing a safe learning environment.
-
-### 3-3. Research Assignment for Your First Real Project
-
-Before joining your first real project, you''ll research the project''s domain and technical requirements. This includes reviewing documentation, studying the technology stack, understanding business requirements, and identifying potential contributions. Your mentor will guide this process and connect you with team members. At month''s end, you''ll present your findings to the project team, marking your transition to active participation.');
 INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('predefining-non-functional-requirements', 'Non-functional Requirements', 'Guideline', 'Non-functional Requirements', 70, 'internal', 'published', 'In the development process, it is necessary to define non-functional and functional requirements. Functional requirements are deep-rooted in the specific things that a system needs to be able to do. What about non-functional requirements? (NFRs)
 
 [[TOC]]
@@ -2015,7 +2015,52 @@ Similar to serialization/deserialization but often refers specifically to conver
 
 ### Encode/Decode
 The process of converting data from one format to another.');
-INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('security-policy', 'Security Policy', 'Policies', 'Security Policy', 90, 'restricted', 'published', 'Security Policy Standards
+INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('sheq-policy', 'OSBR SHEQ Policy', 'Policies', 'SHEQ Policy', 90, 'internal', 'published', '[[TOC]]
+
+## 1. SHEQ Statement
+
+As a company, it is essential to be committed to maintaining the highest standards of Safety, Health, Environment, and Quality (SHEQ) across all operations. Our approach integrates SHEQ principles into our daily workflows, ensuring a safe, sustainable, and high-quality working environment for our team members, clients, and parties involved.
+
+We feel it''s wise to approach SHEQ as not just a compliance requirement, but a fundamental part of organizational culture and success.
+
+## 2. Our Commitment
+
+OSBR takes safety, health, environment and quality seriously. It''s not just a policy, but a part of how we function every day.
+
+### 2-1. Safety & Health
+
+Keeping related parties safe is top priority. That is done by:
+
+- Maintaining a safe work environment and mitigating hazards.
+- Promoting a culture of safety awareness.
+- Providing educational resources for employee learning.
+
+### 2-2. Environmental Responsibility
+
+We strive to minimize our environmental impact through:
+
+- Waste reduction.
+- Energy-efficient practices.
+- Compliance with laws and regulation pertaining to the environment.
+
+### 2-3. Quality Assurance
+
+Good work speaks for itself. High quality results are achieved when:
+
+- Keeping up with industry standards and best practices.
+- Innovating without compromising reliability.
+- Regularly evaluating and improving our processes
+
+## 3. The Team''s Responsibility
+
+OSBR team members each play a crucial role in upholding our SHEQ standards. The team''s responsibilities shall be represented in the table below:
+
+| Responsibility            | Expectation                                                                  |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| Safety & Health           | Follow safety protocols, report hazards, and contribute to a safe workplace. |
+| Environmental Stewardship | Minimize waste, reduce carbon footprint, and manage resources responsibly.   |
+| Quality Assurance         | Apply best practices, improve processes, and maintain OSBR’s high standards. |');
+INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('security-policy', 'Security Policy', 'Policies', 'Security Policy', 100, 'restricted', 'published', 'Security Policy Standards
 ========================
 
 This document outlines the security measures required of developers participating in development projects. All developers, including external collaborators, must comply with the standards set forth in this document upon joining a project.
@@ -2234,51 +2279,6 @@ Internal threats include:
 * Intentionally destroying the system
 * Tampering with service content by developers or internal users
 :::');
-INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('sheq-policy', 'OSBR SHEQ Policy', 'Policies', 'SHEQ Policy', 100, 'internal', 'published', '[[TOC]]
-
-## 1. SHEQ Statement
-
-As a company, it is essential to be committed to maintaining the highest standards of Safety, Health, Environment, and Quality (SHEQ) across all operations. Our approach integrates SHEQ principles into our daily workflows, ensuring a safe, sustainable, and high-quality working environment for our team members, clients, and parties involved.
-
-We feel it''s wise to approach SHEQ as not just a compliance requirement, but a fundamental part of organizational culture and success.
-
-## 2. Our Commitment
-
-OSBR takes safety, health, environment and quality seriously. It''s not just a policy, but a part of how we function every day.
-
-### 2-1. Safety & Health
-
-Keeping related parties safe is top priority. That is done by:
-
-- Maintaining a safe work environment and mitigating hazards.
-- Promoting a culture of safety awareness.
-- Providing educational resources for employee learning.
-
-### 2-2. Environmental Responsibility
-
-We strive to minimize our environmental impact through:
-
-- Waste reduction.
-- Energy-efficient practices.
-- Compliance with laws and regulation pertaining to the environment.
-
-### 2-3. Quality Assurance
-
-Good work speaks for itself. High quality results are achieved when:
-
-- Keeping up with industry standards and best practices.
-- Innovating without compromising reliability.
-- Regularly evaluating and improving our processes
-
-## 3. The Team''s Responsibility
-
-OSBR team members each play a crucial role in upholding our SHEQ standards. The team''s responsibilities shall be represented in the table below:
-
-| Responsibility            | Expectation                                                                  |
-| ------------------------- | ---------------------------------------------------------------------------- |
-| Safety & Health           | Follow safety protocols, report hazards, and contribute to a safe workplace. |
-| Environmental Stewardship | Minimize waste, reduce carbon footprint, and manage resources responsibly.   |
-| Quality Assurance         | Apply best practices, improve processes, and maintain OSBR’s high standards. |');
 
 -- page_groups (restricted -> groups)
 INSERT INTO page_groups (page_id, group_id) SELECT p.id, g.id FROM pages p, groups g WHERE p.slug='security-policy' AND g.key='leadership';

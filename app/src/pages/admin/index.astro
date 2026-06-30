@@ -13,6 +13,7 @@ const pages = await listAllPages(Astro.locals.db);
 ---
 
 <Base title="Editor" visitor={Astro.locals.visitor}>
+  <div class="container">
   <h1>Pages</h1>
   <p><a href="/admin/new">+ New page</a></p>
   <table class="admin-list">
@@ -33,4 +34,5 @@ const pages = await listAllPages(Astro.locals.db);
       }
     </tbody>
   </table>
+  </div>
 </Base>

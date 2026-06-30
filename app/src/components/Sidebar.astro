@@ -1,0 +1,28 @@
+---
+import type { PageRow } from "../lib/db/pages";
+
+interface Props {
+  pages: PageRow[];
+  current?: string;
+}
+const { pages, current } = Astro.props;
+const sections = [...new Set(pages.map((p) => p.section))];
+---
+
+<aside class="doc-sidebar">
+  {
+    sections.map((section) => (
+      <div class="sb-group">
+        <p class="sb-title">{section}</p>
+        {pages
+          .filter((p) => p.section === section)
+          .map((p) => (
+            <a class={`sb-link${p.slug === current ? " active" : ""}`} href={`/${p.slug}`}>
+              {p.nav_label || p.title}
+              {p.visibility === "restricted" && <span class="sb-badge">🔒</span>}
+            </a>
+          ))}
+      </div>
+    ))
+  }
+</aside>

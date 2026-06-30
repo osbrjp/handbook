@@ -12,7 +12,7 @@
 //
 // Usage:  node app/db/migrate-doc.mjs
 
-import { readFile, readdir, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -61,8 +61,6 @@ const PAGE_META = {
     groups: ["leadership"],
   },
 };
-const SECTION_ORDER = ["About", "People & Culture", "Guideline", "Policies"];
-
 // Test personas (POC). Real membership comes from Google Groups pre-prod.
 const GROUPS = [{ key: "leadership", label: "Leadership" }];
 const USERS = [
@@ -93,14 +91,17 @@ export function slugToTitle(slug) {
 const sql = (v) => (v === null || v === undefined ? "NULL" : `'${String(v).replace(/'/g, "''")}'`);
 
 async function buildPages() {
-  const files = (await readdir(docDir)).filter((f) => f.endsWith(".md")).sort();
+  // Iterate PAGE_META in declaration order so section + within-section order
+  // matches the original VitePress sidebar (config.mts), not alphabetical.
   const pages = [];
-  for (const file of files) {
-    const slug = file.replace(/\.md$/, "");
-    if (slug === "index") continue; // home hero -> bespoke component
+  for (const slug of Object.keys(PAGE_META)) {
     const meta = PAGE_META[slug];
-    if (!meta) continue;
-    const raw = await readFile(path.join(docDir, file), "utf8");
+    let raw;
+    try {
+      raw = await readFile(path.join(docDir, `${slug}.md`), "utf8");
+    } catch {
+      continue; // skip if the markdown file is missing
+    }
     pages.push({
       slug,
       title: extractTitle(raw, slug),
@@ -111,10 +112,7 @@ async function buildPages() {
       body: stripLeadingH1(raw).trim(),
     });
   }
-  pages.sort((a, b) => {
-    const s = SECTION_ORDER.indexOf(a.section) - SECTION_ORDER.indexOf(b.section);
-    return s !== 0 ? s : a.slug.localeCompare(b.slug);
-  });
+  // Global sequential sort → ORDER BY sort groups sections in declaration order.
   pages.forEach((p, i) => {
     p.sort = (i + 1) * 10;
   });
