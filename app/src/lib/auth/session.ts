@@ -17,10 +17,10 @@ async function getKey(secret: string): Promise<CryptoKey> {
   if (!secret || secret.length < 32) {
     throw new Error("COOKIE_ENCRYPTION_KEY must be at least 32 characters");
   }
-  return crypto.subtle.importKey("raw", enc.encode(secret.slice(0, 32)), { name: "AES-GCM" }, false, [
-    "encrypt",
-    "decrypt",
-  ]);
+  // SHA-256 the full secret to a 32-byte key — uses all the entropy (not just
+  // the first 32 chars) and is byte-safe for multibyte secrets.
+  const digest = await crypto.subtle.digest("SHA-256", enc.encode(secret));
+  return crypto.subtle.importKey("raw", digest, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
 }
 
 function b64urlEncode(bytes: Uint8Array): string {

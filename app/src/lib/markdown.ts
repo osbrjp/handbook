@@ -1,11 +1,11 @@
-// Markdown -> HTML render pipeline for page bodies stored as markdown in
-// Directus. Handles the VitePress-isms the handbook uses:
+// Markdown -> HTML render pipeline for page bodies stored as markdown in D1.
+// Handles the VitePress-isms the handbook uses:
 //   - ::: admonitions  -> callout components (remark-directive)
 //   - [[TOC]]          -> a table of contents built from headings
 //   - ```mermaid```    -> <div class="mermaid"> for client-side rendering
 //
-// Body is stored as markdown VERBATIM in the CMS; all of this happens at render
-// time so the source of truth stays plain markdown (red-team R6).
+// Body is stored as markdown VERBATIM in D1; all of this happens at render time
+// so the source of truth stays plain markdown (red-team R6).
 
 import { unified } from "unified";
 import remarkParse from "remark-parse";

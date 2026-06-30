@@ -18,7 +18,7 @@ try {
 // Not-found AND forbidden both return 404 — no existence signal (red-team R2).
 if (!page) return new Response(null, { status: 404 });
 
-setReaderCacheHeaders(Astro.response.headers, page.visibility);
+setReaderCacheHeaders(Astro.response.headers, page.visibility, Astro.locals.visitor);
 const html = renderMarkdown(page.body);
 ---
 

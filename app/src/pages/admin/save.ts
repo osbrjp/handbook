@@ -37,12 +37,18 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   const clash = await locals.db.prepare("SELECT id FROM pages WHERE slug=? AND id != ?").bind(slug, id ?? -1).first();
   if (clash) return bad("That slug is already in use");
 
-  const newId = await upsertPage(
-    locals.db,
-    { slug, title, section, nav_label, sort, visibility, status: status as "draft" | "published", body },
-    locals.visitor?.email ?? "unknown",
-    id,
-  );
+  let newId: number;
+  try {
+    newId = await upsertPage(
+      locals.db,
+      { slug, title, section, nav_label, sort, visibility, status: status as "draft" | "published", body },
+      locals.visitor?.email ?? "unknown",
+      id,
+    );
+  } catch {
+    // UNIQUE(slug) race after the pre-check — return the clean 400, not a 500.
+    return bad("That slug is already in use");
+  }
 
   // Group grants apply only to restricted pages; otherwise clear them. Unknown
   // group keys are dropped (fail toward LESS access).

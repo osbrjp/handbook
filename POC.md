@@ -6,9 +6,9 @@ Astro app on Cloudflare, with a **built-in editor for non-technical staff** and
 written from scratch, no Directus/headless-CMS.
 
 > The reader ACL, editor RBAC, CSRF, and stored-XSS defenses are **verified live**
-> against a local D1 (see below). Only the live Google→Directus… er, Google OAuth
-> handshake is deferred (needs a real Workspace OAuth client); its session/cookie/
-> enforcement machinery is already proven via the dev-login shim.
+> against a local D1 (see below). Only the live Google OAuth handshake is deferred
+> (needs a real Workspace OAuth client); its session/cookie/enforcement machinery
+> is already proven via the dev-login shim.
 
 ## Architecture
 

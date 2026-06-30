@@ -119,11 +119,15 @@ export async function upsertPage(
 
 /** Editor-only: replace the group grants for a restricted page. */
 export async function setPageGroups(db: D1Database, pageId: number, groupKeys: string[]): Promise<void> {
-  await db.prepare("DELETE FROM page_groups WHERE page_id=?").bind(pageId).run();
+  // Atomic (implicit transaction) — a partial failure must not silently drop a
+  // page's grants and make it invisible to its intended readers.
+  const stmts: D1PreparedStatement[] = [db.prepare("DELETE FROM page_groups WHERE page_id=?").bind(pageId)];
   for (const key of groupKeys) {
-    await db
-      .prepare("INSERT OR IGNORE INTO page_groups (page_id, group_id) SELECT ?, id FROM groups WHERE key=?")
-      .bind(pageId, key)
-      .run();
+    stmts.push(
+      db
+        .prepare("INSERT OR IGNORE INTO page_groups (page_id, group_id) SELECT ?, id FROM groups WHERE key=?")
+        .bind(pageId, key),
+    );
   }
+  await db.batch(stmts);
 }

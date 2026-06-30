@@ -39,7 +39,8 @@ export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
 
   // 4. Userinfo.
   const info = await fetchGoogleUserinfo(token.accessToken);
-  if (!info?.email) return fail("userinfo_failed");
+  // Require a Google-verified email — never trust an unverified address as identity.
+  if (!info?.email || info.verified_email !== true) return fail("userinfo_failed");
   const email = info.email.toLowerCase();
 
   // 5. Allow-list AND a row in `users` (data-driven; fail closed). New staff are

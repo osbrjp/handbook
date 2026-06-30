@@ -18,6 +18,7 @@ if (visitor) {
   Astro.response.headers.set("Vary", "Cookie");
 } else {
   Astro.response.headers.set("Cache-Control", "public, max-age=60, s-maxage=300");
+  Astro.response.headers.set("Vary", "Cookie"); // don't serve a cached anon home to a just-logged-in user
 }
 ---
 

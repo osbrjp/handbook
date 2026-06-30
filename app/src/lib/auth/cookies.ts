@@ -10,6 +10,6 @@ export function sessionCookieOptions(origin: string) {
     sameSite: "lax" as const,
     path: "/",
     maxAge: 60 * 60 * 24 * 7, // 7d (server-side exp is the real gate)
-    secure: origin.startsWith("https://"),
+    secure: import.meta.env.PROD || origin.startsWith("https://"),
   };
 }
