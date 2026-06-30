@@ -14,7 +14,7 @@ const visibility = page?.visibility ?? "internal";
 ---
 
 <div class="editor-topbar">
-  <a class="btn-cancel" href="/admin">← Back without saving</a>
+  <a class="btn-cancel" href="/admin" id="back-link">← Back without saving</a>
   {
     page && (
       <>
@@ -147,6 +147,22 @@ const visibility = page?.visibility ?? "internal";
   });
 
   render();
+
+  // Back returns to wherever the editor was opened from (the page or the list),
+  // falling back to the href (/admin) for direct loads / off-site referrers.
+  const backLink = document.getElementById("back-link");
+  backLink?.addEventListener("click", (e) => {
+    let sameOrigin = false;
+    try {
+      sameOrigin = !!document.referrer && new URL(document.referrer).origin === location.origin;
+    } catch {
+      sameOrigin = false;
+    }
+    if (window.history.length > 1 && sameOrigin) {
+      e.preventDefault();
+      history.back();
+    }
+  });
 
   // Confirm before deleting — open a modal rather than submit straight away.
   const deleteOpen = document.getElementById("delete-open");
