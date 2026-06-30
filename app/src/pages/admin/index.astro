@@ -1,6 +1,7 @@
 ---
 import Base from "../../layouts/Base.astro";
 import { requireEditor } from "../../lib/auth/requireEditor";
+import { issueCsrf } from "../../lib/csrf";
 import { listAllPages } from "../../lib/db/pages";
 
 const denied = requireEditor(Astro.locals);
@@ -12,6 +13,7 @@ Astro.response.headers.set("Vary", "Cookie");
 const pages = await listAllPages(Astro.locals.db);
 const sections = [...new Set(pages.map((p) => p.section))];
 const deleted = Astro.url.searchParams.get("deleted");
+const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
 ---
 
 <Base title="Editor" visitor={Astro.locals.visitor}>
@@ -32,15 +34,28 @@ const deleted = Astro.url.searchParams.get("deleted");
           </summary>
           <table class="admin-list">
             <thead>
-              <tr><th>Title</th><th>Visibility</th><th>Status</th><th></th></tr>
+              <tr>
+                <th>Title</th>
+                <th class="col-right">Visibility</th>
+                <th class="col-right">Status</th>
+                <th class="col-right">Actions</th>
+              </tr>
             </thead>
             <tbody>
               {items.map((p) => (
                 <tr>
                   <td>{p.title}</td>
-                  <td><span class={`badge badge-${p.visibility}`}>{p.visibility}</span></td>
-                  <td>{p.status}</td>
-                  <td><a href={`/admin/edit/${p.id}`}>Edit</a> · <a href={`/${p.slug}`}>View</a></td>
+                  <td class="col-right">
+                    <span class={`badge badge-${p.visibility}`}>{p.visibility}</span>
+                  </td>
+                  <td class="col-right">{p.status}</td>
+                  <td class="col-right row-actions">
+                    <a href={`/admin/edit/${p.id}`}>Edit</a>
+                    <a href={`/${p.slug}`}>View</a>
+                    <button type="button" class="row-delete" data-id={p.id} data-title={p.title}>
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -50,4 +65,33 @@ const deleted = Astro.url.searchParams.get("deleted");
     })
   }
   </div>
+
+  <dialog id="del-dialog" class="confirm-dialog">
+    <h2>Delete this page?</h2>
+    <p>
+      Are you sure you want to delete “<strong id="del-title"></strong>”? This cannot be undone.
+    </p>
+    <form method="POST" action="/admin/delete" id="del-form">
+      <input type="hidden" name="csrf" value={csrf} />
+      <input type="hidden" name="id" id="del-id" />
+      <div class="confirm-actions">
+        <button type="button" class="btn-cancel-modal" id="del-cancel">Cancel</button>
+        <button type="submit" class="btn-danger">Delete page</button>
+      </div>
+    </form>
+  </dialog>
 </Base>
+
+<script>
+  const dialog = document.getElementById("del-dialog") as HTMLDialogElement | null;
+  const idInput = document.getElementById("del-id") as HTMLInputElement | null;
+  const titleEl = document.getElementById("del-title");
+  for (const btn of document.querySelectorAll<HTMLButtonElement>(".row-delete")) {
+    btn.addEventListener("click", () => {
+      if (idInput) idInput.value = btn.dataset.id ?? "";
+      if (titleEl) titleEl.textContent = btn.dataset.title ?? "this page";
+      dialog?.showModal();
+    });
+  }
+  document.getElementById("del-cancel")?.addEventListener("click", () => dialog?.close());
+</script>

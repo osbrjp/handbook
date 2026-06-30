@@ -583,6 +583,8 @@ a:hover {
 .admin-list {
   width: 100%;
   border-collapse: collapse;
+  /* Fixed layout so every section's columns line up identically. */
+  table-layout: fixed;
 }
 .admin-section .admin-list {
   border-top: 1px solid var(--divider);
@@ -592,6 +594,41 @@ a:hover {
   text-align: left;
   padding: 0.4rem 0.9rem;
   border-bottom: 1px solid var(--divider);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-list .col-right {
+  text-align: right;
+}
+/* Shared column widths across all section tables. */
+.admin-list th:nth-child(2),
+.admin-list td:nth-child(2) {
+  width: 9rem;
+}
+.admin-list th:nth-child(3),
+.admin-list td:nth-child(3) {
+  width: 7rem;
+}
+.admin-list th:nth-child(4),
+.admin-list td:nth-child(4) {
+  width: 12rem;
+}
+.row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+.row-delete {
+  font: inherit;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #d9534f;
+  cursor: pointer;
+}
+.row-delete:hover {
+  text-decoration: underline;
 }
 .admin-section .admin-list tr:last-child td {
   border-bottom: none;
