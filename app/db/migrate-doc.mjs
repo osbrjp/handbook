@@ -7,8 +7,8 @@
 // is stripped from the body. IA metadata (section/sort/nav_label) is seeded from
 // the VitePress sidebar, never inferred.
 //
-// Also seeds: one `leadership` group, four test users (personas), their group
-// membership, and the page_groups row that makes `security-policy` restricted.
+// Also seeds two test users (editor + reader personas). No access groups are
+// seeded — the restricted (group-gated) visibility level is unused by default.
 //
 // Usage:  node app/db/migrate-doc.mjs
 
@@ -53,26 +53,19 @@ const PAGE_META = {
     visibility: "internal",
   },
   "sheq-policy": { section: "Policies", nav_label: "SHEQ Policy", visibility: "internal" },
-  // Used to demonstrate the restricted (group-gated) level.
   "security-policy": {
     section: "Policies",
     nav_label: "Security Policy",
-    visibility: "restricted",
-    groups: ["leadership"],
+    visibility: "internal",
   },
 };
 // Test personas (POC). Real membership comes from Google Groups pre-prod.
-const GROUPS = [{ key: "leadership", label: "Leadership" }];
+const GROUPS = [];
 const USERS = [
   { email: "editor@osbrjp.com", role: "editor", name: "Editor" },
   { email: "reader@osbrjp.com", role: "reader", name: "Reader" },
-  { email: "leader@osbrjp.com", role: "reader", name: "Leader (leadership)" },
-  { email: "editor-leader@osbrjp.com", role: "editor", name: "Editor + leadership" },
 ];
-const USER_GROUPS = [
-  { email: "leader@osbrjp.com", group: "leadership" },
-  { email: "editor-leader@osbrjp.com", group: "leadership" },
-];
+const USER_GROUPS = [];
 
 export function extractTitle(md, slug) {
   const m = md.match(/^\s*#\s+(.+?)\s*$/m);

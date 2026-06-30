@@ -40,8 +40,10 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  ──>  Cloudflare D1 (
   |---|:--:|:--:|:--:|
   | anonymous | 200 | 404 | 404 |
   | reader | 200 | 200 | 404 |
-  | leader (leadership group) | 200 | 200 | **200** |
   | editor | 200 | 200 | 200 |
+
+  (The restricted/group-gated level is still supported by the schema and ACL,
+  but no access group or restricted page is seeded by default.)
 
 - Nav + sitemap as anon contain **only public** slugs (no enumeration).
 - Editor RBAC: `/admin*` is 200 for editors, **404** for readers/anon.
@@ -74,7 +76,6 @@ Log in as a seeded persona without Google via the dev-login shim (works only whe
 ```
 http://localhost:4321/api/auth/dev-login?email=editor@osbrjp.com    # editor
 http://localhost:4321/api/auth/dev-login?email=reader@osbrjp.com     # reader
-http://localhost:4321/api/auth/dev-login?email=leader@osbrjp.com     # reader + leadership (sees restricted)
 ```
 
 - Reader site: http://localhost:4321/  · Editor: http://localhost:4321/admin

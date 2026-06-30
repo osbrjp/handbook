@@ -2,17 +2,12 @@
 BEGIN TRANSACTION;
 
 -- groups
-INSERT INTO groups (key, label) VALUES ('leadership', 'Leadership');
 
 -- users
 INSERT INTO users (email, role, name) VALUES ('editor@osbrjp.com', 'editor', 'Editor');
 INSERT INTO users (email, role, name) VALUES ('reader@osbrjp.com', 'reader', 'Reader');
-INSERT INTO users (email, role, name) VALUES ('leader@osbrjp.com', 'reader', 'Leader (leadership)');
-INSERT INTO users (email, role, name) VALUES ('editor-leader@osbrjp.com', 'editor', 'Editor + leadership');
 
 -- user_groups
-INSERT INTO user_groups (email, group_id) SELECT 'leader@osbrjp.com', g.id FROM groups g WHERE g.key='leadership';
-INSERT INTO user_groups (email, group_id) SELECT 'editor-leader@osbrjp.com', g.id FROM groups g WHERE g.key='leadership';
 
 -- pages (published)
 INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('what-is-handbook', 'What is the OSBR Handbook?', 'About', 'What is Handbook?', 10, 'public', 'published', '[[TOC]]
@@ -2060,7 +2055,7 @@ OSBR team members each play a crucial role in upholding our SHEQ standards. The 
 | Safety & Health           | Follow safety protocols, report hazards, and contribute to a safe workplace. |
 | Environmental Stewardship | Minimize waste, reduce carbon footprint, and manage resources responsibly.   |
 | Quality Assurance         | Apply best practices, improve processes, and maintain OSBR’s high standards. |');
-INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('security-policy', 'Security Policy', 'Policies', 'Security Policy', 100, 'restricted', 'published', 'Security Policy Standards
+INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES ('security-policy', 'Security Policy', 'Policies', 'Security Policy', 100, 'internal', 'published', 'Security Policy Standards
 ========================
 
 This document outlines the security measures required of developers participating in development projects. All developers, including external collaborators, must comply with the standards set forth in this document upon joining a project.
@@ -2281,6 +2276,5 @@ Internal threats include:
 :::');
 
 -- page_groups (restricted -> groups)
-INSERT INTO page_groups (page_id, group_id) SELECT p.id, g.id FROM pages p, groups g WHERE p.slug='security-policy' AND g.key='leadership';
 
 COMMIT;
