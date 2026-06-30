@@ -608,6 +608,13 @@ a:hover {
   padding-left: clamp(1.5rem, 4vw, 4rem);
   padding-right: clamp(1.5rem, 4vw, 4rem);
 }
+.editor-page > h1 {
+  font-size: 2rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  margin: 0 0 1.25rem;
+}
 .editor-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -718,6 +725,42 @@ a:hover {
 .btn-cancel:hover {
   color: var(--text);
   text-decoration: underline;
+}
+/* Delete confirmation modal. */
+.confirm-dialog {
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 26rem;
+  background: var(--bg);
+  color: var(--text);
+}
+.confirm-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+.confirm-dialog h2 {
+  margin: 0 0 0.6rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.confirm-dialog p {
+  margin: 0 0 1.25rem;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+.btn-cancel-modal {
+  padding: 0.5rem 1.1rem;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 20px;
+  border: 1px solid var(--divider);
+  background: var(--soft);
+  color: var(--text);
 }
 .btn-danger {
   padding: 0.5rem 1.1rem;

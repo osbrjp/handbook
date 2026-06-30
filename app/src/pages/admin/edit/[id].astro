@@ -28,7 +28,7 @@ const savedMsg = saved === "published" ? "Published" : saved === "draft" ? "Save
 
 <Base title={`Edit: ${page.title}`} visitor={Astro.locals.visitor}>
   <div class="container editor-page">
-    <h1>Edit page</h1>
+    <h1>Edit: {page.title}</h1>
     {
       savedMsg && (
         <div class="notice">

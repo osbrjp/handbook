@@ -17,16 +17,37 @@ const visibility = page?.visibility ?? "internal";
   <a class="btn-cancel" href="/admin">← Back without saving</a>
   {
     page && (
-      <form method="POST" action="/admin/delete" class="delete-form" id="delete-form">
-        <input type="hidden" name="csrf" value={csrf} />
-        <input type="hidden" name="id" value={page.id} />
-        <button type="submit" class="btn-danger" data-title={page.title}>
+      <>
+        <form method="POST" action="/admin/delete" class="delete-form" id="delete-form">
+          <input type="hidden" name="csrf" value={csrf} />
+          <input type="hidden" name="id" value={page.id} />
+        </form>
+        <button type="button" class="btn-danger" id="delete-open">
           Delete page
         </button>
-      </form>
+      </>
     )
   }
 </div>
+
+{
+  page && (
+    <dialog id="delete-dialog" class="confirm-dialog">
+      <h2>Delete this page?</h2>
+      <p>
+        Are you sure you want to delete “<strong>{page.title}</strong>”? This cannot be undone.
+      </p>
+      <div class="confirm-actions">
+        <button type="button" class="btn-cancel-modal" id="delete-cancel">
+          Cancel
+        </button>
+        <button type="submit" form="delete-form" class="btn-danger">
+          Delete page
+        </button>
+      </div>
+    </dialog>
+  )
+}
 
 <form method="POST" action="/admin/save" class="editor">
   <input type="hidden" name="csrf" value={csrf} />
@@ -126,10 +147,10 @@ const visibility = page?.visibility ?? "internal";
 
   render();
 
-  // Confirm before deleting — destructive and irreversible.
-  const deleteForm = document.getElementById("delete-form") as HTMLFormElement | null;
-  deleteForm?.addEventListener("submit", (e) => {
-    const title = deleteForm.querySelector("button")?.getAttribute("data-title") ?? "this page";
-    if (!confirm(`Delete "${title}"? This cannot be undone.`)) e.preventDefault();
-  });
+  // Confirm before deleting — open a modal rather than submit straight away.
+  const deleteOpen = document.getElementById("delete-open");
+  const deleteCancel = document.getElementById("delete-cancel");
+  const deleteDialog = document.getElementById("delete-dialog") as HTMLDialogElement | null;
+  deleteOpen?.addEventListener("click", () => deleteDialog?.showModal());
+  deleteCancel?.addEventListener("click", () => deleteDialog?.close());
 </script>
