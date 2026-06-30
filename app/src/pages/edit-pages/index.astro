@@ -20,7 +20,7 @@ const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
   <div class="container admin-page">
   <div class="admin-head">
     <h1>Pages</h1>
-    <a class="btn btn-brand" href="/admin/new">+ New page</a>
+    <a class="btn btn-brand" href="/edit-pages/new">+ New page</a>
   </div>
   {deleted && <div class="notice">✓ Page deleted.</div>}
 
@@ -50,7 +50,7 @@ const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
                   </td>
                   <td class="col-right">{p.status}</td>
                   <td class="col-right row-actions">
-                    <a href={`/admin/edit/${p.id}`}>Edit</a>
+                    <a href={`/edit-pages/edit/${p.id}`}>Edit</a>
                     <a href={`/${p.slug}`}>View</a>
                     <button type="button" class="row-delete" data-id={p.id} data-title={p.title}>
                       Delete
@@ -75,7 +75,7 @@ const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
     <p>
       Are you sure you want to delete “<strong id="del-title"></strong>”? This cannot be undone.
     </p>
-    <form method="POST" action="/admin/delete" id="del-form">
+    <form method="POST" action="/edit-pages/delete" id="del-form">
       <input type="hidden" name="csrf" value={csrf} />
       <input type="hidden" name="id" id="del-id" />
       <div class="confirm-actions">

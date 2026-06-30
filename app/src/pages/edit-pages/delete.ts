@@ -20,5 +20,5 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
 
   await deletePage(locals.db, id);
 
-  return redirect("/admin?deleted=1", 303);
+  return redirect("/edit-pages?deleted=1", 303);
 };

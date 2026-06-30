@@ -21,7 +21,7 @@ const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
 const groups = await listGroups(Astro.locals.db);
 const sections = [...new Set((await listAllPages(Astro.locals.db)).map((p) => p.section))];
 
-// Confirmation after a save (set by /admin/save).
+// Confirmation after a save (set by /edit-pages/save).
 const saved = Astro.url.searchParams.get("saved");
 const savedMsg = saved === "published" ? "Published" : saved === "draft" ? "Saved as draft" : null;
 ---

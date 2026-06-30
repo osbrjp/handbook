@@ -81,5 +81,5 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   await setPageGroups(locals.db, newId, groupKeys);
 
   // Carry the outcome so the edit page can show a confirmation banner.
-  return redirect(`/admin/edit/${newId}?saved=${status}`, 303);
+  return redirect(`/edit-pages/edit/${newId}?saved=${status}`, 303);
 };

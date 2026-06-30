@@ -18,7 +18,7 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  ──>  Cloudflare D1 (
             - middleware: decrypt session cookie,
               re-resolve role+groups from D1 per request (no identity bleed)
             - readableWhere(): ONE SQL predicate = the entire reader ACL
-            - /admin editor (editor-role only, 404 otherwise) + live preview
+            - /edit-pages editor (editor-role only, 404 otherwise) + live preview
             - hand-written Google OAuth (AES-GCM session cookie), coop-pattern
 ```
 
@@ -30,7 +30,7 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  ──>  Cloudflare D1 (
 ## What's verified
 
 **Verified locally with no Docker/Google (unit):**
-- `pnpm check` (types), `pnpm build`, `pnpm test` (26 tests), `pnpm guard`.
+- `pnpm check` (types), `pnpm build`, `pnpm test` (32 tests), `pnpm guard`.
 - Session crypto round-trip + tamper/expiry/wrong-key rejection; `readableWhere` ACL table; render pipeline (callouts/TOC/mermaid + XSS sanitize); `doc/*.md → seed`.
 
 **Verified LIVE against a local Cloudflare D1 (Miniflare, via `astro dev`):**
@@ -46,7 +46,7 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  ──>  Cloudflare D1 (
   but no access group or restricted page is seeded by default.)
 
 - Nav + sitemap as anon contain **only public** slugs (no enumeration).
-- Editor RBAC: `/admin*` is 200 for editors, **404** for readers/anon.
+- Editor RBAC: `/edit-pages*` is 200 for editors, **404** for readers/anon.
 - CSRF: bad double-submit token → 403; cross-origin POST → 403 (Astro origin check).
 - Stored XSS: an editor saving `<script>`/`javascript:` → the published reader page strips both, callout still renders.
 
@@ -78,7 +78,7 @@ http://localhost:4321/api/auth/dev-login?email=editor@osbrjp.com    # editor
 http://localhost:4321/api/auth/dev-login?email=reader@osbrjp.com     # reader
 ```
 
-- Reader site: http://localhost:4321/  · Editor: http://localhost:4321/admin
+- Reader site: http://localhost:4321/  · Editor: http://localhost:4321/edit-pages
 
 ### Acceptance test (scripted)
 
@@ -103,7 +103,7 @@ app/
   src/lib/db/        pages (readableWhere ACL + reads/upsert), groups
   src/lib/csrf.ts    double-submit CSRF
   src/middleware.ts  per-request: decrypt session, resolve role+groups, fail closed
-  src/pages/         index, [...slug], sitemap.xml, api/auth/*, admin/*
+  src/pages/         index, [...slug], sitemap.xml, api/auth/*, api/search, edit-pages/*
   src/lib/markdown.ts  callouts / [[TOC]] / mermaid + rehype-sanitize (reader + preview)
   scripts/guard-no-module-client.mjs  CI guard vs identity bleed
   db/                migrations/0001_init.sql, reset.sql, migrate-doc.mjs, seed/0002_seed.sql

@@ -14,11 +14,11 @@ const visibility = page?.visibility ?? "internal";
 ---
 
 <div class="editor-topbar">
-  <a class="btn-cancel" href="/admin" id="back-link">← Back without saving</a>
+  <a class="btn-cancel" href="/edit-pages" id="back-link">← Back without saving</a>
   {
     page && (
       <>
-        <form method="POST" action="/admin/delete" class="delete-form" id="delete-form">
+        <form method="POST" action="/edit-pages/delete" class="delete-form" id="delete-form">
           <input type="hidden" name="csrf" value={csrf} />
           <input type="hidden" name="id" value={page.id} />
         </form>
@@ -49,7 +49,7 @@ const visibility = page?.visibility ?? "internal";
   )
 }
 
-<form method="POST" action="/admin/save" class="editor">
+<form method="POST" action="/edit-pages/save" class="editor">
   <input type="hidden" name="csrf" value={csrf} />
   {page && <input type="hidden" name="id" value={page.id} />}
   <input type="hidden" name="sort" value={page?.sort ?? 0} />
@@ -110,7 +110,7 @@ const visibility = page?.visibility ?? "internal";
   let timer: ReturnType<typeof setTimeout>;
   async function render() {
     if (!body || !preview) return;
-    const res = await fetch("/admin/preview", {
+    const res = await fetch("/edit-pages/preview", {
       method: "POST",
       headers: { "Content-Type": "text/plain" },
       body: body.value,
@@ -149,7 +149,7 @@ const visibility = page?.visibility ?? "internal";
   render();
 
   // Back returns to wherever the editor was opened from (the page or the list),
-  // falling back to the href (/admin) for direct loads / off-site referrers.
+  // falling back to the href (/edit-pages) for direct loads / off-site referrers.
   const backLink = document.getElementById("back-link");
   backLink?.addEventListener("click", (e) => {
     let sameOrigin = false;

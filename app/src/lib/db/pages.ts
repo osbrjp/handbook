@@ -70,7 +70,7 @@ export async function getPageBySlug(
   return asPage(row);
 }
 
-/** Nav list. Reflects PUBLISHED reality even for editors (drafts via /admin). */
+/** Nav list. Reflects PUBLISHED reality even for editors (drafts via /edit-pages). */
 export async function getNavPages(db: D1Database, v: Visitor | null): Promise<PageRow[]> {
   const base =
     v && v.role === "editor"

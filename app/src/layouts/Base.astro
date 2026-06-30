@@ -72,7 +72,7 @@ const { title, visitor = null } = Astro.props;
         {
           visitor ? (
             <>
-              {visitor.role === "editor" && <a class="nav-edit" href="/admin">Editor</a>}
+              {visitor.role === "editor" && <a class="nav-edit" href="/edit-pages">Editor</a>}
               <span class="who">{visitor.email}</span>
               <form method="POST" action="/api/auth/logout" class="logout-form">
                 <button type="submit" class="linkbtn">Sign out</button>
