@@ -121,6 +121,91 @@ export async function getSidebarPages(db: D1Database, v: Visitor | null): Promis
   return (results ?? []) as unknown as SidebarRow[];
 }
 
+export interface SearchHit {
+  slug: string;
+  title: string;
+  section: string;
+  snippet: string;
+}
+
+// Strip markdown/HTML to plain text for a safe, readable snippet. This is NOT a
+// security boundary (the API HTML-escapes / the UI uses textContent) — it just
+// removes noise (fences, directives, markup) so the excerpt reads cleanly.
+function toPlainText(md: string): string {
+  return (md || "")
+    .replace(/```[\s\S]*?```/g, " ") // fenced code blocks
+    .replace(/`[^`]*`/g, " ") // inline code
+    .replace(/<[^>]+>/g, " ") // html tags
+    .replace(/^:{3}.*$/gm, " ") // ::: admonition fences
+    .replace(/\[\[TOC\]\]/g, " ") // toc marker
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1") // images/links -> their text
+    .replace(/[#>*_~|-]+/g, " ") // residual markdown punctuation
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Build a ~maxLen plain-text excerpt centred on the first occurrence of `q`
+// (case-insensitive). Falls back to the start of the text when there's no match
+// in the body (e.g. the hit was on the title).
+function makeSnippet(body: string, q: string, maxLen = 160): string {
+  const text = toPlainText(body);
+  if (!text) return "";
+  const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if (idx < 0) {
+    return text.length <= maxLen ? text : `${text.slice(0, maxLen).trimEnd()}…`;
+  }
+  const start = Math.max(0, idx - Math.floor((maxLen - q.length) / 2));
+  let snip = text.slice(start, start + maxLen).trim();
+  if (start > 0) snip = `…${snip}`;
+  if (start + maxLen < text.length) snip = `${snip}…`;
+  return snip;
+}
+
+/**
+ * Full-handbook search, permission-filtered. POC scale (~10 pages) so a plain
+ * case-insensitive LIKE on title/body is plenty; no FTS index needed.
+ *
+ * ACL: the match is ANDed with `readableWhere(visitor)` — the SAME predicate used
+ * by single-page reads and nav — so results NEVER include a page the visitor may
+ * not read (anon → published+public; reader → +internal +their groups; editor →
+ * everything incl. drafts). Title matches rank above body-only matches.
+ *
+ * Empty/whitespace query → []. Snippets are stripped to plain text server-side;
+ * callers still escape before HTML.
+ */
+export async function searchPages(
+  db: D1Database,
+  query: string,
+  v: Visitor | null,
+  limit = 20,
+): Promise<SearchHit[]> {
+  const q = (query || "").trim();
+  if (!q) return [];
+
+  const acl = readableWhere(v);
+  const like = `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`; // escape LIKE wildcards
+  // Bind order mirrors the placeholders left-to-right: the title-rank CASE, the
+  // title LIKE, the body LIKE, then the ACL binds inside the AND (…) clause.
+  const sql = `SELECT p.slug, p.title, p.section, p.body,
+      CASE WHEN p.title LIKE ? ESCAPE '\\' THEN 0 ELSE 1 END AS rank
+    FROM pages p
+    WHERE (p.title LIKE ? ESCAPE '\\' OR p.body LIKE ? ESCAPE '\\')
+      AND (${acl.sql})
+    ORDER BY rank, p.sort
+    LIMIT ?`;
+  const { results } = await db
+    .prepare(sql)
+    .bind(like, like, like, ...acl.binds, limit)
+    .all();
+  // biome-ignore lint/suspicious/noExplicitAny: D1 row shape
+  return ((results ?? []) as any[]).map((r) => ({
+    slug: r.slug,
+    title: r.title,
+    section: r.section,
+    snippet: makeSnippet(r.body, q),
+  }));
+}
+
 // Lightweight metadata (NO body) — lets a gated route choose 404 vs sign-in prompt.
 export async function getPageVisibility(
   db: D1Database,

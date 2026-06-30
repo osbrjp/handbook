@@ -36,6 +36,22 @@ const { title, visitor = null } = Astro.props;
         <span>The OSBR Handbook</span>
       </a>
       <div class="nav-right">
+        <div class="search" id="search">
+          <input
+            type="search"
+            id="search-input"
+            class="search-input"
+            placeholder="Search…"
+            autocomplete="off"
+            spellcheck="false"
+            role="combobox"
+            aria-expanded="false"
+            aria-controls="search-results"
+            aria-label="Search the handbook"
+          />
+          <div id="search-results" class="search-results" role="listbox" hidden></div>
+        </div>
+        <span class="nav-sep"></span>
         <nav class="nav-links">
           <a href="https://www.osbrjp.com" target="_blank" rel="noopener">OSBR ↗</a>
         </nav>
@@ -86,6 +102,125 @@ const { title, visitor = null } = Astro.props;
             localStorage.setItem("theme", next);
           } catch (_) {}
           icon();
+        });
+      })();
+    </script>
+    <script is:inline>
+      // Navbar search: debounced fetch of /api/search, dropdown of results.
+      // Result DOM is built with createElement + textContent so API strings are
+      // never injected as HTML (no innerHTML on untrusted data).
+      (function () {
+        const wrap = document.getElementById("search");
+        const input = document.getElementById("search-input");
+        const panel = document.getElementById("search-results");
+        if (!wrap || !input || !panel) return;
+
+        let timer = 0;
+        let seq = 0;
+
+        function close() {
+          panel.hidden = true;
+          panel.replaceChildren();
+          input.setAttribute("aria-expanded", "false");
+        }
+
+        function showMessage(text) {
+          panel.replaceChildren();
+          const div = document.createElement("div");
+          div.className = "search-empty";
+          div.textContent = text;
+          panel.appendChild(div);
+          panel.hidden = false;
+          input.setAttribute("aria-expanded", "true");
+        }
+
+        function render(results) {
+          panel.replaceChildren();
+          if (!results.length) {
+            showMessage("No results");
+            return;
+          }
+          for (const r of results) {
+            const a = document.createElement("a");
+            a.className = "search-hit";
+            a.href = "/" + r.slug;
+            a.setAttribute("role", "option");
+
+            const title = document.createElement("span");
+            title.className = "search-hit-title";
+            title.textContent = r.title;
+            a.appendChild(title);
+
+            const section = document.createElement("span");
+            section.className = "search-hit-section";
+            section.textContent = r.section;
+            a.appendChild(section);
+
+            if (r.snippet) {
+              const snip = document.createElement("span");
+              snip.className = "search-hit-snippet";
+              snip.textContent = r.snippet;
+              a.appendChild(snip);
+            }
+            panel.appendChild(a);
+          }
+          panel.hidden = false;
+          input.setAttribute("aria-expanded", "true");
+        }
+
+        async function run(q) {
+          const mine = ++seq;
+          try {
+            const res = await fetch("/api/search?q=" + encodeURIComponent(q), {
+              headers: { Accept: "application/json" },
+            });
+            if (mine !== seq) return; // a newer query superseded this one
+            const data = res.ok ? await res.json() : { results: [] };
+            render(Array.isArray(data.results) ? data.results : []);
+          } catch (_) {
+            if (mine === seq) showMessage("Search unavailable");
+          }
+        }
+
+        input.addEventListener("input", function () {
+          clearTimeout(timer);
+          const q = input.value.trim();
+          if (!q) {
+            close();
+            return;
+          }
+          timer = window.setTimeout(function () {
+            run(q);
+          }, 200);
+        });
+
+        input.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            close();
+            input.blur();
+          }
+        });
+
+        // Enter on a focused result navigates (anchors do this natively); arrow
+        // keys move focus between results as a nice-to-have.
+        panel.addEventListener("keydown", function (e) {
+          const hits = Array.from(panel.querySelectorAll(".search-hit"));
+          if (!hits.length) return;
+          const i = hits.indexOf(document.activeElement);
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            (hits[i + 1] || hits[0]).focus();
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            (hits[i - 1] || hits[hits.length - 1]).focus();
+          } else if (e.key === "Escape") {
+            close();
+            input.focus();
+          }
+        });
+
+        document.addEventListener("click", function (e) {
+          if (!wrap.contains(e.target)) close();
         });
       })();
     </script>
