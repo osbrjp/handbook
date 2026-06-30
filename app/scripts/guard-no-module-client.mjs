@@ -43,10 +43,14 @@ for (const file of await walk(srcDir)) {
   const rel = path.relative(srcDir, file);
   const text = await readFile(file, "utf8");
   if (text.includes(CF_IMPORT) && !ENV_IMPORT_ALLOWED.has(rel)) {
-    violations.push(`${rel}: imports cloudflare:workers env — use Astro.locals.db / locals.visitor instead`);
+    violations.push(
+      `${rel}: imports cloudflare:workers env — use Astro.locals.db / locals.visitor instead`,
+    );
   }
   if (MODULE_CAPTURE.test(text)) {
-    violations.push(`${rel}: module-scoped binding capture (const X = env.…) — read bindings per request`);
+    violations.push(
+      `${rel}: module-scoped binding capture (const X = env.…) — read bindings per request`,
+    );
   }
 }
 

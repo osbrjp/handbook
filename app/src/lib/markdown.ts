@@ -83,7 +83,9 @@ function remarkToc() {
           children: [
             {
               type: "paragraph",
-              children: [{ type: "link", url: `#${h.id}`, children: [{ type: "text", value: h.text }] }],
+              children: [
+                { type: "link", url: `#${h.id}`, children: [{ type: "text", value: h.text }] },
+              ],
             },
           ],
         })),
@@ -121,14 +123,11 @@ function rehypeMermaid() {
 // NOTE: the spaced `::: type label` form is what ~18 of the 19 real handbook
 // callouts use, so this must handle the optional space after the fence.
 function normalizeVitepressAdmonitions(md: string): string {
-  return md.replace(
-    /^(:{3})[ \t]*([a-zA-Z]+)[ \t]*(\S.*)?$/gm,
-    (_m, _fence, name, rest) => {
-      if (!rest) return `:::${name}`;
-      if (rest.startsWith("[")) return `:::${name}${rest}`; // already bracketed
-      return `:::${name}[${rest.trim()}]`;
-    },
-  );
+  return md.replace(/^(:{3})[ \t]*([a-zA-Z]+)[ \t]*(\S.*)?$/gm, (_m, _fence, name, rest) => {
+    if (!rest) return `:::${name}`;
+    if (rest.startsWith("[")) return `:::${name}${rest}`; // already bracketed
+    return `:::${name}[${rest.trim()}]`;
+  });
 }
 
 // Sanitize schema: page bodies are authored content and rendered with set:html,
@@ -144,7 +143,11 @@ const sanitizeSchema = {
   tagNames: [...(defaultSchema.tagNames || []), "nav"],
   attributes: {
     ...defaultSchema.attributes,
-    "*": [...((defaultSchema.attributes && defaultSchema.attributes["*"]) || []), "className", "id"],
+    "*": [
+      ...((defaultSchema.attributes && defaultSchema.attributes["*"]) || []),
+      "className",
+      "id",
+    ],
   },
 };
 

@@ -20,11 +20,13 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
     const session = await decryptSession(raw, env.COOKIE_ENCRYPTION_KEY);
     if (session?.email) {
       const email = session.email.toLowerCase();
-      const user = (await env.DB.prepare("SELECT email, role FROM users WHERE email=?").bind(email).first()) as
-        | { email: string; role: Role }
-        | null;
+      const user = (await env.DB.prepare("SELECT email, role FROM users WHERE email=?")
+        .bind(email)
+        .first()) as { email: string; role: Role } | null;
       if (user) {
-        const { results } = await env.DB.prepare("SELECT group_id FROM user_groups WHERE email=?").bind(email).all();
+        const { results } = await env.DB.prepare("SELECT group_id FROM user_groups WHERE email=?")
+          .bind(email)
+          .all();
         const groupIds = ((results ?? []) as { group_id: number }[]).map((r) => Number(r.group_id));
         ctx.locals.visitor = { email: user.email, role: user.role, groupIds } satisfies Visitor;
       }

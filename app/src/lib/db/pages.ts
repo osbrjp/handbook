@@ -47,7 +47,8 @@ export function readableWhere(v: Visitor | null): { sql: string; binds: unknown[
   };
 }
 
-const PAGE_COLS = "p.id, p.slug, p.title, p.section, p.nav_label, p.sort, p.visibility, p.status, p.body";
+const PAGE_COLS =
+  "p.id, p.slug, p.title, p.section, p.nav_label, p.sort, p.visibility, p.status, p.body";
 const NAV_COLS = "p.id, p.slug, p.title, p.section, p.nav_label, p.sort, p.visibility, p.status";
 
 // biome-ignore lint/suspicious/noExplicitAny: D1 row shape
@@ -56,7 +57,11 @@ function asPage(row: any): PageRow | null {
 }
 
 /** One page by slug, permission-filtered. Returns null for missing AND forbidden. */
-export async function getPageBySlug(db: D1Database, slug: string, v: Visitor | null): Promise<PageRow | null> {
+export async function getPageBySlug(
+  db: D1Database,
+  slug: string,
+  v: Visitor | null,
+): Promise<PageRow | null> {
   const w = readableWhere(v);
   const row = await db
     .prepare(`SELECT ${PAGE_COLS} FROM pages p WHERE p.slug=? AND (${w.sql}) LIMIT 1`)
@@ -88,7 +93,10 @@ export async function listAllPages(db: D1Database): Promise<PageRow[]> {
 
 /** Editor-only: a page by id (for the edit form). Callers MUST gate on editor role. */
 export async function getPageById(db: D1Database, id: number): Promise<PageRow | null> {
-  const row = await db.prepare(`SELECT ${PAGE_COLS} FROM pages p WHERE p.id=? LIMIT 1`).bind(id).first();
+  const row = await db
+    .prepare(`SELECT ${PAGE_COLS} FROM pages p WHERE p.id=? LIMIT 1`)
+    .bind(id)
+    .first();
   return asPage(row);
 }
 
@@ -104,7 +112,18 @@ export async function upsertPage(
       .prepare(
         `UPDATE pages SET slug=?, title=?, section=?, nav_label=?, sort=?, visibility=?, status=?, body=?, updated_at=datetime('now'), updated_by=? WHERE id=?`,
       )
-      .bind(input.slug, input.title, input.section, input.nav_label, input.sort, input.visibility, input.status, input.body, editorEmail, id)
+      .bind(
+        input.slug,
+        input.title,
+        input.section,
+        input.nav_label,
+        input.sort,
+        input.visibility,
+        input.status,
+        input.body,
+        editorEmail,
+        id,
+      )
       .run();
     return id;
   }
@@ -112,20 +131,38 @@ export async function upsertPage(
     .prepare(
       `INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
-    .bind(input.slug, input.title, input.section, input.nav_label, input.sort, input.visibility, input.status, input.body, editorEmail)
+    .bind(
+      input.slug,
+      input.title,
+      input.section,
+      input.nav_label,
+      input.sort,
+      input.visibility,
+      input.status,
+      input.body,
+      editorEmail,
+    )
     .run();
   return Number(res.meta.last_row_id);
 }
 
 /** Editor-only: replace the group grants for a restricted page. */
-export async function setPageGroups(db: D1Database, pageId: number, groupKeys: string[]): Promise<void> {
+export async function setPageGroups(
+  db: D1Database,
+  pageId: number,
+  groupKeys: string[],
+): Promise<void> {
   // Atomic (implicit transaction) — a partial failure must not silently drop a
   // page's grants and make it invisible to its intended readers.
-  const stmts: D1PreparedStatement[] = [db.prepare("DELETE FROM page_groups WHERE page_id=?").bind(pageId)];
+  const stmts: D1PreparedStatement[] = [
+    db.prepare("DELETE FROM page_groups WHERE page_id=?").bind(pageId),
+  ];
   for (const key of groupKeys) {
     stmts.push(
       db
-        .prepare("INSERT OR IGNORE INTO page_groups (page_id, group_id) SELECT ?, id FROM groups WHERE key=?")
+        .prepare(
+          "INSERT OR IGNORE INTO page_groups (page_id, group_id) SELECT ?, id FROM groups WHERE key=?",
+        )
         .bind(pageId, key),
     );
   }

@@ -4,7 +4,11 @@ import { fetchUpstreamAuthToken, fetchGoogleUserinfo } from "../../../lib/auth/o
 import { getOrigin, safeReturnUrl } from "../../../lib/auth/origin";
 import { isAllowed } from "../../../lib/auth/accessList";
 import { encryptSession } from "../../../lib/auth/session";
-import { SESSION_COOKIE, OAUTH_STATE_COOKIE, sessionCookieOptions } from "../../../lib/auth/cookies";
+import {
+  SESSION_COOKIE,
+  OAUTH_STATE_COOKIE,
+  sessionCookieOptions,
+} from "../../../lib/auth/cookies";
 
 export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
   const origin = getOrigin(request, env);
@@ -53,7 +57,10 @@ export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
   await env.DB.prepare("UPDATE users SET last_login=datetime('now'), name=? WHERE email=?")
     .bind(info.name ?? null, email)
     .run();
-  const cookie = await encryptSession({ email, exp: Date.now() + 7 * 86_400_000 }, env.COOKIE_ENCRYPTION_KEY);
+  const cookie = await encryptSession(
+    { email, exp: Date.now() + 7 * 86_400_000 },
+    env.COOKIE_ENCRYPTION_KEY,
+  );
   cookies.set(SESSION_COOKIE, cookie, sessionCookieOptions(origin));
 
   return redirect(safeReturnUrl(returnUrl, origin), 302);

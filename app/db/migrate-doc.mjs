@@ -16,7 +16,7 @@ import { readFile, readdir, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-const here = path.dirname(fileURLToPath(import.meta.url));      // app/db
+const here = path.dirname(fileURLToPath(import.meta.url)); // app/db
 const repoRoot = path.resolve(here, "..", "..");
 const docDir = path.join(repoRoot, "doc");
 const outDir = path.join(here, "seed");
@@ -25,16 +25,41 @@ const outFile = path.join(outDir, "0002_seed.sql");
 // Mirror of doc/.vitepress/config.mts sidebar.
 const PAGE_META = {
   "what-is-handbook": { section: "About", nav_label: "What is Handbook?", visibility: "public" },
-  "strategy": { section: "About", nav_label: "Strategy", visibility: "internal" },
-  "code-of-conduct": { section: "People & Culture", nav_label: "Code of Conduct", visibility: "public" },
-  "talent-acquisition": { section: "People & Culture", nav_label: "Talent Acquisition", visibility: "internal" },
+  strategy: { section: "About", nav_label: "Strategy", visibility: "internal" },
+  "code-of-conduct": {
+    section: "People & Culture",
+    nav_label: "Code of Conduct",
+    visibility: "public",
+  },
+  "talent-acquisition": {
+    section: "People & Culture",
+    nav_label: "Talent Acquisition",
+    visibility: "internal",
+  },
   "on-boarding": { section: "Guideline", nav_label: "On-boarding Guide", visibility: "internal" },
-  "development-guide": { section: "Guideline", nav_label: "Development Guide", visibility: "internal" },
-  "predefining-non-functional-requirements": { section: "Guideline", nav_label: "Non-functional Requirements", visibility: "internal" },
-  "technical-glossary": { section: "Guideline", nav_label: "Technical Glossary", visibility: "internal" },
+  "development-guide": {
+    section: "Guideline",
+    nav_label: "Development Guide",
+    visibility: "internal",
+  },
+  "predefining-non-functional-requirements": {
+    section: "Guideline",
+    nav_label: "Non-functional Requirements",
+    visibility: "internal",
+  },
+  "technical-glossary": {
+    section: "Guideline",
+    nav_label: "Technical Glossary",
+    visibility: "internal",
+  },
   "sheq-policy": { section: "Policies", nav_label: "SHEQ Policy", visibility: "internal" },
   // Used to demonstrate the restricted (group-gated) level.
-  "security-policy": { section: "Policies", nav_label: "Security Policy", visibility: "restricted", groups: ["leadership"] },
+  "security-policy": {
+    section: "Policies",
+    nav_label: "Security Policy",
+    visibility: "restricted",
+    groups: ["leadership"],
+  },
 };
 const SECTION_ORDER = ["About", "People & Culture", "Guideline", "Policies"];
 
@@ -59,7 +84,11 @@ export function stripLeadingH1(md) {
   return md.replace(/^\s*#\s+.+?\r?\n+/, "");
 }
 export function slugToTitle(slug) {
-  return slug.split("-").filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join(" ");
+  return slug
+    .split("-")
+    .filter(Boolean)
+    .map((w) => w[0].toUpperCase() + w.slice(1))
+    .join(" ");
 }
 const sql = (v) => (v === null || v === undefined ? "NULL" : `'${String(v).replace(/'/g, "''")}'`);
 
@@ -86,7 +115,9 @@ async function buildPages() {
     const s = SECTION_ORDER.indexOf(a.section) - SECTION_ORDER.indexOf(b.section);
     return s !== 0 ? s : a.slug.localeCompare(b.slug);
   });
-  pages.forEach((p, i) => (p.sort = (i + 1) * 10));
+  pages.forEach((p, i) => {
+    p.sort = (i + 1) * 10;
+  });
   return pages;
 }
 
@@ -97,23 +128,34 @@ async function main() {
   lines.push("BEGIN TRANSACTION;");
 
   lines.push("\n-- groups");
-  for (const g of GROUPS) lines.push(`INSERT INTO groups (key, label) VALUES (${sql(g.key)}, ${sql(g.label)});`);
+  for (const g of GROUPS)
+    lines.push(`INSERT INTO groups (key, label) VALUES (${sql(g.key)}, ${sql(g.label)});`);
 
   lines.push("\n-- users");
-  for (const u of USERS) lines.push(`INSERT INTO users (email, role, name) VALUES (${sql(u.email.toLowerCase())}, ${sql(u.role)}, ${sql(u.name)});`);
+  for (const u of USERS)
+    lines.push(
+      `INSERT INTO users (email, role, name) VALUES (${sql(u.email.toLowerCase())}, ${sql(u.role)}, ${sql(u.name)});`,
+    );
 
   lines.push("\n-- user_groups");
-  for (const ug of USER_GROUPS) lines.push(`INSERT INTO user_groups (email, group_id) SELECT ${sql(ug.email.toLowerCase())}, g.id FROM groups g WHERE g.key=${sql(ug.group)};`);
+  for (const ug of USER_GROUPS)
+    lines.push(
+      `INSERT INTO user_groups (email, group_id) SELECT ${sql(ug.email.toLowerCase())}, g.id FROM groups g WHERE g.key=${sql(ug.group)};`,
+    );
 
   lines.push("\n-- pages (published)");
   for (const p of pages) {
-    lines.push(`INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES (${sql(p.slug)}, ${sql(p.title)}, ${sql(p.section)}, ${sql(p.nav_label)}, ${p.sort}, ${sql(p.visibility)}, 'published', ${sql(p.body)});`);
+    lines.push(
+      `INSERT INTO pages (slug, title, section, nav_label, sort, visibility, status, body) VALUES (${sql(p.slug)}, ${sql(p.title)}, ${sql(p.section)}, ${sql(p.nav_label)}, ${p.sort}, ${sql(p.visibility)}, 'published', ${sql(p.body)});`,
+    );
   }
 
   lines.push("\n-- page_groups (restricted -> groups)");
   for (const p of pages) {
     for (const gk of p.groups) {
-      lines.push(`INSERT INTO page_groups (page_id, group_id) SELECT p.id, g.id FROM pages p, groups g WHERE p.slug=${sql(p.slug)} AND g.key=${sql(gk)};`);
+      lines.push(
+        `INSERT INTO page_groups (page_id, group_id) SELECT p.id, g.id FROM pages p, groups g WHERE p.slug=${sql(p.slug)} AND g.key=${sql(gk)};`,
+      );
     }
   }
 
@@ -121,11 +163,17 @@ async function main() {
   await mkdir(outDir, { recursive: true });
   await writeFile(outFile, lines.join("\n"), "utf8");
 
-  const byVis = pages.reduce((a, p) => ((a[p.visibility] = (a[p.visibility] || 0) + 1), a), {});
-  console.log(`Wrote ${pages.length} pages + ${USERS.length} users + ${GROUPS.length} group -> ${path.relative(repoRoot, outFile)}`);
+  const byVis = {};
+  for (const p of pages) byVis[p.visibility] = (byVis[p.visibility] || 0) + 1;
+  console.log(
+    `Wrote ${pages.length} pages + ${USERS.length} users + ${GROUPS.length} group -> ${path.relative(repoRoot, outFile)}`,
+  );
   console.log("  visibility:", byVis);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || "").href) {
-  main().catch((e) => { console.error(e); process.exit(1); });
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
 }

@@ -19,7 +19,10 @@ export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
   if (!exists) return new Response(null, { status: 404 });
 
   const origin = getOrigin(request, env);
-  const cookie = await encryptSession({ email, exp: Date.now() + 86_400_000 }, env.COOKIE_ENCRYPTION_KEY);
+  const cookie = await encryptSession(
+    { email, exp: Date.now() + 86_400_000 },
+    env.COOKIE_ENCRYPTION_KEY,
+  );
   cookies.set(SESSION_COOKIE, cookie, sessionCookieOptions(origin));
   return redirect("/", 302);
 };

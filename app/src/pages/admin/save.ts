@@ -19,7 +19,9 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   const idRaw = f.get("id");
   const id = idRaw ? Number(idRaw) : undefined;
   const title = String(f.get("title") ?? "").trim();
-  const slug = String(f.get("slug") ?? "").trim().toLowerCase();
+  const slug = String(f.get("slug") ?? "")
+    .trim()
+    .toLowerCase();
   const section = String(f.get("section") ?? "").trim();
   const nav_label = String(f.get("nav_label") ?? "").trim() || title;
   const visibility = String(f.get("visibility") ?? "internal") as Visibility;
@@ -34,14 +36,26 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   if (!STATUSES.has(status)) return bad("Invalid status");
   if (body.length > 256 * 1024) return bad("Body too large (max 256KB)");
 
-  const clash = await locals.db.prepare("SELECT id FROM pages WHERE slug=? AND id != ?").bind(slug, id ?? -1).first();
+  const clash = await locals.db
+    .prepare("SELECT id FROM pages WHERE slug=? AND id != ?")
+    .bind(slug, id ?? -1)
+    .first();
   if (clash) return bad("That slug is already in use");
 
   let newId: number;
   try {
     newId = await upsertPage(
       locals.db,
-      { slug, title, section, nav_label, sort, visibility, status: status as "draft" | "published", body },
+      {
+        slug,
+        title,
+        section,
+        nav_label,
+        sort,
+        visibility,
+        status: status as "draft" | "published",
+        body,
+      },
       locals.visitor?.email ?? "unknown",
       id,
     );
@@ -55,7 +69,10 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   let groupKeys: string[] = [];
   if (visibility === "restricted") {
     const known = new Set((await listGroups(locals.db)).map((g) => g.key));
-    groupKeys = f.getAll("groups").map(String).filter((k) => known.has(k));
+    groupKeys = f
+      .getAll("groups")
+      .map(String)
+      .filter((k) => known.has(k));
   }
   await setPageGroups(locals.db, newId, groupKeys);
 
