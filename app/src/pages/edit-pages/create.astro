@@ -17,9 +17,9 @@ const groups = await listGroups(Astro.locals.db);
 const sections = [...new Set((await listAllPages(Astro.locals.db)).map((p) => p.section))];
 ---
 
-<Base title="New page" visitor={Astro.locals.visitor}>
+<Base title="Create page" visitor={Astro.locals.visitor}>
   <div class="container editor-page">
-    <h1>New page</h1>
+    <h1>Create page</h1>
     <EditorForm csrf={csrf} groups={groups} sections={sections} />
   </div>
 </Base>

@@ -237,6 +237,18 @@ export async function getPageById(db: D1Database, id: number): Promise<PageRow |
   return asPage(row);
 }
 
+/** Editor-only: a page by slug (for the edit form), incl. drafts. Callers MUST gate on editor role. */
+export async function getEditablePageBySlug(
+  db: D1Database,
+  slug: string,
+): Promise<PageRow | null> {
+  const row = await db
+    .prepare(`SELECT ${PAGE_COLS} FROM pages p WHERE p.slug=? LIMIT 1`)
+    .bind(slug)
+    .first();
+  return asPage(row);
+}
+
 /** Editor-only upsert (by slug conflict). Returns the row id. */
 export async function upsertPage(
   db: D1Database,

@@ -81,5 +81,6 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   await setPageGroups(locals.db, newId, groupKeys);
 
   // Carry the outcome so the edit page can show a confirmation banner.
-  return redirect(`/edit-pages/edit/${newId}?saved=${status}`, 303);
+  // Redirect by slug (the edit route keys on slug); slug may have just changed.
+  return redirect(`/edit-pages/edit/${slug}?saved=${status}`, 303);
 };
