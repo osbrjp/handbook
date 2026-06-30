@@ -18,9 +18,6 @@ const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
 
 <Base title="Editor" visitor={Astro.locals.visitor}>
   <div class="container admin-page">
-  <a class="btn-cancel" href="/" id="admin-back" style="display:inline-block;margin-bottom:1rem"
-    >← Back to handbook</a
-  >
   <div class="admin-head">
     <h1>Pages</h1>
     <a class="btn btn-brand" href="/admin/new">+ New page</a>
@@ -67,6 +64,10 @@ const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
       );
     })
   }
+
+  <a class="btn-cancel" href="/" id="admin-back" style="display:inline-block;margin-top:1.5rem"
+    >← Back to handbook</a
+  >
   </div>
 
   <dialog id="del-dialog" class="confirm-dialog">
