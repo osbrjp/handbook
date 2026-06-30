@@ -165,13 +165,23 @@ a:hover {
   gap: 0.75rem;
   flex-wrap: wrap;
 }
+/* Single button system: one base + colour variants, used everywhere
+   (homepage, New page, Save/Publish, Delete, modal actions). */
 .btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   border-radius: 20px;
-  padding: 0 22px;
-  line-height: 40px;
+  padding: 0.5rem 1.1rem;
+  min-height: 2.4rem;
   font-weight: 600;
   font-size: 0.9rem;
+  line-height: 1.2;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
 }
 .btn:hover {
   text-decoration: none;
@@ -179,10 +189,21 @@ a:hover {
 .btn-brand {
   background: var(--brand-solid);
   color: #fff;
+  border-color: var(--brand-solid);
 }
 .btn-alt {
   background: var(--soft);
   color: var(--text);
+  border-color: var(--divider);
+}
+.btn-danger {
+  background: transparent;
+  color: #d9534f;
+  border-color: #d9534f;
+}
+.btn-danger:hover {
+  background: #d9534f;
+  color: #fff;
 }
 .features {
   display: grid;
@@ -804,15 +825,6 @@ a:hover {
   background: var(--bg);
   border-top: 1px solid var(--divider);
 }
-.actions button {
-  padding: 0.5rem 1.1rem;
-  font: inherit;
-  cursor: pointer;
-  border-radius: 20px;
-  border: 1px solid var(--divider);
-  background: var(--brand-solid);
-  color: #fff;
-}
 .btn-cancel {
   padding: 0.5rem 0.6rem;
   color: var(--text-2);
@@ -848,28 +860,6 @@ a:hover {
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
-}
-.btn-cancel-modal {
-  padding: 0.5rem 1.1rem;
-  font: inherit;
-  cursor: pointer;
-  border-radius: 20px;
-  border: 1px solid var(--divider);
-  background: var(--soft);
-  color: var(--text);
-}
-.btn-danger {
-  padding: 0.5rem 1.1rem;
-  font: inherit;
-  cursor: pointer;
-  border-radius: 20px;
-  border: 1px solid #d9534f;
-  background: transparent;
-  color: #d9534f;
-}
-.btn-danger:hover {
-  background: #d9534f;
-  color: #fff;
 }
 .badge {
   font-size: 0.68rem;

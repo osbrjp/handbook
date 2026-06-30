@@ -22,7 +22,7 @@ const visibility = page?.visibility ?? "internal";
           <input type="hidden" name="csrf" value={csrf} />
           <input type="hidden" name="id" value={page.id} />
         </form>
-        <button type="button" class="btn-danger" id="delete-open">
+        <button type="button" class="btn btn-danger" id="delete-open">
           Delete page
         </button>
       </>
@@ -38,10 +38,10 @@ const visibility = page?.visibility ?? "internal";
         Are you sure you want to delete “<strong>{page.title}</strong>”? This cannot be undone.
       </p>
       <div class="confirm-actions">
-        <button type="button" class="btn-cancel-modal" id="delete-cancel">
+        <button type="button" class="btn btn-alt" id="delete-cancel">
           Cancel
         </button>
-        <button type="submit" form="delete-form" class="btn-danger">
+        <button type="submit" form="delete-form" class="btn btn-danger">
           Delete page
         </button>
       </div>
@@ -99,8 +99,8 @@ const visibility = page?.visibility ?? "internal";
   </details>
 
   <div class="actions">
-    <button type="submit" name="status" value="draft">Save draft</button>
-    <button type="submit" name="status" value="published">Publish</button>
+    <button type="submit" name="status" value="draft" class="btn btn-alt">Save draft</button>
+    <button type="submit" name="status" value="published" class="btn btn-brand">Publish</button>
   </div>
 </form>
 

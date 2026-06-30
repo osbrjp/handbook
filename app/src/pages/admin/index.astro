@@ -75,8 +75,8 @@ const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
       <input type="hidden" name="csrf" value={csrf} />
       <input type="hidden" name="id" id="del-id" />
       <div class="confirm-actions">
-        <button type="button" class="btn-cancel-modal" id="del-cancel">Cancel</button>
-        <button type="submit" class="btn-danger">Delete page</button>
+        <button type="button" class="btn btn-alt" id="del-cancel">Cancel</button>
+        <button type="submit" class="btn btn-danger">Delete page</button>
       </div>
     </form>
   </dialog>
