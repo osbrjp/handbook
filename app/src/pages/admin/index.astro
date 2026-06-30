@@ -18,6 +18,9 @@ const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
 
 <Base title="Editor" visitor={Astro.locals.visitor}>
   <div class="container admin-page">
+  <a class="btn-cancel" href="/" id="admin-back" style="display:inline-block;margin-bottom:1rem"
+    >← Back to handbook</a
+  >
   <div class="admin-head">
     <h1>Pages</h1>
     <a class="btn btn-brand" href="/admin/new">+ New page</a>
@@ -94,4 +97,20 @@ const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
     });
   }
   document.getElementById("del-cancel")?.addEventListener("click", () => dialog?.close());
+
+  // Back returns to the previous page (last state), falling back to the
+  // handbook home (href="/") for direct loads / off-site referrers.
+  const backLink = document.getElementById("admin-back");
+  backLink?.addEventListener("click", (e) => {
+    let sameOrigin = false;
+    try {
+      sameOrigin = !!document.referrer && new URL(document.referrer).origin === location.origin;
+    } catch {
+      sameOrigin = false;
+    }
+    if (window.history.length > 1 && sameOrigin) {
+      e.preventDefault();
+      history.back();
+    }
+  });
 </script>
