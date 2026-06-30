@@ -535,12 +535,19 @@ a:hover {
 .logout-form {
   display: inline;
 }
-.admin-page > h1 {
+.admin-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 1.5rem;
+}
+.admin-head > h1 {
   font-size: 2rem;
   line-height: 1.25;
   letter-spacing: -0.02em;
   font-weight: 700;
-  margin: 0 0 1rem;
+  margin: 0;
 }
 /* Pages grouped by section, each collapsible. */
 .admin-section {

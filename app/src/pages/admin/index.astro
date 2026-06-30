@@ -16,9 +16,11 @@ const deleted = Astro.url.searchParams.get("deleted");
 
 <Base title="Editor" visitor={Astro.locals.visitor}>
   <div class="container admin-page">
-  <h1>Pages</h1>
+  <div class="admin-head">
+    <h1>Pages</h1>
+    <a class="btn btn-brand" href="/admin/new">+ New page</a>
+  </div>
   {deleted && <div class="notice">✓ Page deleted.</div>}
-  <p><a href="/admin/new">+ New page</a></p>
 
   {
     sections.map((section) => {
