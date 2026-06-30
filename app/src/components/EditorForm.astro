@@ -61,8 +61,21 @@ const visibility = page?.visibility ?? "internal";
   <div class="actions">
     <button type="submit" name="status" value="draft">Save draft</button>
     <button type="submit" name="status" value="published">Publish</button>
+    <a class="btn-cancel" href="/admin">Back without saving</a>
   </div>
 </form>
+
+{
+  page && (
+    <form method="POST" action="/admin/delete" class="delete-form" id="delete-form">
+      <input type="hidden" name="csrf" value={csrf} />
+      <input type="hidden" name="id" value={page.id} />
+      <button type="submit" class="btn-danger" data-title={page.title}>
+        Delete page
+      </button>
+    </form>
+  )
+}
 
 <script>
   const body = document.getElementById("body") as HTMLTextAreaElement | null;
@@ -107,4 +120,11 @@ const visibility = page?.visibility ?? "internal";
   });
 
   render();
+
+  // Confirm before deleting — destructive and irreversible.
+  const deleteForm = document.getElementById("delete-form") as HTMLFormElement | null;
+  deleteForm?.addEventListener("submit", (e) => {
+    const title = deleteForm.querySelector("button")?.getAttribute("data-title") ?? "this page";
+    if (!confirm(`Delete "${title}"? This cannot be undone.`)) e.preventDefault();
+  });
 </script>

@@ -10,11 +10,13 @@ Astro.response.headers.set("Cache-Control", "private, no-store");
 Astro.response.headers.set("Vary", "Cookie");
 
 const pages = await listAllPages(Astro.locals.db);
+const deleted = Astro.url.searchParams.get("deleted");
 ---
 
 <Base title="Editor" visitor={Astro.locals.visitor}>
   <div class="container">
   <h1>Pages</h1>
+  {deleted && <div class="notice">✓ Page deleted.</div>}
   <p><a href="/admin/new">+ New page</a></p>
   <table class="admin-list">
     <thead>

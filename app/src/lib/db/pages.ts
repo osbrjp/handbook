@@ -198,6 +198,16 @@ export async function upsertPage(
   return Number(res.meta.last_row_id);
 }
 
+/** Editor-only: delete a page and its group grants. Callers MUST gate on editor role. */
+export async function deletePage(db: D1Database, id: number): Promise<void> {
+  // Delete grants explicitly: SQLite only cascades when foreign_keys pragma is
+  // on, which we don't rely on. Atomic via batch (implicit transaction).
+  await db.batch([
+    db.prepare("DELETE FROM page_groups WHERE page_id=?").bind(id),
+    db.prepare("DELETE FROM pages WHERE id=?").bind(id),
+  ]);
+}
+
 /** Editor-only: replace the group grants for a restricted page. */
 export async function setPageGroups(
   db: D1Database,
