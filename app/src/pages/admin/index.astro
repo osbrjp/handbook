@@ -10,31 +10,42 @@ Astro.response.headers.set("Cache-Control", "private, no-store");
 Astro.response.headers.set("Vary", "Cookie");
 
 const pages = await listAllPages(Astro.locals.db);
+const sections = [...new Set(pages.map((p) => p.section))];
 const deleted = Astro.url.searchParams.get("deleted");
 ---
 
 <Base title="Editor" visitor={Astro.locals.visitor}>
-  <div class="container">
+  <div class="container admin-page">
   <h1>Pages</h1>
   {deleted && <div class="notice">✓ Page deleted.</div>}
   <p><a href="/admin/new">+ New page</a></p>
-  <table class="admin-list">
-    <thead>
-      <tr><th>Title</th><th>Section</th><th>Visibility</th><th>Status</th><th></th></tr>
-    </thead>
-    <tbody>
-      {
-        pages.map((p) => (
-          <tr>
-            <td>{p.title}</td>
-            <td>{p.section}</td>
-            <td><span class={`badge badge-${p.visibility}`}>{p.visibility}</span></td>
-            <td>{p.status}</td>
-            <td><a href={`/admin/edit/${p.id}`}>Edit</a> · <a href={`/${p.slug}`}>View</a></td>
-          </tr>
-        ))
-      }
-    </tbody>
-  </table>
+
+  {
+    sections.map((section) => {
+      const items = pages.filter((p) => p.section === section);
+      return (
+        <details class="admin-section" open>
+          <summary class="admin-section-title">
+            {section} <span class="admin-count">{items.length}</span>
+          </summary>
+          <table class="admin-list">
+            <thead>
+              <tr><th>Title</th><th>Visibility</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+              {items.map((p) => (
+                <tr>
+                  <td>{p.title}</td>
+                  <td><span class={`badge badge-${p.visibility}`}>{p.visibility}</span></td>
+                  <td>{p.status}</td>
+                  <td><a href={`/admin/edit/${p.id}`}>Edit</a> · <a href={`/${p.slug}`}>View</a></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </details>
+      );
+    })
+  }
   </div>
 </Base>

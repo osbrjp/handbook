@@ -535,15 +535,59 @@ a:hover {
 .logout-form {
   display: inline;
 }
+.admin-page > h1 {
+  font-size: 2rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  margin: 0 0 1rem;
+}
+/* Pages grouped by section, each collapsible. */
+.admin-section {
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+.admin-section-title {
+  cursor: pointer;
+  padding: 0.6rem 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  list-style: none;
+}
+.admin-section-title::-webkit-details-marker {
+  display: none;
+}
+.admin-section-title::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 0.5rem;
+  color: var(--text-2);
+  transition: transform 0.15s ease;
+}
+.admin-section[open] > .admin-section-title::before {
+  transform: rotate(90deg);
+}
+.admin-count {
+  font-size: 0.72rem;
+  color: var(--text-2);
+  margin-left: 0.25rem;
+}
 .admin-list {
   width: 100%;
   border-collapse: collapse;
 }
+.admin-section .admin-list {
+  border-top: 1px solid var(--divider);
+}
 .admin-list th,
 .admin-list td {
   text-align: left;
-  padding: 0.4rem 0.6rem;
+  padding: 0.4rem 0.9rem;
   border-bottom: 1px solid var(--divider);
+}
+.admin-section .admin-list tr:last-child td {
+  border-bottom: none;
 }
 /* metadata fields sit in a tidy column; the body/preview grid spans full width */
 .editor-meta {
