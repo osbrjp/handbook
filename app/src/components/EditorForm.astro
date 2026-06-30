@@ -64,8 +64,23 @@ const visibility = page?.visibility ?? "internal";
   </label>
   <label>Nav label<input name="nav_label" value={page?.nav_label ?? ""} /></label>
   <label>Section
-    <input name="section" list="sections" value={page?.section ?? ""} required />
-    <datalist id="sections">{sections.map((s) => <option value={s} />)}</datalist>
+    <div class="combo" id="section-combo">
+      <input
+        name="section"
+        id="section"
+        value={page?.section ?? ""}
+        autocomplete="off"
+        placeholder="Pick an existing section or type a new one"
+        required
+      />
+      <div class="combo-list" id="section-list" role="listbox" hidden>
+        {sections.map((s) => (
+          <button type="button" class="combo-item" data-value={s}>
+            {s}
+          </button>
+        ))}
+      </div>
+    </div>
   </label>
 
   <fieldset class="vis">
@@ -163,6 +178,40 @@ const visibility = page?.visibility ?? "internal";
       history.back();
     }
   });
+
+  // Section combobox: themed dropdown of existing sections; clicking one fills
+  // the input, but typing a brand-new section name is still allowed (free text).
+  const combo = document.getElementById("section-combo");
+  const sectionInput = document.getElementById("section") as HTMLInputElement | null;
+  const sectionList = document.getElementById("section-list");
+  if (combo && sectionInput && sectionList) {
+    const items = Array.from(sectionList.querySelectorAll<HTMLButtonElement>(".combo-item"));
+    const sync = () => {
+      const q = sectionInput.value.trim().toLowerCase();
+      let any = false;
+      for (const it of items) {
+        const match = (it.dataset.value ?? "").toLowerCase().includes(q);
+        it.hidden = !match;
+        if (match) any = true;
+      }
+      sectionList.hidden = !any;
+    };
+    sectionInput.addEventListener("focus", sync);
+    sectionInput.addEventListener("input", sync);
+    for (const it of items) {
+      it.addEventListener("click", () => {
+        sectionInput.value = it.dataset.value ?? "";
+        sectionList.hidden = true;
+        sectionInput.focus();
+      });
+    }
+    sectionInput.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") sectionList.hidden = true;
+    });
+    document.addEventListener("click", (e) => {
+      if (!combo.contains(e.target as Node)) sectionList.hidden = true;
+    });
+  }
 
   // Confirm before deleting — open a modal rather than submit straight away.
   const deleteOpen = document.getElementById("delete-open");
