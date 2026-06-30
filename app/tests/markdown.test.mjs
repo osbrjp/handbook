@@ -34,11 +34,11 @@ test("bare '::: type' (spaced, no label) renders as a callout", () => {
   assert.doesNotMatch(html, /::: tip/);
 });
 
-test("[[TOC]] becomes a nav of h2/h3 with matching anchors", () => {
+test("[[TOC]] becomes a nested list of h2/h3 with matching anchors", () => {
   const html = renderMarkdown("[[TOC]]\n\n## First Thing\n\n### A Sub\n\n## Second Thing");
-  assert.match(html, /<nav class="toc">/);
-  assert.match(html, /href="#first-thing"/);
-  assert.match(html, /href="#a-sub"/);
+  assert.match(html, /<ul class="toc">/);
+  // the h3 must be nested inside the preceding h2's list item
+  assert.match(html, /href="#first-thing"[\s\S]*<ul>[\s\S]*href="#a-sub"/);
   assert.match(html, /href="#second-thing"/);
   // anchors must match the ids rehype-slug assigns to the headings
   assert.match(html, /id="first-thing"/);

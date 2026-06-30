@@ -83,26 +83,42 @@ export async function getNavPages(db: D1Database, v: Visitor | null): Promise<Pa
   return (results ?? []) as unknown as PageRow[];
 }
 
-// Sidebar = the full handbook STRUCTURE (titles/links): public + internal shown
-// to everyone, plus restricted pages the visitor may access. Distinct from
-// readableWhere (which gates CONTENT) — titles aren't secret, page bodies are.
-export async function getSidebarPages(db: D1Database, v: Visitor | null): Promise<PageRow[]> {
+export interface SidebarRow extends PageRow {
+  accessible: number; // 1 if the visitor may read it, else 0
+}
+
+// Sidebar listing:
+//  - anonymous  → ONLY public pages (non-public pages are hidden entirely)
+//  - logged in  → ALL published pages, each flagged `accessible` so the UI can
+//                 show inaccessible ones as "no access" rather than hide them
+export async function getSidebarPages(db: D1Database, v: Visitor | null): Promise<SidebarRow[]> {
+  if (!v) {
+    const { results } = await db
+      .prepare(
+        `SELECT ${NAV_COLS}, 1 AS accessible FROM pages p WHERE p.status='published' AND p.visibility='public' ORDER BY p.sort`,
+      )
+      .all();
+    return (results ?? []) as unknown as SidebarRow[];
+  }
+
   const binds: unknown[] = [];
-  let restricted = "0";
-  if (v?.role === "editor") {
-    restricted = "1";
-  } else if (v && v.groupIds.length) {
+  let accessibleExpr: string;
+  if (v.role === "editor") {
+    accessibleExpr = "1";
+  } else if (v.groupIds.length) {
     const ph = v.groupIds.map(() => "?").join(",");
-    restricted = `EXISTS (SELECT 1 FROM page_groups pg WHERE pg.page_id=p.id AND pg.group_id IN (${ph}))`;
+    accessibleExpr = `CASE WHEN p.visibility IN ('public','internal') THEN 1 WHEN p.visibility='restricted' AND EXISTS (SELECT 1 FROM page_groups pg WHERE pg.page_id=p.id AND pg.group_id IN (${ph})) THEN 1 ELSE 0 END`;
     binds.push(...v.groupIds);
+  } else {
+    accessibleExpr = "CASE WHEN p.visibility IN ('public','internal') THEN 1 ELSE 0 END";
   }
   const { results } = await db
     .prepare(
-      `SELECT ${NAV_COLS} FROM pages p WHERE p.status='published' AND (p.visibility IN ('public','internal') OR (p.visibility='restricted' AND ${restricted})) ORDER BY p.sort`,
+      `SELECT ${NAV_COLS}, ${accessibleExpr} AS accessible FROM pages p WHERE p.status='published' ORDER BY p.sort`,
     )
     .bind(...binds)
     .all();
-  return (results ?? []) as unknown as PageRow[];
+  return (results ?? []) as unknown as SidebarRow[];
 }
 
 // Lightweight metadata (NO body) — lets a gated route choose 404 vs sign-in prompt.

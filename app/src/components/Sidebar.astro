@@ -1,8 +1,8 @@
 ---
-import type { PageRow } from "../lib/db/pages";
+import type { SidebarRow } from "../lib/db/pages";
 
 interface Props {
-  pages: PageRow[];
+  pages: SidebarRow[];
   current?: string;
 }
 const { pages, current } = Astro.props;
@@ -13,15 +13,23 @@ const sections = [...new Set(pages.map((p) => p.section))];
   {
     sections.map((section) => {
       const items = pages.filter((p) => p.section === section);
+      const hasCurrent = items.some((p) => p.slug === current);
       return (
-        <details class="sb-group" data-section={section} open>
+        <details class="sb-group" data-section={section} open={hasCurrent || undefined}>
           <summary class="sb-title">{section}</summary>
-          {items.map((p) => (
-            <a class={`sb-link${p.slug === current ? " active" : ""}`} href={`/${p.slug}`}>
-              {p.nav_label || p.title}
-              {p.visibility === "restricted" && <span class="sb-badge">🔒</span>}
-            </a>
-          ))}
+          {items.map((p) =>
+            p.accessible ? (
+              <a class={`sb-link${p.slug === current ? " active" : ""}`} href={`/${p.slug}`}>
+                {p.nav_label || p.title}
+                {p.visibility === "restricted" && <span class="sb-badge">🔒</span>}
+              </a>
+            ) : (
+              <span class="sb-link sb-noaccess" title="You don't have access to this page">
+                {p.nav_label || p.title}
+                <span class="sb-badge">🔒 no access</span>
+              </span>
+            ),
+          )}
         </details>
       );
     })
@@ -29,21 +37,22 @@ const sections = [...new Set(pages.map((p) => p.section))];
 </aside>
 
 <script is:inline>
-  // Collapsible sidebar sections, remembered across navigation. The section
-  // containing the current page always opens.
+  // All sections collapsed by default; only sections the user explicitly opened
+  // are restored (remembered across navigation). New storage key so any old
+  // "open" state is ignored.
   (function () {
+    const KEY = "sbSections.v2";
     let state = {};
     try {
-      state = JSON.parse(localStorage.getItem("sbSections") || "{}");
+      state = JSON.parse(localStorage.getItem(KEY) || "{}");
     } catch (_) {}
     for (const d of document.querySelectorAll(".doc-sidebar details[data-section]")) {
       const key = d.getAttribute("data-section");
-      const hasActive = !!d.querySelector(".sb-link.active");
-      if (!hasActive && key in state) d.open = state[key];
+      if (state[key]) d.open = true;
       d.addEventListener("toggle", () => {
         state[key] = d.open;
         try {
-          localStorage.setItem("sbSections", JSON.stringify(state));
+          localStorage.setItem(KEY, JSON.stringify(state));
         } catch (_) {}
       });
     }

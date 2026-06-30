@@ -267,6 +267,11 @@ a:hover {
   color: var(--brand);
   font-weight: 600;
 }
+.sb-noaccess {
+  color: var(--muted);
+  opacity: 0.65;
+  cursor: not-allowed;
+}
 .sb-badge {
   font-size: 0.62rem;
   padding: 0.02rem 0.35rem;
@@ -295,16 +300,51 @@ a:hover {
   margin-bottom: 0.6rem;
 }
 .doc-toc a {
-  display: block;
-  padding: 0.2rem 0;
   color: var(--muted);
+  text-decoration: none;
 }
 .doc-toc a:hover {
   color: var(--brand);
-  text-decoration: none;
 }
-.doc-toc a.sub {
-  padding-left: 0.85rem;
+.toc-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+.toc-chevron {
+  width: 1rem;
+  flex-shrink: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.toc-group.open .toc-chevron {
+  transform: rotate(90deg);
+}
+.toc-chevron-spacer {
+  display: inline-block;
+  width: 1rem;
+  flex-shrink: 0;
+}
+.toc-h2 {
+  display: block;
+  padding: 0.2rem 0;
+}
+.toc-subs {
+  display: none;
+}
+.toc-group.open .toc-subs {
+  display: block;
+}
+.toc-sub {
+  display: block;
+  padding: 0.15rem 0 0.15rem 1.25rem;
+  font-size: 0.95em;
 }
 @media (max-width: 1100px) {
   .doc {
@@ -327,6 +367,36 @@ a:hover {
   .doc-main {
     padding: 1.5rem 1.25rem 4rem;
   }
+}
+
+/* on-page edit button (editors only) */
+.doc-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.doc-head h1 {
+  margin-top: 0;
+}
+.edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  margin-top: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--brand);
+  background: var(--soft);
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.edit-btn:hover {
+  text-decoration: none;
+  border-color: var(--brand);
 }
 
 /* ===== prose (VitePress doc typography) ===== */
@@ -406,8 +476,10 @@ a:hover {
 .prose .toc li {
   margin: 0.25rem 0;
 }
-.prose .toc .toc-sub {
-  margin-left: 1rem;
+.prose .toc ul {
+  list-style: circle;
+  padding-left: 1.5rem;
+  margin: 0.25rem 0;
 }
 
 /* callouts */

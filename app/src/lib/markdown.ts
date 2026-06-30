@@ -70,25 +70,40 @@ function remarkToc() {
         headings.push({ depth: node.depth, text, id: slugger.slug(text) });
       }
     });
+    // Build a NESTED list (h3s nested under their h2) so indentation is
+    // structural — no reliance on a className surviving sanitization.
+    // biome-ignore lint/suspicious/noExplicitAny: mdast nodes are untyped here
+    const linkItem = (h: { id: string; text: string }): any => ({
+      type: "listItem",
+      children: [
+        {
+          type: "paragraph",
+          children: [{ type: "link", url: `#${h.id}`, children: [{ type: "text", value: h.text }] }],
+        },
+      ],
+    });
+    // biome-ignore lint/suspicious/noExplicitAny: mdast nodes are untyped here
+    const top: { item: any; subs: any[] }[] = [];
+    for (const h of headings) {
+      if (h.depth === 2 || top.length === 0) {
+        top.push({ item: linkItem(h), subs: [] });
+      } else {
+        top[top.length - 1].subs.push(linkItem(h));
+      }
+    }
+    const items = top.map(({ item, subs }) => {
+      if (subs.length) item.children.push({ type: "list", ordered: false, children: subs });
+      return item;
+    });
+
     visit(tree, "paragraph", (node: any, index: number | undefined, parent: any) => {
       if (!parent || index === undefined) return;
       if (textOf(node.children).trim() !== "[[TOC]]") return;
       parent.children[index] = {
         type: "list",
         ordered: false,
-        data: { hName: "nav", hProperties: { className: ["toc"] } },
-        children: headings.map((h) => ({
-          type: "listItem",
-          data: { hProperties: { className: h.depth === 3 ? ["toc-sub"] : ["toc-top"] } },
-          children: [
-            {
-              type: "paragraph",
-              children: [
-                { type: "link", url: `#${h.id}`, children: [{ type: "text", value: h.text }] },
-              ],
-            },
-          ],
-        })),
+        data: { hProperties: { className: ["toc"] } },
+        children: items,
       };
     });
   };
@@ -148,6 +163,11 @@ const sanitizeSchema = {
       "className",
       "id",
     ],
+    // GitHub's default schema restricts class on lists to task-list values;
+    // allow our own classes (e.g. the TOC) through.
+    ul: ["className"],
+    ol: ["className"],
+    li: ["className"],
   },
 };
 

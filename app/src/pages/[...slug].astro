@@ -1,7 +1,8 @@
 ---
 import Base from "../layouts/Base.astro";
 import Sidebar from "../components/Sidebar.astro";
-import { getPageBySlug, getSidebarPages, getPageVisibility, type PageRow } from "../lib/db/pages";
+import Toc from "../components/Toc.astro";
+import { getPageBySlug, getSidebarPages, type PageRow, type SidebarRow } from "../lib/db/pages";
 import { renderMarkdown, extractHeadings } from "../lib/markdown";
 import { setReaderCacheHeaders } from "../lib/access";
 
@@ -11,69 +12,42 @@ if (!slug) return new Response(null, { status: 404 });
 const { db, visitor } = Astro.locals;
 
 let page: PageRow | null;
-let navPages: PageRow[] = [];
-let gated: { title: string } | null = null;
+let navPages: SidebarRow[] = [];
 try {
   page = await getPageBySlug(db, slug, visitor);
   navPages = await getSidebarPages(db, visitor);
-  if (!page) {
-    // Page not readable. If it's an internal page and the visitor is anonymous,
-    // show a "sign in to read" prompt (the page exists, content is gated).
-    // Otherwise (missing, or restricted-without-access) → 404, no existence leak.
-    const meta = await getPageVisibility(db, slug);
-    if (meta && meta.visibility === "internal" && !visitor) gated = { title: meta.title };
-  }
 } catch {
+  // FAIL CLOSED: never render content on a backend error.
   return new Response("Service unavailable", { status: 503 });
 }
 
-if (!page && !gated) return new Response(null, { status: 404 });
+// Not-found AND forbidden both return 404 — no existence signal (red-team R2).
+if (!page) return new Response(null, { status: 404 });
 
-if (page) {
-  setReaderCacheHeaders(Astro.response.headers, page.visibility, visitor);
-} else {
-  Astro.response.headers.set("Cache-Control", "private, no-store");
-  Astro.response.headers.set("Vary", "Cookie");
-}
-
-const title = page ? page.title : (gated as { title: string }).title;
-const html = page ? renderMarkdown(page.body) : "";
-const headings = page ? extractHeadings(page.body) : [];
+setReaderCacheHeaders(Astro.response.headers, page.visibility, visitor);
+const html = renderMarkdown(page.body);
+const headings = extractHeadings(page.body);
 ---
 
-<Base title={title} visitor={visitor}>
+<Base title={page.title} visitor={visitor}>
   <div class="doc">
     <Sidebar pages={navPages} current={slug} />
     <article class="prose doc-main">
-      <h1>{title}</h1>
-      {
-        page ? (
-          <Fragment set:html={html} />
-        ) : (
-          <div class="gate">
-            <p>🔒 This is an internal page. Sign in with your OSBR account to read it.</p>
-            <p>
-              <a class="btn btn-brand" href={`/api/auth/login?return_url=/${slug}`}>
-                Sign in
-              </a>
-            </p>
-          </div>
-        )
-      }
+      <div class="doc-head">
+        <h1>{page.title}</h1>
+        {
+          visitor?.role === "editor" && (
+            <a class="edit-btn" href={`/admin/edit/${page.id}`} title="Edit this page">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M11.013 1.427a1.75 1.75 0 0 1 2.474 0l1.086 1.086a1.75 1.75 0 0 1 0 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 0 1-.927-.928l.929-3.25c.081-.286.235-.547.445-.758l8.61-8.61Zm.176 4.823L9.75 4.81l-6.286 6.287a.253.253 0 0 0-.064.108l-.558 1.953 1.953-.558a.253.253 0 0 0 .108-.064L11.189 6.25Z" />
+              </svg>
+              Edit
+            </a>
+          )
+        }
+      </div>
+      <Fragment set:html={html} />
     </article>
-    <nav class="doc-toc">
-      {
-        page && headings.length > 0 && (
-          <>
-            <p class="toc-title">On this page</p>
-            {headings.map((h) => (
-              <a class={h.depth === 3 ? "sub" : ""} href={`#${h.id}`}>
-                {h.text}
-              </a>
-            ))}
-          </>
-        )
-      }
-    </nav>
+    <Toc headings={headings} />
   </div>
 </Base>
