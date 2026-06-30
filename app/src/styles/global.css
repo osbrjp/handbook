@@ -653,10 +653,52 @@ a:hover {
   color: var(--muted);
   margin-bottom: 0.5rem;
 }
+/* Top bar: Back on the left, Delete on the right. */
+.editor-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.editor-topbar .delete-form {
+  margin: 0;
+}
+/* Collapsible "Page settings" block. */
+.meta-details {
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+}
+.meta-summary {
+  cursor: pointer;
+  padding: 0.6rem 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  list-style: none;
+}
+.meta-summary::-webkit-details-marker {
+  display: none;
+}
+.meta-summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 0.5rem;
+  color: var(--text-2);
+  transition: transform 0.15s ease;
+}
+.meta-details[open] .meta-summary::before {
+  transform: rotate(90deg);
+}
+.meta-details .editor-meta {
+  padding: 0 0.9rem 0.9rem;
+}
+/* Save/Publish go bottom-right (primary commit actions). */
 .actions {
   margin-top: 1rem;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.75rem;
 }
 .actions button {
@@ -676,12 +718,6 @@ a:hover {
 .btn-cancel:hover {
   color: var(--text);
   text-decoration: underline;
-}
-/* Delete sits apart from the save actions — destructive, opt-in. */
-.delete-form {
-  margin-top: 2.5rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--divider);
 }
 .btn-danger {
   padding: 0.5rem 1.1rem;
