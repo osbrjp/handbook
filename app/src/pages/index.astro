@@ -1,0 +1,47 @@
+---
+import Base from "../layouts/Base.astro";
+
+const { visitor } = Astro.locals;
+
+// The home shows only the hero + feature cards (like the original VitePress home).
+// The header still reflects the logged-in visitor, so don't shared-cache when present.
+if (visitor) {
+  Astro.response.headers.set("Cache-Control", "private, no-store");
+  Astro.response.headers.set("Vary", "Cookie");
+} else {
+  Astro.response.headers.set("Cache-Control", "public, max-age=60, s-maxage=300");
+  Astro.response.headers.set("Vary", "Cookie"); // don't serve a cached anon home to a just-logged-in user
+}
+---
+
+<Base title="Home" visitor={visitor}>
+  <div class="home">
+    <section class="hero">
+    <h1 class="hero-name">The OSBR Handbook</h1>
+    <p class="hero-text">A guide to our culture, values, and workflows</p>
+    <p class="hero-tagline">
+      Transparency as our commitment to clients, team members, and future team members.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-brand" href="/what-is-handbook">What is Handbook?</a>
+      <a class="btn btn-alt" href="https://www.osbrjp.com">OSBR</a>
+      {!visitor && <a class="btn btn-alt" href="/api/auth/login">Sign in</a>}
+    </div>
+  </section>
+
+  <section class="features">
+    <article class="feature">
+      <h2>For Our Clients 🤝</h2>
+      <p>A comprehensive resource to understand OSBR's approach, ensuring smooth collaboration and transparency in every step.</p>
+    </article>
+    <article class="feature">
+      <h2>For Our Team Members 👥</h2>
+      <p>An in-depth guide for OSBR team members, designed to align with our shared culture, values, and effective workflows.</p>
+    </article>
+    <article class="feature">
+      <h2>For Future Team Members 🌱</h2>
+      <p>A welcoming overview of OSBR's culture and values, providing a glimpse into what it's like to be part of our team.</p>
+    </article>
+  </section>
+  </div>
+</Base>

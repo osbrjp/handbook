@@ -1,0 +1,79 @@
+---
+import Base from "../layouts/Base.astro";
+import Sidebar from "../components/Sidebar.astro";
+import { getPageBySlug, getSidebarPages, getPageVisibility, type PageRow } from "../lib/db/pages";
+import { renderMarkdown, extractHeadings } from "../lib/markdown";
+import { setReaderCacheHeaders } from "../lib/access";
+
+const slug = Astro.params.slug;
+if (!slug) return new Response(null, { status: 404 });
+
+const { db, visitor } = Astro.locals;
+
+let page: PageRow | null;
+let navPages: PageRow[] = [];
+let gated: { title: string } | null = null;
+try {
+  page = await getPageBySlug(db, slug, visitor);
+  navPages = await getSidebarPages(db, visitor);
+  if (!page) {
+    // Page not readable. If it's an internal page and the visitor is anonymous,
+    // show a "sign in to read" prompt (the page exists, content is gated).
+    // Otherwise (missing, or restricted-without-access) → 404, no existence leak.
+    const meta = await getPageVisibility(db, slug);
+    if (meta && meta.visibility === "internal" && !visitor) gated = { title: meta.title };
+  }
+} catch {
+  return new Response("Service unavailable", { status: 503 });
+}
+
+if (!page && !gated) return new Response(null, { status: 404 });
+
+if (page) {
+  setReaderCacheHeaders(Astro.response.headers, page.visibility, visitor);
+} else {
+  Astro.response.headers.set("Cache-Control", "private, no-store");
+  Astro.response.headers.set("Vary", "Cookie");
+}
+
+const title = page ? page.title : (gated as { title: string }).title;
+const html = page ? renderMarkdown(page.body) : "";
+const headings = page ? extractHeadings(page.body) : [];
+---
+
+<Base title={title} visitor={visitor}>
+  <div class="doc">
+    <Sidebar pages={navPages} current={slug} />
+    <article class="prose doc-main">
+      <h1>{title}</h1>
+      {
+        page ? (
+          <Fragment set:html={html} />
+        ) : (
+          <div class="gate">
+            <p>🔒 This is an internal page. Sign in with your OSBR account to read it.</p>
+            <p>
+              <a class="btn btn-brand" href={`/api/auth/login?return_url=/${slug}`}>
+                Sign in
+              </a>
+            </p>
+          </div>
+        )
+      }
+    </article>
+    <nav class="doc-toc">
+      {
+        page && headings.length > 0 && (
+          <>
+            <p class="toc-title">On this page</p>
+            {headings.map((h) => (
+              <a class={h.depth === 3 ? "sub" : ""} href={`#${h.id}`}>
+                {h.text}
+              </a>
+            ))}
+          </>
+        )
+      }
+    </nav>
+  </div>
+</Base>

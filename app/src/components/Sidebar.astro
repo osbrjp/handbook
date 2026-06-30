@@ -1,0 +1,51 @@
+---
+import type { PageRow } from "../lib/db/pages";
+
+interface Props {
+  pages: PageRow[];
+  current?: string;
+}
+const { pages, current } = Astro.props;
+const sections = [...new Set(pages.map((p) => p.section))];
+---
+
+<aside class="doc-sidebar">
+  {
+    sections.map((section) => {
+      const items = pages.filter((p) => p.section === section);
+      return (
+        <details class="sb-group" data-section={section} open>
+          <summary class="sb-title">{section}</summary>
+          {items.map((p) => (
+            <a class={`sb-link${p.slug === current ? " active" : ""}`} href={`/${p.slug}`}>
+              {p.nav_label || p.title}
+              {p.visibility === "restricted" && <span class="sb-badge">🔒</span>}
+            </a>
+          ))}
+        </details>
+      );
+    })
+  }
+</aside>
+
+<script is:inline>
+  // Collapsible sidebar sections, remembered across navigation. The section
+  // containing the current page always opens.
+  (function () {
+    let state = {};
+    try {
+      state = JSON.parse(localStorage.getItem("sbSections") || "{}");
+    } catch (_) {}
+    for (const d of document.querySelectorAll(".doc-sidebar details[data-section]")) {
+      const key = d.getAttribute("data-section");
+      const hasActive = !!d.querySelector(".sb-link.active");
+      if (!hasActive && key in state) d.open = state[key];
+      d.addEventListener("toggle", () => {
+        state[key] = d.open;
+        try {
+          localStorage.setItem("sbSections", JSON.stringify(state));
+        } catch (_) {}
+      });
+    }
+  })();
+</script>
