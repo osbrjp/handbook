@@ -37,6 +37,8 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   if (!slug) return bad("Enter a title or a page URL");
   if (!isSafeSlug(slug))
     return bad("Invalid page URL (lowercase letters, numbers and hyphens only)");
+  // Validate the rename SOURCE slug too — it becomes a file/repo path in store.rename.
+  if (origSlug && !isSafeSlug(origSlug)) return bad("Invalid original page URL");
   if (!section) return bad("Section is required");
   if (!VISIBILITIES.has(visibility)) return bad("Invalid visibility");
   if (!STATUSES.has(status)) return bad("Invalid status");

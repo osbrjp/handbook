@@ -9,6 +9,8 @@ test("safeReturnUrl allows same-origin/relative, blocks open redirects", () => {
   assert.equal(safeReturnUrl("/foo", ORIGIN), "/foo");
   assert.equal(safeReturnUrl(`${ORIGIN}/ok`, ORIGIN), `${ORIGIN}/ok`);
   assert.equal(safeReturnUrl("//evil.com", ORIGIN), "/"); // protocol-relative
+  assert.equal(safeReturnUrl("/\\evil.com", ORIGIN), "/"); // backslash normalizes to //
+  assert.equal(safeReturnUrl("/\\/evil.com", ORIGIN), "/");
   assert.equal(safeReturnUrl("https://evil.com/", ORIGIN), "/"); // off-origin
   assert.equal(safeReturnUrl(null, ORIGIN), "/");
   assert.equal(safeReturnUrl(undefined, ORIGIN), "/");

@@ -19,6 +19,9 @@ export function getOrigin(
 // Same-origin / relative-path guard for post-login redirects (open-redirect defense).
 export function safeReturnUrl(candidate: string | null | undefined, origin: string): string {
   if (!candidate) return "/";
+  // Browsers normalize backslashes to `/`, so `/\evil.com` becomes the
+  // protocol-relative `//evil.com`. Reject any backslash before the checks below.
+  if (candidate.includes("\\")) return "/";
   if (candidate.startsWith("/") && !candidate.startsWith("//")) return candidate;
   if (candidate.startsWith(`${origin}/`)) return candidate;
   return "/";
