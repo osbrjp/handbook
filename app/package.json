@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev --port 4321",
+    "dev:edit": "node scripts/dev-edit.mjs",
+    "content:agent": "node scripts/content-agent.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",

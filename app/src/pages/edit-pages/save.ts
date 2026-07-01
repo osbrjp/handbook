@@ -82,11 +82,11 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
       await store.write(file, { editorEmail, message });
     }
   } catch {
-    // In-browser editing is deferred: the workerd runtime can't write files, and
-    // the GitHub-commit driver isn't wired yet. Edit the markdown in the repo.
+    // Dev: the local content agent is likely not running. Prod: the GitHub
+    // write driver is deferred. Either way, the save didn't persist.
     return new Response(
-      "In-browser editing isn't enabled yet. To change content, edit the page's markdown file in the repository and commit it. The published site is git-backed.",
-      { status: 501 },
+      "Could not save. In local dev, ensure the content agent is running (pnpm content:agent). In production, the GitHub write driver isn't configured yet.",
+      { status: 503 },
     );
   }
 

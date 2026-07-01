@@ -25,13 +25,19 @@ export interface ContentStore {
 
 export interface ContentStoreConfig {
   kind: "local" | "github";
+  localAgentUrl?: string; // dev: the Node content agent (file write + git commit)
+  localAgentToken?: string;
   github?: { token?: string; repo?: string; branch?: string };
 }
 
 export async function getContentStore(config: ContentStoreConfig): Promise<ContentStore> {
-  // Only the GitHub (network) driver can run in workerd. It is deferred for now,
-  // so its methods throw a clear "not enabled" error until a token + pipeline
-  // are wired. Kept as the single, forward-looking write path.
+  // Dev: talk to the local content agent (Node) over fetch — it does the real
+  // file write + git commit that workerd can't. Prod: the GitHub API driver
+  // (deferred until a token + build-on-commit pipeline exist).
+  if (config.kind === "local" && config.localAgentUrl) {
+    const mod = await import("./store.local");
+    return mod.createLocalStore(config.localAgentUrl, config.localAgentToken ?? "dev-agent");
+  }
   const mod = await import("./store.github");
   return mod.createGithubStore(config.github ?? {});
 }

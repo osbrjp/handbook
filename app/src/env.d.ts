@@ -12,8 +12,10 @@ declare namespace Cloudflare {
     OAUTH_ORIGIN?: string;
     GOOGLE_CLIENT_ID?: string;
     GOOGLE_CLIENT_SECRET?: string;
-    // content store: "local" (dev, file+git) or "github" (prod, deferred)
+    // content store: dev uses the local content agent; prod the GitHub driver
     CONTENT_STORE?: string;
+    CONTENT_AGENT_URL?: string; // default http://127.0.0.1:4322
+    CONTENT_AGENT_TOKEN?: string; // shared token with the local agent
     GITHUB_TOKEN?: string;
     GITHUB_REPO?: string;
     GITHUB_BRANCH?: string;

@@ -42,6 +42,13 @@ const savedMsg = saved === "published" ? "Published" : saved === "draft" ? "Save
         </div>
       )
     }
-    <EditorForm page={page} pageGroupKeys={pageGroupKeys} csrf={csrf} groups={groups} sections={sections} />
+    <EditorForm
+      page={page}
+      pageGroupKeys={pageGroupKeys}
+      csrf={csrf}
+      groups={groups}
+      sections={sections}
+      writable={Astro.locals.contentStore.kind === "local"}
+    />
   </div>
 </Base>

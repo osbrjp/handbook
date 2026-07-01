@@ -9,8 +9,9 @@ interface Props {
   csrf: string;
   groups: Group[];
   sections: string[];
+  writable?: boolean; // true when a content-store write path is available (dev)
 }
-const { page = null, pageGroupKeys = [], csrf, groups, sections } = Astro.props;
+const { page = null, pageGroupKeys = [], csrf, groups, sections, writable = false } = Astro.props;
 const visibility = page?.visibility ?? "internal";
 ---
 
@@ -18,18 +19,53 @@ const visibility = page?.visibility ?? "internal";
   <a class="btn-cancel" href="/edit-pages" id="back-link">← Back</a>
   {
     page && (
-      <button type="button" class="btn btn-danger" id="delete-open" disabled>
+      <button type="button" class="btn btn-danger" id="delete-open" disabled={!writable}>
         Delete page
       </button>
     )
   }
 </div>
 
-<div class="notice notice-warn">
-  ✎ <strong>Preview only.</strong> In-browser editing isn't enabled yet — the site is
-  git-backed, so to change this page, edit its markdown file in the repository and commit.
-  You can still preview your markdown live below.
-</div>
+{
+  writable ? (
+    <div class="notice">
+      ✎ <strong>Local editing.</strong> Saving writes the page's markdown file and makes a git
+      commit on this machine (via the local content agent). In production, saves commit through
+      the GitHub API.
+    </div>
+  ) : (
+    <div class="notice notice-warn">
+      ✎ <strong>Preview only.</strong> In-browser editing isn't enabled in this environment — the
+      site is git-backed, so to change this page, edit its markdown file in the repository and
+      commit. You can still preview your markdown live below.
+    </div>
+  )
+}
+
+{
+  writable && page && (
+    <>
+      <form method="POST" action="/edit-pages/delete" id="delete-form" class="delete-form">
+        <input type="hidden" name="csrf" value={csrf} />
+        <input type="hidden" name="slug" value={page.slug} />
+      </form>
+      <dialog id="delete-dialog" class="confirm-dialog">
+        <h2>Delete this page?</h2>
+        <p>
+          Are you sure you want to delete “<strong>{page.title}</strong>”? This cannot be undone.
+        </p>
+        <div class="confirm-actions">
+          <button type="button" class="btn btn-alt" id="delete-cancel">
+            Cancel
+          </button>
+          <button type="submit" form="delete-form" class="btn btn-danger">
+            Delete page
+          </button>
+        </div>
+      </dialog>
+    </>
+  )
+}
 
 <form method="POST" action="/edit-pages/save" class="editor">
   <input type="hidden" name="csrf" value={csrf} />
@@ -96,8 +132,8 @@ const visibility = page?.visibility ?? "internal";
   </details>
 
   <div class="actions">
-    <button type="submit" name="status" value="draft" class="btn btn-alt" disabled>Save draft</button>
-    <button type="submit" name="status" value="published" class="btn btn-brand" disabled>Publish</button>
+    <button type="submit" name="status" value="draft" class="btn btn-alt" disabled={!writable}>Save draft</button>
+    <button type="submit" name="status" value="published" class="btn btn-brand" disabled={!writable}>Publish</button>
   </div>
 </form>
 
@@ -183,6 +219,13 @@ const visibility = page?.visibility ?? "internal";
       if (!combo.contains(e.target as Node)) sectionList.hidden = true;
     });
   }
+
+  // Delete confirmation modal (only rendered when editing is enabled).
+  const deleteOpen = document.getElementById("delete-open");
+  const deleteCancel = document.getElementById("delete-cancel");
+  const deleteDialog = document.getElementById("delete-dialog") as HTMLDialogElement | null;
+  deleteOpen?.addEventListener("click", () => deleteDialog?.showModal());
+  deleteCancel?.addEventListener("click", () => deleteDialog?.close());
 </script>
 
 <CollapsePersistence selector=".editor details[data-section]" storageKey="editorSections" />

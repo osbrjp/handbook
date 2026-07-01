@@ -1,6 +1,7 @@
 ---
 import Base from "../../layouts/Base.astro";
 import { requireEditor } from "../../lib/auth/requireEditor";
+import { issueCsrf } from "../../lib/csrf";
 import { listAllPages } from "../../lib/content/pages";
 
 const denied = requireEditor(Astro.locals);
@@ -11,21 +12,34 @@ Astro.response.headers.set("Vary", "Cookie");
 
 const pages = await listAllPages();
 const sections = [...new Set(pages.map((p) => p.section))];
+const deleted = Astro.url.searchParams.get("deleted");
+const writable = Astro.locals.contentStore.kind === "local";
+const csrf = writable ? issueCsrf(Astro.cookies, Astro.url.protocol === "https:") : "";
 ---
 
 <Base title="Editor" visitor={Astro.locals.visitor}>
   <div class="container admin-page">
   <div class="admin-head">
     <h1>Pages</h1>
+    {writable && <a class="btn btn-brand" href="/edit-pages/create">+ New page</a>}
   </div>
   <a class="btn-cancel admin-back" href="/" id="admin-back">← Back to handbook</a>
+  {deleted && <div class="notice">✓ Page deleted.</div>}
 
-  <div class="notice notice-warn">
-    ✎ <strong>Preview only.</strong> Content is git-backed — in-browser editing isn't enabled
-    yet. To add, change, or remove a page, edit the markdown files under
-    <code>app/src/content/pages/</code> in the repository and commit. Open a page below to
-    preview it.
-  </div>
+  {
+    writable ? (
+      <div class="notice">
+        ✎ <strong>Local editing.</strong> Create/edit/delete write markdown files + git commits on
+        this machine via the local content agent.
+      </div>
+    ) : (
+      <div class="notice notice-warn">
+        ✎ <strong>Preview only.</strong> Content is git-backed — in-browser editing isn't enabled
+        in this environment. To add, change, or remove a page, edit the markdown files under
+        <code>app/src/content/pages/</code> and commit. Open a page below to preview it.
+      </div>
+    )
+  }
 
   {
     sections.map((section) => {
@@ -53,8 +67,13 @@ const sections = [...new Set(pages.map((p) => p.section))];
                   </td>
                   <td class="col-right">{p.status}</td>
                   <td class="col-right row-actions">
-                    <a href={`/edit-pages/edit/${p.slug}`}>Preview</a>
+                    <a href={`/edit-pages/edit/${p.slug}`}>{writable ? "Edit" : "Preview"}</a>
                     <a href={`/${p.slug}`}>View</a>
+                    {writable && (
+                      <button type="button" class="row-delete" data-slug={p.slug} data-title={p.title}>
+                        Delete
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -65,10 +84,45 @@ const sections = [...new Set(pages.map((p) => p.section))];
     })
   }
   </div>
+
+  {
+    writable && (
+      <dialog id="del-dialog" class="confirm-dialog">
+        <h2>Delete this page?</h2>
+        <p>
+          Are you sure you want to delete “<strong id="del-title" />”? This cannot be undone.
+        </p>
+        <form method="POST" action="/edit-pages/delete" id="del-form">
+          <input type="hidden" name="csrf" value={csrf} />
+          <input type="hidden" name="slug" id="del-slug" />
+          <div class="confirm-actions">
+            <button type="button" class="btn btn-alt" id="del-cancel">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-danger">
+              Delete page
+            </button>
+          </div>
+        </form>
+      </dialog>
+    )
+  }
 </Base>
 
 <script>
   import { wireBackLink } from "../../lib/ui/backLink";
-  // Back to the previous page (falls back to the handbook home href).
   wireBackLink("admin-back");
+
+  // Delete confirmation (only present when local editing is enabled).
+  const dialog = document.getElementById("del-dialog") as HTMLDialogElement | null;
+  const slugInput = document.getElementById("del-slug") as HTMLInputElement | null;
+  const titleEl = document.getElementById("del-title");
+  for (const btn of document.querySelectorAll<HTMLButtonElement>(".row-delete")) {
+    btn.addEventListener("click", () => {
+      if (slugInput) slugInput.value = btn.dataset.slug ?? "";
+      if (titleEl) titleEl.textContent = btn.dataset.title ?? "this page";
+      dialog?.showModal();
+    });
+  }
+  document.getElementById("del-cancel")?.addEventListener("click", () => dialog?.close());
 </script>

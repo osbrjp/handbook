@@ -20,6 +20,11 @@ const sections = [...new Set((await listAllPages()).map((p) => p.section))];
 <Base title="Create page" visitor={Astro.locals.visitor}>
   <div class="container editor-page">
     <h1>Create page</h1>
-    <EditorForm csrf={csrf} groups={groups} sections={sections} />
+    <EditorForm
+      csrf={csrf}
+      groups={groups}
+      sections={sections}
+      writable={Astro.locals.contentStore.kind === "local"}
+    />
   </div>
 </Base>

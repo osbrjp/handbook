@@ -15,10 +15,12 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   ctx.locals.db = env.DB;
   ctx.locals.visitor = null;
   // Content store config (read from env here; the editor builds the driver
-  // lazily so readers never pay for it). Only the GitHub (network) driver works
-  // in workerd; it is deferred until a token + build pipeline are provisioned.
+  // lazily so readers never pay for it). Dev (DEV_LOGIN) uses the local content
+  // agent for real file+git writes; otherwise the GitHub driver (deferred).
   ctx.locals.contentStore = {
-    kind: "github",
+    kind: env.DEV_LOGIN === "1" ? "local" : "github",
+    localAgentUrl: env.CONTENT_AGENT_URL || "http://127.0.0.1:4322",
+    localAgentToken: env.CONTENT_AGENT_TOKEN || "dev-agent",
     github: { token: env.GITHUB_TOKEN, repo: env.GITHUB_REPO, branch: env.GITHUB_BRANCH },
   };
 

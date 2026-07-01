@@ -26,10 +26,9 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
       message: `Delete "${page.title}" (${slug})`,
     });
   } catch {
-    // In-browser editing is deferred (see save.ts). Delete by removing the file.
     return new Response(
-      "In-browser editing isn't enabled yet. To remove a page, delete its markdown file in the repository and commit.",
-      { status: 501 },
+      "Could not delete. In local dev, ensure the content agent is running (pnpm content:agent). In production, the GitHub write driver isn't configured yet.",
+      { status: 503 },
     );
   }
 
