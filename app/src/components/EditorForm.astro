@@ -1,6 +1,7 @@
 ---
 import type { PageRow } from "../lib/db/pages";
 import type { Group } from "../lib/db/groups";
+import CollapsePersistence from "./CollapsePersistence.astro";
 
 interface Props {
   page?: PageRow | null;
@@ -54,7 +55,7 @@ const visibility = page?.visibility ?? "internal";
   {page && <input type="hidden" name="id" value={page.id} />}
   <input type="hidden" name="sort" value={page?.sort ?? 0} />
 
-  <details class="meta-details" data-esec="settings">
+  <details class="meta-details" data-section="settings">
   <summary class="meta-summary">Page settings</summary>
   <div class="editor-meta">
   <label>Title<input name="title" id="title" value={page?.title ?? ""} required /></label>
@@ -98,7 +99,7 @@ const visibility = page?.visibility ?? "internal";
   </div>
   </details>
 
-  <details class="meta-details" data-esec="content">
+  <details class="meta-details" data-section="content">
   <summary class="meta-summary">Content — markdown &amp; live preview</summary>
   <div class="editor-grid">
     <div class="editor-pane">
@@ -210,37 +211,4 @@ const visibility = page?.visibility ?? "internal";
   deleteCancel?.addEventListener("click", () => deleteDialog?.close());
 </script>
 
-<script is:inline>
-  // Editor sections collapsed by default; open-state remembered per tab
-  // (sessionStorage). A reload resets to collapsed; navigating back restores
-  // whatever you had open — same model as the reader sidebar.
-  (function () {
-    const KEY = "editorSections";
-    const navEntry = performance.getEntriesByType("navigation")[0];
-    const isReload = navEntry && navEntry.type === "reload";
-    let state = {};
-    if (isReload) {
-      try {
-        sessionStorage.removeItem(KEY);
-      } catch (_) {}
-    } else {
-      try {
-        state = JSON.parse(sessionStorage.getItem(KEY) || "{}");
-      } catch (_) {}
-    }
-    for (const d of document.querySelectorAll(".editor details[data-esec]")) {
-      const key = d.getAttribute("data-esec");
-      if (!isReload && state[key]) d.open = true;
-      d.addEventListener("toggle", () => {
-        let s = {};
-        try {
-          s = JSON.parse(sessionStorage.getItem(KEY) || "{}");
-        } catch (_) {}
-        s[key] = d.open;
-        try {
-          sessionStorage.setItem(KEY, JSON.stringify(s));
-        } catch (_) {}
-      });
-    }
-  })();
-</script>
+<CollapsePersistence selector=".editor details[data-section]" storageKey="editorSections" />

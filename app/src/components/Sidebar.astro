@@ -1,5 +1,6 @@
 ---
 import type { SidebarRow } from "../lib/db/pages";
+import CollapsePersistence from "./CollapsePersistence.astro";
 
 interface Props {
   pages: SidebarRow[];
@@ -36,39 +37,4 @@ const sections = [...new Set(pages.map((p) => p.section))];
   }
 </aside>
 
-<script is:inline>
-  // Sidebar section open-state, per browser tab (sessionStorage):
-  //  - on a RELOAD: reset to the default (only the active page's section open,
-  //    set server-side) so a refresh collapses everything else;
-  //  - on a normal NAVIGATION: restore the sections the user had opened, so
-  //    they stay open while browsing without a refresh.
-  (function () {
-    const KEY = "sbSections";
-    const navEntry = performance.getEntriesByType("navigation")[0];
-    const isReload = navEntry && navEntry.type === "reload";
-    let state = {};
-    if (isReload) {
-      try {
-        sessionStorage.removeItem(KEY);
-      } catch (_) {}
-    } else {
-      try {
-        state = JSON.parse(sessionStorage.getItem(KEY) || "{}");
-      } catch (_) {}
-    }
-    for (const d of document.querySelectorAll(".doc-sidebar details[data-section]")) {
-      const key = d.getAttribute("data-section");
-      if (!isReload && state[key]) d.open = true;
-      d.addEventListener("toggle", () => {
-        let s = {};
-        try {
-          s = JSON.parse(sessionStorage.getItem(KEY) || "{}");
-        } catch (_) {}
-        s[key] = d.open;
-        try {
-          sessionStorage.setItem(KEY, JSON.stringify(s));
-        } catch (_) {}
-      });
-    }
-  })();
-</script>
+<CollapsePersistence selector=".doc-sidebar details[data-section]" storageKey="sbSections" />
