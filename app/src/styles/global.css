@@ -121,6 +121,15 @@ a:hover {
   color: var(--muted);
   font-size: 0.9rem;
 }
+.nav-edit {
+  color: var(--text);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+.nav-edit:hover {
+  color: var(--brand);
+  text-decoration: none;
+}
 .linkbtn {
   background: none;
   border: none;
@@ -644,6 +653,10 @@ a:hover {
   gap: 1rem;
   margin: 0 0 1.5rem;
 }
+.admin-back {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+}
 .admin-head > h1 {
   font-size: 2rem;
   line-height: 1.25;
@@ -850,11 +863,6 @@ a:hover {
   display: flex;
   flex-direction: column;
   min-width: 0;
-}
-.pane-title {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  line-height: 1.5rem; /* equal header height in both panes so the boxes align */
 }
 .editor-grid textarea {
   flex: 1;

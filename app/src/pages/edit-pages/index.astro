@@ -22,9 +22,7 @@ const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
     <h1>Pages</h1>
     <a class="btn btn-brand" href="/edit-pages/create">+ New page</a>
   </div>
-  <a class="btn-cancel" href="/" id="admin-back" style="display:inline-block;margin-bottom:1.25rem"
-    >← Back to handbook</a
-  >
+  <a class="btn-cancel admin-back" href="/" id="admin-back">← Back to handbook</a>
   {deleted && <div class="notice">✓ Page deleted.</div>}
 
   {

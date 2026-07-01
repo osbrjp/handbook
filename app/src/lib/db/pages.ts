@@ -206,20 +206,6 @@ export async function searchPages(
   }));
 }
 
-// Lightweight metadata (NO body) — lets a gated route choose 404 vs sign-in prompt.
-export async function getPageVisibility(
-  db: D1Database,
-  slug: string,
-): Promise<{ title: string; visibility: Visibility } | null> {
-  const row = await db
-    .prepare(
-      "SELECT title, visibility FROM pages p WHERE p.slug=? AND p.status='published' LIMIT 1",
-    )
-    .bind(slug)
-    .first();
-  return row ? (row as { title: string; visibility: Visibility }) : null;
-}
-
 /** Editor-only: every page incl. drafts. Callers MUST gate on editor role first. */
 export async function listAllPages(db: D1Database): Promise<PageRow[]> {
   const { results } = await db
