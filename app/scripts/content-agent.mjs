@@ -70,10 +70,12 @@ const server = http.createServer(async (req, res) => {
 
     if (op === "write" || op === "rename") {
       if (typeof text !== "string") return send(400, { error: "missing text" });
+      // Validate everything BEFORE writing, so a bad oldSlug can't orphan a file.
+      const doRename = op === "rename" && oldSlug && oldSlug !== slug;
+      if (doRename && !isSafeSlug(oldSlug)) return send(400, { error: "invalid oldSlug" });
       await mkdir(path.dirname(abs), { recursive: true });
       await writeFile(abs, text);
-      if (op === "rename" && oldSlug && oldSlug !== slug) {
-        if (!isSafeSlug(oldSlug)) return send(400, { error: "invalid oldSlug" });
+      if (doRename) {
         const oldRel = `${CONTENT_REL}/${oldSlug}.md`;
         await rm(path.join(repoRoot, oldRel), { force: true });
         await git(["add", "--", oldRel, rel]); // staging a removed path records the delete
