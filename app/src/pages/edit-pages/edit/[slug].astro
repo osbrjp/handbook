@@ -3,8 +3,8 @@ import Base from "../../../layouts/Base.astro";
 import EditorForm from "../../../components/EditorForm.astro";
 import { requireEditor } from "../../../lib/auth/requireEditor";
 import { issueCsrf } from "../../../lib/csrf";
-import { listGroups, getPageGroupKeys } from "../../../lib/db/groups";
-import { getEditablePageBySlug, listAllPages } from "../../../lib/db/pages";
+import { listGroups } from "../../../lib/db/groups";
+import { getEditablePageBySlug, listAllPages } from "../../../lib/content/pages";
 
 const denied = requireEditor(Astro.locals);
 if (denied) return denied;
@@ -13,13 +13,14 @@ Astro.response.headers.set("Cache-Control", "private, no-store");
 Astro.response.headers.set("Vary", "Cookie");
 
 const slug = Astro.params.slug;
-const page = slug ? await getEditablePageBySlug(Astro.locals.db, slug) : null;
+const page = slug ? await getEditablePageBySlug(slug) : null;
 if (!page) return new Response(null, { status: 404 });
 
-const pageGroupKeys = await getPageGroupKeys(Astro.locals.db, page.id);
+// Group grants now live in the page's frontmatter.
+const pageGroupKeys = page.groups;
 const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
 const groups = await listGroups(Astro.locals.db);
-const sections = [...new Set((await listAllPages(Astro.locals.db)).map((p) => p.section))];
+const sections = [...new Set((await listAllPages()).map((p) => p.section))];
 
 // Confirmation after a save (set by /edit-pages/save).
 const saved = Astro.url.searchParams.get("saved");

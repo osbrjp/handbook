@@ -643,6 +643,18 @@ a:hover {
 .notice-muted {
   color: var(--muted);
 }
+/* Warning/info variant (e.g. deferred in-browser editing). */
+.notice-warn {
+  background: rgba(234, 179, 8, 0.12);
+  border-color: #eab308;
+  line-height: 1.5;
+}
+.notice-warn code {
+  background: var(--code-bg);
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
 .logout-form {
   display: inline;
 }

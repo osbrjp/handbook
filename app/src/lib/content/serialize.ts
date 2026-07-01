@@ -1,0 +1,35 @@
+import type { PageMeta } from "./acl";
+
+// Serialize a page to markdown-with-YAML-frontmatter (the on-disk / in-repo
+// format the content collection reads back). Double-quoted scalars (via
+// JSON.stringify) are valid YAML and safely escape colons/quotes/newlines.
+function yamlScalar(s: string): string {
+  return JSON.stringify(String(s));
+}
+
+export function serializePageFile(fm: PageMeta, body: string): string {
+  const lines = ["---"];
+  lines.push(`title: ${yamlScalar(fm.title)}`);
+  lines.push(`section: ${yamlScalar(fm.section)}`);
+  lines.push(`nav_label: ${yamlScalar(fm.nav_label ?? "")}`);
+  lines.push(`sort: ${Number(fm.sort) || 0}`);
+  lines.push(`visibility: ${fm.visibility}`);
+  lines.push(`status: ${fm.status}`);
+  if (fm.groups?.length) {
+    lines.push("groups:");
+    for (const g of fm.groups) lines.push(`  - ${yamlScalar(g)}`);
+  } else {
+    lines.push("groups: []");
+  }
+  if (fm.updated_by) lines.push(`updated_by: ${yamlScalar(fm.updated_by)}`);
+  if (fm.updated_at) lines.push(`updated_at: ${yamlScalar(fm.updated_at)}`);
+  lines.push("---");
+  return `${lines.join("\n")}\n\n${body.trim()}\n`;
+}
+
+// A slug becomes a FILENAME (and a repo path), so it must be strictly safe:
+// lowercase alphanumerics + hyphens only, no dots/slashes/traversal. This is
+// the path-traversal guard for the write drivers.
+export function isSafeSlug(slug: string): boolean {
+  return /^[a-z0-9][a-z0-9-]*$/.test(slug);
+}

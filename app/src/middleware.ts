@@ -14,6 +14,13 @@ import type { Visitor, Role } from "./lib/auth/visitor";
 export const onRequest = defineMiddleware(async (ctx, next) => {
   ctx.locals.db = env.DB;
   ctx.locals.visitor = null;
+  // Content store config (read from env here; the editor builds the driver
+  // lazily so readers never pay for it). Only the GitHub (network) driver works
+  // in workerd; it is deferred until a token + build pipeline are provisioned.
+  ctx.locals.contentStore = {
+    kind: "github",
+    github: { token: env.GITHUB_TOKEN, repo: env.GITHUB_REPO, branch: env.GITHUB_BRANCH },
+  };
 
   const raw = ctx.cookies.get(SESSION_COOKIE)?.value;
   if (raw) {

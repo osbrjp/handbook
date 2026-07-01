@@ -98,9 +98,15 @@ export function searchRows(
   const rank = (r: PageRow) => (r.title.toLowerCase().includes(ql) ? 0 : 1);
   return rows
     .filter(
-      (r) => canRead(r, v) && (r.title.toLowerCase().includes(ql) || r.body.toLowerCase().includes(ql)),
+      (r) =>
+        canRead(r, v) && (r.title.toLowerCase().includes(ql) || r.body.toLowerCase().includes(ql)),
     )
     .sort((a, b) => rank(a) - rank(b) || a.sort - b.sort)
     .slice(0, limit)
-    .map((r) => ({ slug: r.slug, title: r.title, section: r.section, snippet: makeSnippet(r.body, q) }));
+    .map((r) => ({
+      slug: r.slug,
+      title: r.title,
+      section: r.section,
+      snippet: makeSnippet(r.body, q),
+    }));
 }

@@ -4,7 +4,7 @@ import EditorForm from "../../components/EditorForm.astro";
 import { requireEditor } from "../../lib/auth/requireEditor";
 import { issueCsrf } from "../../lib/csrf";
 import { listGroups } from "../../lib/db/groups";
-import { listAllPages } from "../../lib/db/pages";
+import { listAllPages } from "../../lib/content/pages";
 
 const denied = requireEditor(Astro.locals);
 if (denied) return denied;
@@ -14,7 +14,7 @@ Astro.response.headers.set("Vary", "Cookie");
 
 const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
 const groups = await listGroups(Astro.locals.db);
-const sections = [...new Set((await listAllPages(Astro.locals.db)).map((p) => p.section))];
+const sections = [...new Set((await listAllPages()).map((p) => p.section))];
 ---
 
 <Base title="Create page" visitor={Astro.locals.visitor}>

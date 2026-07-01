@@ -1,8 +1,10 @@
 import type { APIRoute } from "astro";
 import { requireEditor } from "../../lib/auth/requireEditor";
 import { checkCsrf } from "../../lib/csrf";
-import { upsertPage, setPageGroups, type Visibility } from "../../lib/db/pages";
+import { getEditablePageBySlug, type Visibility } from "../../lib/content/pages";
 import { listGroups } from "../../lib/db/groups";
+import { getContentStore, type PageFile } from "../../lib/content/store";
+import { isSafeSlug } from "../../lib/content/serialize";
 
 const VISIBILITIES = new Set(["public", "internal", "restricted"]);
 const STATUSES = new Set(["draft", "published"]);
@@ -21,66 +23,73 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   const f = await request.formData();
   if (!checkCsrf(cookies, f.get("csrf"))) return new Response("Bad CSRF token", { status: 403 });
 
-  const idRaw = f.get("id");
-  const id = idRaw ? Number(idRaw) : undefined;
+  const origSlug = String(f.get("orig_slug") ?? "").trim(); // empty on create
   const title = String(f.get("title") ?? "").trim();
-  // Accept anything: slugify the entry, falling back to the title if blank.
   const slug = slugify(String(f.get("slug") ?? "") || title);
   const section = String(f.get("section") ?? "").trim();
   const nav_label = String(f.get("nav_label") ?? "").trim() || title;
   const visibility = String(f.get("visibility") ?? "internal") as Visibility;
-  const status = String(f.get("status") ?? "draft");
+  const status = String(f.get("status") ?? "draft") as "draft" | "published";
   const body = String(f.get("body") ?? "");
   const sort = Number(f.get("sort") ?? 0) || 0;
 
   if (!title) return bad("Title is required");
-  if (!slug) return bad("Enter a title or a slug");
+  if (!slug) return bad("Enter a title or a page URL");
+  if (!isSafeSlug(slug)) return bad("Invalid page URL (lowercase letters, numbers and hyphens only)");
   if (!section) return bad("Section is required");
   if (!VISIBILITIES.has(visibility)) return bad("Invalid visibility");
   if (!STATUSES.has(status)) return bad("Invalid status");
   if (body.length > 256 * 1024) return bad("Body too large (max 256KB)");
 
-  const clash = await locals.db
-    .prepare("SELECT id FROM pages WHERE slug=? AND id != ?")
-    .bind(slug, id ?? -1)
-    .first();
-  if (clash) return bad("That slug is already in use");
+  // Slug clash: a DIFFERENT page already occupies this slug/filename.
+  const existing = await getEditablePageBySlug(slug);
+  if (existing && slug !== origSlug) return bad("That page URL is already in use");
 
-  let newId: number;
-  try {
-    newId = await upsertPage(
-      locals.db,
-      {
-        slug,
-        title,
-        section,
-        nav_label,
-        sort,
-        visibility,
-        status: status as "draft" | "published",
-        body,
-      },
-      locals.visitor?.email ?? "unknown",
-      id,
-    );
-  } catch {
-    // UNIQUE(slug) race after the pre-check — return the clean 400, not a 500.
-    return bad("That slug is already in use");
-  }
-
-  // Group grants apply only to restricted pages; otherwise clear them. Unknown
-  // group keys are dropped (fail toward LESS access).
-  let groupKeys: string[] = [];
+  // Group grants apply only to restricted pages; validate keys against the D1
+  // group definitions (identity stays in D1). Unknown keys are dropped.
+  let groups: string[] = [];
   if (visibility === "restricted") {
     const known = new Set((await listGroups(locals.db)).map((g) => g.key));
-    groupKeys = f
+    groups = f
       .getAll("groups")
       .map(String)
       .filter((k) => known.has(k));
   }
-  await setPageGroups(locals.db, newId, groupKeys);
 
-  // Carry the outcome so the edit page can show a confirmation banner.
+  const editorEmail = locals.visitor?.email ?? "unknown";
+  const file: PageFile = {
+    slug,
+    frontmatter: {
+      title,
+      section,
+      nav_label,
+      sort,
+      visibility,
+      groups,
+      status,
+      updated_by: editorEmail,
+      updated_at: new Date().toISOString(),
+    },
+    body,
+  };
+
+  const message = `${status === "published" ? "Publish" : "Save"} "${title}" (${slug})`;
+  try {
+    const store = await getContentStore(locals.contentStore);
+    if (origSlug && origSlug !== slug) {
+      await store.rename(origSlug, file, { editorEmail, message });
+    } else {
+      await store.write(file, { editorEmail, message });
+    }
+  } catch {
+    // In-browser editing is deferred: the workerd runtime can't write files, and
+    // the GitHub-commit driver isn't wired yet. Edit the markdown in the repo.
+    return new Response(
+      "In-browser editing isn't enabled yet. To change content, edit the page's markdown file in the repository and commit it. The published site is git-backed.",
+      { status: 501 },
+    );
+  }
+
   // Redirect by slug (the edit route keys on slug); slug may have just changed.
   return redirect(`/edit-pages/edit/${slug}?saved=${status}`, 303);
 };

@@ -1,12 +1,6 @@
 import { type CollectionEntry, getCollection, getEntry } from "astro:content";
 import type { Visitor } from "../auth/visitor";
-import {
-  canRead,
-  type PageRow,
-  searchRows,
-  type SearchHit,
-  type SidebarRow,
-} from "./acl";
+import { canRead, type PageRow, searchRows, type SearchHit, type SidebarRow } from "./acl";
 
 // Astro-bound content reads. All content comes from the `pages` collection
 // (git-backed markdown, bundled at build); the ACL lives in ./acl.ts and is
@@ -33,7 +27,9 @@ export async function getPageBySlug(slug: string, v: Visitor | null): Promise<Pa
 export async function getNavPages(v: Visitor | null): Promise<PageRow[]> {
   const rows = await allRows();
   const visible =
-    v?.role === "editor" ? rows.filter((r) => r.status === "published") : rows.filter((r) => canRead(r, v));
+    v?.role === "editor"
+      ? rows.filter((r) => r.status === "published")
+      : rows.filter((r) => canRead(r, v));
   return visible.sort((a, b) => a.sort - b.sort);
 }
 
@@ -68,7 +64,11 @@ export async function getEditablePageBySlug(slug: string): Promise<PageRow | nul
 }
 
 /** Full-handbook search, permission-filtered via the shared ACL. */
-export async function searchPages(query: string, v: Visitor | null, limit = 20): Promise<SearchHit[]> {
+export async function searchPages(
+  query: string,
+  v: Visitor | null,
+  limit = 20,
+): Promise<SearchHit[]> {
   return searchRows(await allRows(), query, v, limit);
 }
 
