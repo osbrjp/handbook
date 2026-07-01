@@ -2,8 +2,8 @@
 /// <reference types="@cloudflare/workers-types" />
 
 // `cloudflare:workers` exports `env: Cloudflare.Env` — augment that namespace.
-// Bindings/secrets are available in `astro dev` (local Miniflare from
-// wrangler.toml + .dev.vars) and in production.
+// Only secrets/vars (no bindings/datastore): available in `astro dev` from
+// .dev.vars + wrangler.toml [vars], and in production as Worker secrets.
 declare namespace Cloudflare {
   interface Env {
     COOKIE_ENCRYPTION_KEY: string;

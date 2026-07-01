@@ -2,11 +2,11 @@
 // CI guardrail against cross-request identity bleed (the #1 risk on Workers,
 // where module scope persists across requests).
 //
-//   Rule 1: the `cloudflare:workers` `env` (bindings + secrets) may be imported
-//           ONLY in middleware + the auth routes. Everything else must use the
-//           per-request `Astro.locals.db` / `Astro.locals.visitor`.
-//   Rule 2: no MODULE-SCOPE capture of a binding (e.g. `const db = env.DB` at
-//           top level) — bindings must be read per request, never cached.
+//   Rule 1: the `cloudflare:workers` `env` (secrets/vars) may be imported ONLY
+//           in middleware + the auth routes. Everything else must use the
+//           per-request `Astro.locals.visitor` / `Astro.locals.contentStore`.
+//   Rule 2: no MODULE-SCOPE capture of env (e.g. `const key = env.FOO` at top
+//           level) — env must be read per request, never cached.
 //
 // Run: node scripts/guard-no-module-client.mjs   (pnpm guard)
 
@@ -44,7 +44,7 @@ for (const file of await walk(srcDir)) {
   const text = await readFile(file, "utf8");
   if (text.includes(CF_IMPORT) && !ENV_IMPORT_ALLOWED.has(rel)) {
     violations.push(
-      `${rel}: imports cloudflare:workers env — use Astro.locals.db / locals.visitor instead`,
+      `${rel}: imports cloudflare:workers env — use Astro.locals.visitor / locals.contentStore instead`,
     );
   }
   if (MODULE_CAPTURE.test(text)) {
