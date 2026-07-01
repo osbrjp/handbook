@@ -3,6 +3,7 @@ import { env } from "cloudflare:workers";
 import { fetchUpstreamAuthToken, fetchGoogleUserinfo } from "../../../lib/auth/oauth";
 import { getOrigin, safeReturnUrl } from "../../../lib/auth/origin";
 import { isAllowed } from "../../../lib/auth/accessList";
+import { lookupUser } from "../../../lib/auth/directory";
 import { encryptSession } from "../../../lib/auth/session";
 import {
   SESSION_COOKIE,
@@ -47,16 +48,12 @@ export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
   if (!info?.email || info.verified_email !== true) return fail("userinfo_failed");
   const email = info.email.toLowerCase();
 
-  // 5. Allow-list AND a row in `users` (data-driven; fail closed). New staff are
-  //    provisioned by an editor / Google-Group sync (pre-prod), not auto-created.
+  // 5. Allow-list AND a directory entry (git config; fail closed). New staff are
+  //    provisioned by editing the directory / Google-Group sync (pre-prod).
   if (!isAllowed(email)) return fail("access_denied");
-  const user = await env.DB.prepare("SELECT email FROM users WHERE email=?").bind(email).first();
-  if (!user) return fail("access_denied");
+  if (!lookupUser(email)) return fail("access_denied");
 
-  // 6. Record login + 7. mint session (identity only).
-  await env.DB.prepare("UPDATE users SET last_login=datetime('now'), name=? WHERE email=?")
-    .bind(info.name ?? null, email)
-    .run();
+  // 6. Mint session (identity only; no datastore to record a login into).
   const cookie = await encryptSession(
     { email, exp: Date.now() + 7 * 86_400_000 },
     env.COOKIE_ENCRYPTION_KEY,

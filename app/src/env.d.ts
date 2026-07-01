@@ -6,7 +6,6 @@
 // wrangler.toml + .dev.vars) and in production.
 declare namespace Cloudflare {
   interface Env {
-    DB: D1Database;
     COOKIE_ENCRYPTION_KEY: string;
     DEV_LOGIN?: string;
     OAUTH_ORIGIN?: string;
@@ -24,7 +23,6 @@ declare namespace Cloudflare {
 
 declare namespace App {
   interface Locals {
-    db: D1Database;
     visitor: import("./lib/auth/visitor").Visitor | null;
     contentStore: import("./lib/content/store").ContentStoreConfig;
   }

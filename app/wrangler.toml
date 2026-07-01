@@ -2,13 +2,8 @@ name = "osbr-handbook"
 compatibility_date = "2026-06-01"
 compatibility_flags = ["nodejs_compat"]
 
-# D1 binding. For LOCAL dev (--local / platformProxy) the database_id is a
-# placeholder; replace with the real id from `wrangler d1 create handbook`
-# before any remote deploy.
-[[d1_databases]]
-binding = "DB"
-database_name = "handbook"
-database_id = "00000000-0000-0000-0000-000000000000"
+# No datastore: content is git-backed markdown and identity is a git-committed
+# config (src/lib/auth/directory.ts). The Worker is stateless.
 
 # Non-secret vars. DEV_LOGIN is "0" here (prod-safe default); .dev.vars sets it
 # to "1" for local dev only. Secrets (COOKIE_ENCRYPTION_KEY, GOOGLE_*) live in

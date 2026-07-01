@@ -3,7 +3,7 @@ import Base from "../../../layouts/Base.astro";
 import EditorForm from "../../../components/EditorForm.astro";
 import { requireEditor } from "../../../lib/auth/requireEditor";
 import { issueCsrf } from "../../../lib/csrf";
-import { listGroups } from "../../../lib/db/groups";
+import { listGroups } from "../../../lib/auth/directory";
 import { getEditablePageBySlug, listAllPages } from "../../../lib/content/pages";
 
 const denied = requireEditor(Astro.locals);
@@ -19,7 +19,7 @@ if (!page) return new Response(null, { status: 404 });
 // Group grants now live in the page's frontmatter.
 const pageGroupKeys = page.groups;
 const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
-const groups = await listGroups(Astro.locals.db);
+const groups = listGroups();
 const sections = [...new Set((await listAllPages()).map((p) => p.section))];
 
 // Confirmation after a save (set by /edit-pages/save).

@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { requireEditor } from "../../lib/auth/requireEditor";
 import { checkCsrf } from "../../lib/csrf";
 import { getEditablePageBySlug, type Visibility } from "../../lib/content/pages";
-import { listGroups } from "../../lib/db/groups";
+import { listGroups } from "../../lib/auth/directory";
 import { getContentStore, type PageFile } from "../../lib/content/store";
 import { isSafeSlug } from "../../lib/content/serialize";
 
@@ -49,7 +49,7 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   // group definitions (identity stays in D1). Unknown keys are dropped.
   let groups: string[] = [];
   if (visibility === "restricted") {
-    const known = new Set((await listGroups(locals.db)).map((g) => g.key));
+    const known = new Set(listGroups().map((g) => g.key));
     groups = f
       .getAll("groups")
       .map(String)
