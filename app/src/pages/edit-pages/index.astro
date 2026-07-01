@@ -84,6 +84,8 @@ const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
 </Base>
 
 <script>
+  import { wireBackLink } from "../../lib/ui/backLink";
+
   const dialog = document.getElementById("del-dialog") as HTMLDialogElement | null;
   const idInput = document.getElementById("del-id") as HTMLInputElement | null;
   const titleEl = document.getElementById("del-title");
@@ -96,19 +98,6 @@ const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
   }
   document.getElementById("del-cancel")?.addEventListener("click", () => dialog?.close());
 
-  // Back returns to the previous page (last state), falling back to the
-  // handbook home (href="/") for direct loads / off-site referrers.
-  const backLink = document.getElementById("admin-back");
-  backLink?.addEventListener("click", (e) => {
-    let sameOrigin = false;
-    try {
-      sameOrigin = !!document.referrer && new URL(document.referrer).origin === location.origin;
-    } catch {
-      sameOrigin = false;
-    }
-    if (window.history.length > 1 && sameOrigin) {
-      e.preventDefault();
-      history.back();
-    }
-  });
+  // Back to the previous page (falls back to the handbook home href).
+  wireBackLink("admin-back");
 </script>

@@ -120,6 +120,8 @@ const visibility = page?.visibility ?? "internal";
 </form>
 
 <script>
+  import { wireBackLink } from "../lib/ui/backLink";
+
   const body = document.getElementById("body") as HTMLTextAreaElement | null;
   const preview = document.getElementById("preview");
   let timer: ReturnType<typeof setTimeout>;
@@ -163,21 +165,8 @@ const visibility = page?.visibility ?? "internal";
 
   render();
 
-  // Back returns to wherever the editor was opened from (the page or the list),
-  // falling back to the href (/edit-pages) for direct loads / off-site referrers.
-  const backLink = document.getElementById("back-link");
-  backLink?.addEventListener("click", (e) => {
-    let sameOrigin = false;
-    try {
-      sameOrigin = !!document.referrer && new URL(document.referrer).origin === location.origin;
-    } catch {
-      sameOrigin = false;
-    }
-    if (window.history.length > 1 && sameOrigin) {
-      e.preventDefault();
-      history.back();
-    }
-  });
+  // Back returns to wherever the editor was opened from (page or list).
+  wireBackLink("back-link");
 
   // Section combobox: themed dropdown of existing sections; clicking one fills
   // the input, but typing a brand-new section name is still allowed (free text).
