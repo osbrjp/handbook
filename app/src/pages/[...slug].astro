@@ -30,8 +30,15 @@ try {
 if (!page) return new Response(null, { status: 404 });
 
 setReaderCacheHeaders(Astro.response.headers, page.visibility, visitor);
-const html = renderMarkdown(page.body);
-const headings = extractHeadings(page.body);
+let html: string;
+let headings: ReturnType<typeof extractHeadings>;
+try {
+  html = renderMarkdown(page.body);
+  headings = extractHeadings(page.body);
+} catch {
+  // FAIL CLOSED: a render-pipeline throw must not leak an unhandled 500.
+  return new Response("Service unavailable", { status: 503 });
+}
 ---
 
 <Base title={page.title} visitor={visitor}>

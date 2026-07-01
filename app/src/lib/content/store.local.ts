@@ -25,6 +25,7 @@ export function createLocalStore(baseUrl: string, token: string): ContentStore {
         title: file.frontmatter.title,
         text: serializePageFile(file.frontmatter, file.body),
         editorEmail: opts.editorEmail,
+        message: opts.message,
       });
     },
     async rename(oldSlug: string, file: PageFile, opts: WriteOpts) {
@@ -34,10 +35,11 @@ export function createLocalStore(baseUrl: string, token: string): ContentStore {
         title: file.frontmatter.title,
         text: serializePageFile(file.frontmatter, file.body),
         editorEmail: opts.editorEmail,
+        message: opts.message,
       });
     },
     async remove(slug: string, opts: WriteOpts) {
-      await call("remove", { slug, editorEmail: opts.editorEmail });
+      await call("remove", { slug, editorEmail: opts.editorEmail, message: opts.message });
     },
   };
 }

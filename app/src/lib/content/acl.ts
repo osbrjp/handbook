@@ -74,7 +74,9 @@ export function makeSnippet(body: string, q: string, maxLen = 160): string {
   if (idx < 0) {
     return text.length <= maxLen ? text : `${text.slice(0, maxLen).trimEnd()}…`;
   }
-  const start = Math.max(0, idx - Math.floor((maxLen - q.length) / 2));
+  // Centre the window on the match, but never start AFTER it (a query longer
+  // than maxLen would otherwise push `start` past `idx` and drop the match).
+  const start = Math.max(0, Math.min(idx, idx - Math.floor((maxLen - q.length) / 2)));
   let snip = text.slice(start, start + maxLen).trim();
   if (start > 0) snip = `…${snip}`;
   if (start + maxLen < text.length) snip = `${snip}…`;

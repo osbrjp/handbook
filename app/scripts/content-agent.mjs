@@ -30,13 +30,29 @@ const isSafeSlug = (s) => typeof s === "string" && /^[a-z0-9][a-z0-9-]*$/.test(s
 async function git(args) {
   await exec("git", args, { cwd: repoRoot });
 }
-async function commit(message, editorEmail) {
+async function stagedHasChanges(paths) {
+  // `git diff --cached --quiet -- <paths>` exits 0 when nothing is staged for
+  // those paths, non-zero when there are staged changes (execFile throws then).
+  try {
+    await git(["diff", "--cached", "--quiet", "--", ...paths]);
+    return false;
+  } catch {
+    return true;
+  }
+}
+async function commit(paths, message, editorEmail) {
+  // No-op (e.g. deleting an already-absent file, or a save with no change): skip
+  // so we don't fail with "nothing to commit". Scope the commit to `paths` so a
+  // concurrent unrelated staged change can't be swept into this commit.
+  if (!(await stagedHasChanges(paths))) return;
   await git([
     "commit",
     "-m",
     `${message}\n\nEdited-by: ${editorEmail || "unknown"}`,
     "--author",
     "OSBR Handbook <handbook@osbrjp.com>",
+    "--",
+    ...paths,
   ]);
 }
 function readBody(req) {
@@ -62,7 +78,7 @@ const server = http.createServer(async (req, res) => {
 
     const op = new URL(req.url, "http://localhost").pathname.replace(/^\//, "");
     const p = JSON.parse((await readBody(req)) || "{}");
-    const { slug, oldSlug, text, title, editorEmail } = p;
+    const { slug, oldSlug, text, title, editorEmail, message } = p;
     if (!isSafeSlug(slug)) return send(400, { error: "invalid slug" });
 
     const rel = `${CONTENT_REL}/${slug}.md`;
@@ -75,18 +91,18 @@ const server = http.createServer(async (req, res) => {
       if (doRename && !isSafeSlug(oldSlug)) return send(400, { error: "invalid oldSlug" });
       await mkdir(path.dirname(abs), { recursive: true });
       await writeFile(abs, text);
+      const paths = [rel];
       if (doRename) {
         const oldRel = `${CONTENT_REL}/${oldSlug}.md`;
         await rm(path.join(repoRoot, oldRel), { force: true });
-        await git(["add", "--", oldRel, rel]); // staging a removed path records the delete
-      } else {
-        await git(["add", "--", rel]);
+        paths.unshift(oldRel); // staging the removed path records the delete
       }
-      await commit(`Save "${title || slug}" (${slug})`, editorEmail);
+      await git(["add", "--", ...paths]);
+      await commit(paths, message || `Save "${title || slug}" (${slug})`, editorEmail);
     } else if (op === "remove") {
       await rm(abs, { force: true });
       await git(["add", "--", rel]);
-      await commit(`Delete "${title || slug}" (${slug})`, editorEmail);
+      await commit([rel], message || `Delete "${title || slug}" (${slug})`, editorEmail);
     } else {
       return send(404, { error: "unknown op" });
     }
