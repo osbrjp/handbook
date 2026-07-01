@@ -128,3 +128,38 @@ app/
   scripts/guard-no-module-client.mjs  CI guard vs identity bleed
   wrangler.toml      vars (no bindings — stateless)
 ```
+
+## Migration & production cutover
+
+**Where the OLD handbook lives today:** static **VitePress on GitHub Pages**.
+`.github/workflows/release.yml` builds VitePress and publishes to Pages on merge
+to the `release` branch; `handbook.osbrjp.com` is a CNAME to `osbrjp.github.io`
+(GitHub Pages anycast IPs `185.199.108–111.153`). Everything is public — Pages
+serves static files and can't gate per user.
+
+**Why the host must change:** this app is Astro **SSR on Cloudflare Workers** —
+it checks Google identity and per-page access on every request, which a static
+host (GitHub Pages) fundamentally can't do. So the cutover is a host swap, not a
+redeploy of the same thing.
+
+**Cutover steps (when ready to go live):**
+1. **Deploy the Worker.** `wrangler deploy` (or a CI job) publishes the Astro
+   build. Verify on the `*.workers.dev` URL first.
+2. **Real Google OAuth.** Create the Internal Workspace OAuth client; set
+   `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` + `COOKIE_ENCRYPTION_KEY` as
+   **Worker secrets** (`wrangler secret put …`), `DEV_LOGIN=0`, and add the prod
+   redirect URI `https://handbook.osbrjp.com/api/auth/callback`.
+3. **Enable editor writes in prod (deferred piece).** Provision a **GitHub App**
+   (repo-scoped, `contents:write`), store its key as a Worker secret, finish
+   `src/lib/content/store.github.ts`, and add a **deploy-on-push** action so a
+   content commit rebuilds + redeploys the Worker.
+4. **DNS cutover.** Point `handbook.osbrjp.com` at the Cloudflare Worker (add it
+   as a custom domain / route on the Worker) instead of `osbrjp.github.io`.
+5. **Retire GitHub Pages.** Remove the Pages custom domain (frees the CNAME) and
+   disable/delete `.github/workflows/release.yml` so it stops publishing to Pages.
+6. **Privacy (if internal content must be private).** The content repo is public,
+   so `internal`/`restricted` markdown is readable in git even though the site
+   gates the rendered page. Make the content repo **private** (no code change) —
+   or split gated content into a private repo — before relying on those tiers.
+7. **Verify** the reader ACL matrix + editor flow on the live domain, then
+   decommission the old VitePress site.
