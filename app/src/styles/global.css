@@ -769,6 +769,17 @@ a:hover {
   margin: 0 0 1rem;
   font-weight: 600;
 }
+/* Required-field marker */
+.editor .req {
+  color: #d9534f;
+  font-weight: 700;
+}
+.editor .req-note {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--muted);
+}
 .editor label small {
   display: block;
   font-weight: 400;

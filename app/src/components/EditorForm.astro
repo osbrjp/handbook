@@ -75,13 +75,14 @@ const visibility = page?.visibility ?? "internal";
   <details class="meta-details" data-section="settings">
   <summary class="meta-summary">Page settings</summary>
   <div class="editor-meta">
-  <label>Title<input name="title" id="title" value={page?.title ?? ""} required /></label>
+  <p class="req-note"><span class="req">*</span> required</p>
+  <label>Title <span class="req" title="required">*</span><input name="title" id="title" value={page?.title ?? ""} required /></label>
   <label>Page URL
     <input name="slug" id="slug" value={page?.slug ?? ""} placeholder="auto-generated from title" />
     <small>The web address for this page (lowercase, hyphens) — e.g. <code>on-boarding</code> becomes <code>/on-boarding</code>. Filled in from the title automatically; change it only if you want a custom address.</small>
   </label>
   <label>Nav label<input name="nav_label" value={page?.nav_label ?? ""} /></label>
-  <label>Section
+  <label>Section <span class="req" title="required">*</span>
     <div class="combo" id="section-combo">
       <input
         name="section"
