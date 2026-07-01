@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { searchPages } from "../../lib/db/pages";
+import { searchPages } from "../../lib/content/pages";
 
 // Visitor-scoped handbook search. Results are filtered by the SAME readableWhere
 // ACL as page reads (anon → public only; reader → +internal +groups; editor →
@@ -19,7 +19,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
 
   const q = url.searchParams.get("q") ?? "";
   try {
-    const results = await searchPages(locals.db, q, locals.visitor ?? null);
+    const results = await searchPages(q, locals.visitor ?? null);
     return new Response(JSON.stringify({ results }), { headers });
   } catch {
     // Don't echo the error (could carry content); just fail closed.

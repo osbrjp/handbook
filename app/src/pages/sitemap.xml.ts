@@ -1,12 +1,12 @@
 import type { APIRoute } from "astro";
-import { getNavPages, type PageRow } from "../lib/db/pages";
+import { getNavPages, type PageRow } from "../lib/content/pages";
 
 // Anonymous (null visitor) => public pages only by construction (red-team R2).
-export const GET: APIRoute = async ({ locals, site, url }) => {
+export const GET: APIRoute = async ({ site, url }) => {
   const base = site?.toString().replace(/\/$/, "") || url.origin;
   let pages: PageRow[] = [];
   try {
-    pages = await getNavPages(locals.db, null);
+    pages = await getNavPages(null);
   } catch {
     pages = [];
   }

@@ -1,4 +1,4 @@
-import type { Visibility } from "./db/pages";
+import type { Visibility } from "./content/pages";
 import type { Visitor } from "./auth/visitor";
 
 // Cache headers for reader responses. Non-public content must never be shared-

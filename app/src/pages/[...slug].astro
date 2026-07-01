@@ -2,20 +2,20 @@
 import Base from "../layouts/Base.astro";
 import Sidebar from "../components/Sidebar.astro";
 import Toc from "../components/Toc.astro";
-import { getPageBySlug, getSidebarPages, type PageRow, type SidebarRow } from "../lib/db/pages";
+import { getPageBySlug, getSidebarPages, type PageRow, type SidebarRow } from "../lib/content/pages";
 import { renderMarkdown, extractHeadings } from "../lib/markdown";
 import { setReaderCacheHeaders } from "../lib/access";
 
 const slug = Astro.params.slug;
 if (!slug) return new Response(null, { status: 404 });
 
-const { db, visitor } = Astro.locals;
+const { visitor } = Astro.locals;
 
 let page: PageRow | null;
 let navPages: SidebarRow[] = [];
 try {
-  page = await getPageBySlug(db, slug, visitor);
-  navPages = await getSidebarPages(db, visitor);
+  page = await getPageBySlug(slug, visitor);
+  navPages = await getSidebarPages(visitor);
 } catch {
   // FAIL CLOSED: never render content on a backend error.
   return new Response("Service unavailable", { status: 503 });
