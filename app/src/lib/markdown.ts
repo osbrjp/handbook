@@ -1,18 +1,18 @@
-// Markdown -> HTML render pipeline for page bodies stored as markdown in D1.
+// Markdown -> HTML render pipeline for page bodies (git-backed markdown).
 // Handles the VitePress-isms the handbook uses:
 //   - ::: admonitions  -> callout components (remark-directive)
 //   - [[TOC]]          -> a table of contents built from headings
 //   - ```mermaid```    -> <div class="mermaid"> for client-side rendering
 //
-// Body is stored as markdown VERBATIM in D1; all of this happens at render time
-// so the source of truth stays plain markdown (red-team R6).
+// Raw HTML is NOT enabled (no rehype-raw / allowDangerousHtml): callouts, TOC and
+// mermaid are produced at the AST level, so a page body can never inject arbitrary
+// HTML. rehype-sanitize stays as defense-in-depth over our own generated output.
 
 import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
 import remarkDirective from "remark-directive";
 import remarkRehype from "remark-rehype";
-import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import rehypeStringify from "rehype-stringify";
@@ -78,7 +78,9 @@ function remarkToc() {
       children: [
         {
           type: "paragraph",
-          children: [{ type: "link", url: `#${h.id}`, children: [{ type: "text", value: h.text }] }],
+          children: [
+            { type: "link", url: `#${h.id}`, children: [{ type: "text", value: h.text }] },
+          ],
         },
       ],
     });
@@ -151,18 +153,16 @@ function normalizeVitepressAdmonitions(md: string): string {
 // (GitHub-safe) schema to permit the structural classes/ids our own transforms
 // add — callouts, the TOC <nav>, mermaid <div>, and heading anchors — while the
 // default still strips <script>, event handlers, and javascript: URLs.
-// clobberPrefix:"" keeps heading ids intact so [[TOC]] anchors still match.
+// clobberPrefix:"" keeps heading ids intact so [[TOC]] anchors still match. This
+// is safe because raw HTML is disabled (above) — the only ids/classes present are
+// the controlled ones our own transforms + rehype-slug emit, never author input.
 const sanitizeSchema = {
   ...defaultSchema,
   clobberPrefix: "",
   tagNames: [...(defaultSchema.tagNames || []), "nav"],
   attributes: {
     ...defaultSchema.attributes,
-    "*": [
-      ...((defaultSchema.attributes && defaultSchema.attributes["*"]) || []),
-      "className",
-      "id",
-    ],
+    "*": [...(defaultSchema.attributes?.["*"] || []), "className", "id"],
     // GitHub's default schema restricts class on lists to task-list values;
     // allow our own classes (e.g. the TOC) through.
     ul: ["className"],
@@ -177,8 +177,7 @@ const processor = unified()
   .use(remarkDirective)
   .use(remarkCallouts)
   .use(remarkToc)
-  .use(remarkRehype, { allowDangerousHtml: true })
-  .use(rehypeRaw)
+  .use(remarkRehype) // no allowDangerousHtml — raw HTML in bodies is dropped, not parsed
   .use(rehypeSlug)
   .use(rehypeMermaid)
   .use(rehypeSanitize, sanitizeSchema)
