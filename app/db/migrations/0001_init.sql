@@ -1,23 +1,8 @@
 PRAGMA foreign_keys = ON;
 
--- ---------- content ----------
-CREATE TABLE pages (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  slug        TEXT NOT NULL UNIQUE,
-  title       TEXT NOT NULL,
-  section     TEXT NOT NULL,
-  nav_label   TEXT NOT NULL DEFAULT '',
-  sort        INTEGER NOT NULL DEFAULT 0,
-  visibility  TEXT NOT NULL DEFAULT 'internal'
-                CHECK (visibility IN ('public','internal','restricted')),
-  status      TEXT NOT NULL DEFAULT 'draft'
-                CHECK (status IN ('draft','published')),
-  body        TEXT NOT NULL DEFAULT '',          -- markdown VERBATIM (source of truth)
-  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_by  TEXT                                -- email of last editor (audit)
-);
-CREATE INDEX idx_pages_status_section_sort ON pages(status, section, sort);
+-- Content lives in git (src/content/pages/*.md), NOT in D1. D1 holds only
+-- IDENTITY: who may sign in (users), what groups exist (groups), and who is in
+-- them (user_groups). A page's allowed groups live in its markdown frontmatter.
 
 -- ---------- identity ----------
 CREATE TABLE users (
@@ -33,13 +18,6 @@ CREATE TABLE groups (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   key         TEXT NOT NULL UNIQUE,               -- e.g. 'leadership'
   label       TEXT NOT NULL
-);
-
--- which groups grant read on a restricted page (zero rows => unreachable => fail closed)
-CREATE TABLE page_groups (
-  page_id     INTEGER NOT NULL REFERENCES pages(id)  ON DELETE CASCADE,
-  group_id    INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
-  PRIMARY KEY (page_id, group_id)
 );
 
 -- manual membership for POC (pre-prod: synced from Google Groups)

@@ -1,30 +1,41 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-const { readableWhere } = await import("../src/lib/db/pages.ts");
+// The content ACL is now a pure boolean predicate (canRead), replacing the old
+// readableWhere SQL. Same truth table; assert on outcomes.
+const { canRead } = await import("../src/lib/content/acl.ts");
 
-test("anonymous: published public pages only", () => {
-  const w = readableWhere(null);
-  assert.match(w.sql, /status='published'/);
-  assert.match(w.sql, /visibility='public'/);
-  assert.doesNotMatch(w.sql, /internal/);
-  assert.equal(w.binds.length, 0);
+const pub = { status: "published", visibility: "public", groups: [] };
+const internal = { status: "published", visibility: "internal", groups: [] };
+const restricted = { status: "published", visibility: "restricted", groups: ["leadership"] };
+const draft = { status: "draft", visibility: "public", groups: [] };
+
+const editor = { email: "e@osbrjp.com", role: "editor", groupKeys: [] };
+const reader = (keys = []) => ({ email: "r@osbrjp.com", role: "reader", groupKeys: keys });
+
+test("anonymous: only published public pages", () => {
+  assert.equal(canRead(pub, null), true);
+  assert.equal(canRead(internal, null), false);
+  assert.equal(canRead(restricted, null), false);
+  assert.equal(canRead(draft, null), false);
 });
 
-test("editor: unrestricted (drafts too)", () => {
-  const w = readableWhere({ email: "e@osbrjp.com", role: "editor", groupIds: [] });
-  assert.equal(w.sql, "1=1");
+test("reader: public + internal; restricted only with a matching group; no drafts", () => {
+  assert.equal(canRead(pub, reader()), true);
+  assert.equal(canRead(internal, reader()), true);
+  assert.equal(canRead(restricted, reader()), false); // no groups
+  assert.equal(canRead(restricted, reader(["leadership"])), true);
+  assert.equal(canRead(restricted, reader(["other"])), false);
+  assert.equal(canRead(draft, reader()), false);
 });
 
-test("reader without groups: restricted can NEVER match", () => {
-  const w = readableWhere({ email: "r@osbrjp.com", role: "reader", groupIds: [] });
-  assert.match(w.sql, /visibility='internal'/);
-  assert.match(w.sql, /restricted' AND 0\)/);
-  assert.equal(w.binds.length, 0);
+test("editor: everything including drafts", () => {
+  assert.equal(canRead(draft, editor), true);
+  assert.equal(canRead(internal, editor), true);
+  assert.equal(canRead(restricted, editor), true);
 });
 
-test("reader with groups: EXISTS subquery + bound group ids", () => {
-  const w = readableWhere({ email: "r@osbrjp.com", role: "reader", groupIds: [3, 7] });
-  assert.match(w.sql, /EXISTS \(SELECT 1 FROM page_groups/);
-  assert.deepEqual(w.binds, [3, 7]);
+test("fails closed on missing/unknown visibility", () => {
+  assert.equal(canRead({ status: "published", visibility: undefined, groups: [] }, reader()), false);
+  assert.equal(canRead({ status: "published", visibility: "bogus", groups: [] }, reader()), false);
 });

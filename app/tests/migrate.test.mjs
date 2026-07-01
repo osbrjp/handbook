@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-const { extractTitle, stripLeadingH1, slugToTitle } = await import("../db/migrate-doc.mjs");
+const { extractTitle, stripLeadingH1, slugToTitle } = await import("../scripts/seed-content.mjs");
 
 test("extractTitle reads the first H1", () => {
   assert.equal(extractTitle("# Strategy Overview\n\nbody", "strategy"), "Strategy Overview");

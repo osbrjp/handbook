@@ -31,17 +31,15 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
         .bind(email)
         .first()) as { email: string; role: Role } | null;
       if (user) {
-        // Resolve both the numeric ids (legacy D1 content ACL) and the stable
-        // group KEYS (git-backed content ACL) in one query.
+        // Resolve the stable group KEYS the user belongs to (the content ACL
+        // compares frontmatter `groups` keys against these).
         const { results } = await env.DB.prepare(
-          "SELECT g.id AS group_id, g.key AS group_key FROM user_groups ug JOIN groups g ON g.id = ug.group_id WHERE ug.email=?",
+          "SELECT g.key AS group_key FROM user_groups ug JOIN groups g ON g.id = ug.group_id WHERE ug.email=?",
         )
           .bind(email)
           .all();
-        const rows = (results ?? []) as { group_id: number; group_key: string }[];
-        const groupIds = rows.map((r) => Number(r.group_id));
-        const groupKeys = rows.map((r) => String(r.group_key));
-        ctx.locals.visitor = { email: user.email, role: user.role, groupIds, groupKeys } satisfies Visitor;
+        const groupKeys = ((results ?? []) as { group_key: string }[]).map((r) => String(r.group_key));
+        ctx.locals.visitor = { email: user.email, role: user.role, groupKeys } satisfies Visitor;
       }
       // unknown user (not in allow-list table) => stays anonymous
     }

@@ -1,8 +1,8 @@
 import type { APIRoute } from "astro";
 import { searchPages } from "../../lib/content/pages";
 
-// Visitor-scoped handbook search. Results are filtered by the SAME readableWhere
-// ACL as page reads (anon → public only; reader → +internal +groups; editor →
+// Visitor-scoped handbook search. Results are filtered by the SAME canRead ACL
+// as page reads (anon → public only; reader → +internal +groups; editor →
 // everything), so this endpoint can never leak a page the caller can't read.
 //
 // Caching: results depend on the session cookie, so they MUST NOT be shared —
