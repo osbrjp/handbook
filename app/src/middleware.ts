@@ -1,5 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { env } from "cloudflare:workers";
+import { isAllowed } from "./lib/auth/accessList";
 import { SESSION_COOKIE } from "./lib/auth/cookies";
 import { lookupUser } from "./lib/auth/directory";
 import { decryptSession } from "./lib/auth/session";
@@ -28,8 +29,12 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   const raw = ctx.cookies.get(SESSION_COOKIE)?.value;
   if (raw) {
     const session = await decryptSession(raw, env.COOKIE_ENCRYPTION_KEY);
-    if (session?.email) {
-      const user = lookupUser(session.email);
+    // Enforce the domain allow-list here too (defense-in-depth with the sign-in
+    // gate). DEV_USERS is a LOCAL-DEV-ONLY override — honored only when
+    // DEV_LOGIN=1, so it can never widen access in production.
+    if (session?.email && isAllowed(session.email)) {
+      const devUsers = env.DEV_LOGIN === "1" ? env.DEV_USERS : undefined;
+      const user = lookupUser(session.email, devUsers);
       if (user) {
         ctx.locals.visitor = {
           email: user.email,

@@ -51,7 +51,9 @@ export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
   // 5. Allow-list AND a directory entry (git config; fail closed). New staff are
   //    provisioned by editing the directory / Google-Group sync (pre-prod).
   if (!isAllowed(email)) return fail("access_denied");
-  if (!lookupUser(email)) return fail("access_denied");
+  // DEV_USERS override honored only in local dev (DEV_LOGIN=1); inert in prod.
+  const devUsers = env.DEV_LOGIN === "1" ? env.DEV_USERS : undefined;
+  if (!lookupUser(email, devUsers)) return fail("access_denied");
 
   // 6. Mint session (identity only; no datastore to record a login into).
   const cookie = await encryptSession(

@@ -16,7 +16,7 @@ export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
   const email = (url.searchParams.get("email") ?? "editor@osbrjp.com").toLowerCase();
   if (!isAllowed(email)) return new Response(null, { status: 404 });
 
-  if (!lookupUser(email)) return new Response(null, { status: 404 });
+  if (!lookupUser(email, env.DEV_USERS)) return new Response(null, { status: 404 });
 
   const origin = getOrigin(request, env);
   const cookie = await encryptSession(

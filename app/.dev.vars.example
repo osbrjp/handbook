@@ -2,6 +2,11 @@
 COOKIE_ENCRYPTION_KEY=generate-with-openssl-rand-hex-32-min-32-chars
 DEV_LOGIN=1
 OAUTH_ORIGIN=http://localhost:4321
-# Google OAuth client (Internal Workspace app). Leave blank to use the dev-login shim.
+# Google OAuth client (Internal Workspace app). Fill both to test the real login;
+# leave blank to use the dev-login shim. Redirect URI must be OAUTH_ORIGIN + /api/auth/callback.
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
+# LOCAL-DEV-ONLY extra authorized users (kept out of the git directory). Lets you
+# sign in with your real Workspace email locally. Format: email:role,email:role
+# e.g. DEV_USERS=you@osbrjp.com:editor
+DEV_USERS=

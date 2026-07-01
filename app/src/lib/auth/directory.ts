@@ -30,9 +30,27 @@ export const USERS: DirectoryUser[] = [
 
 const BY_EMAIL = new Map(USERS.map((u) => [u.email.toLowerCase(), u]));
 
-/** Resolve a user by email, or null if not in the directory (fail closed). */
-export function lookupUser(email: string): DirectoryUser | null {
-  return BY_EMAIL.get(email.toLowerCase()) ?? null;
+/**
+ * Resolve a user by email, or null if not in the directory (fail closed).
+ *
+ * `extra` is an optional LOCAL-DEV-ONLY override, passed from `env.DEV_USERS`
+ * (which lives in the gitignored .dev.vars, NEVER committed) — so a real
+ * Workspace email can be authorized for local testing without putting it in
+ * this git-committed file. Format: `email:role,email:role` (role defaults reader).
+ */
+export function lookupUser(email: string, extra?: string): DirectoryUser | null {
+  const e = email.toLowerCase();
+  const found = BY_EMAIL.get(e);
+  if (found) return found;
+  if (extra) {
+    for (const part of extra.split(",")) {
+      const [em, role] = part.split(":").map((s) => s.trim().toLowerCase());
+      if (em && em === e) {
+        return { email: e, role: role === "editor" ? "editor" : "reader", groups: [] };
+      }
+    }
+  }
+  return null;
 }
 
 /** The group definitions (for the editor's "restricted to" checkboxes). */
