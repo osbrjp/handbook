@@ -31,6 +31,7 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  — NO DATABASE (statele
 - A published content change goes live after a **rebuild/redeploy** (content is
   bundled at build). Local dev picks up file edits via HMR.
 - Reader access is enforced **server-side**, fails **closed**, and forbidden == not-found (both 404 — no existence signal). A file with missing/invalid `visibility` defaults to the **tightest** tier (restricted) via the collection schema.
+- **Sidebar shows `restricted` pages a signed-in user can't read as "no access"** (title visible, body gated) — a deliberate transparency choice so staff know such content exists and can request it. **Content guideline:** because the title is disclosed to signed-in users, **keep `restricted` page titles non-sensitive** (e.g. "Leadership Resources", not "Acme Acquisition Terms") — put the sensitive detail in the body, which stays gated. A page whose very title must be secret does not belong in this system.
 - Page bodies are **markdown**, **sanitized at render** (`rehype-sanitize`), shared by the reader page and the editor preview.
 - Auth = **hand-written Google OAuth** ported from `osbrjp/coop-csnet-poc` (AES-GCM encrypted session cookie), hardened with a state-nonce CSRF check the original lacked.
 - **Editing:** for now, edit the markdown files under `src/content/pages/` and commit. The in-browser editor is **preview-only** (its write path — commit via the GitHub API + a build-on-commit pipeline — is scaffolded but deferred).
