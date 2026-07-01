@@ -35,7 +35,8 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
 
   if (!title) return bad("Title is required");
   if (!slug) return bad("Enter a title or a page URL");
-  if (!isSafeSlug(slug)) return bad("Invalid page URL (lowercase letters, numbers and hyphens only)");
+  if (!isSafeSlug(slug))
+    return bad("Invalid page URL (lowercase letters, numbers and hyphens only)");
   if (!section) return bad("Section is required");
   if (!VISIBILITIES.has(visibility)) return bad("Invalid visibility");
   if (!STATUSES.has(status)) return bad("Invalid status");
@@ -45,8 +46,8 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   const existing = await getEditablePageBySlug(slug);
   if (existing && slug !== origSlug) return bad("That page URL is already in use");
 
-  // Group grants apply only to restricted pages; validate keys against the D1
-  // group definitions (identity stays in D1). Unknown keys are dropped.
+  // Group grants apply only to restricted pages; validate keys against the
+  // directory's group definitions (git config). Unknown keys are dropped.
   let groups: string[] = [];
   if (visibility === "restricted") {
     const known = new Set(listGroups().map((g) => g.key));

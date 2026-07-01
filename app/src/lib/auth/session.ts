@@ -1,6 +1,7 @@
 // AES-GCM encrypted session cookie (Web Crypto — works on Workers and in Node).
 // Ported from OSBR coop-csnet-poc's encryption pattern. The cookie carries
-// IDENTITY ONLY ({email, exp}); role/groups are re-resolved from D1 per request.
+// IDENTITY ONLY ({email, exp}); role/groups are re-resolved from the git
+// directory (src/lib/auth/directory.ts) per request.
 //
 // decryptSession fails CLOSED: any tamper/parse error OR a past `exp` returns
 // null. AES-GCM's auth tag makes a tampered cookie fail decryption outright.

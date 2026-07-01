@@ -85,7 +85,7 @@ export function buildFrontmatter(fm) {
   lines.push(`sort: ${Number(fm.sort) || 0}`);
   lines.push(`visibility: ${fm.visibility}`);
   lines.push(`status: ${fm.status}`);
-  if (fm.groups && fm.groups.length) {
+  if (fm.groups?.length) {
     lines.push("groups:");
     for (const g of fm.groups) lines.push(`  - ${toYamlScalar(g)}`);
   } else {

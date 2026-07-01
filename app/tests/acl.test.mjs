@@ -36,6 +36,9 @@ test("editor: everything including drafts", () => {
 });
 
 test("fails closed on missing/unknown visibility", () => {
-  assert.equal(canRead({ status: "published", visibility: undefined, groups: [] }, reader()), false);
+  assert.equal(
+    canRead({ status: "published", visibility: undefined, groups: [] }, reader()),
+    false,
+  );
   assert.equal(canRead({ status: "published", visibility: "bogus", groups: [] }, reader()), false);
 });

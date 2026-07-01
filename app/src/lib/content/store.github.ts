@@ -23,7 +23,7 @@ export interface GithubConfig {
 
 function notConfigured(): never {
   throw new Error(
-    "GitHub content store is not configured (deferred). Set CONTENT_STORE=local for dev, " +
+    "GitHub content store is not configured (deferred). Use DEV_LOGIN=1 + the content agent for dev, " +
       "or provision GITHUB_TOKEN/GITHUB_REPO + a build-on-commit pipeline for production.",
   );
 }

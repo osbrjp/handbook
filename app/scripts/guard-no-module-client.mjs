@@ -56,7 +56,7 @@ for (const file of await walk(srcDir)) {
 
 if (violations.length) {
   console.error("guard-no-module-client FAILED:");
-  for (const v of violations) console.error("  - " + v);
+  for (const v of violations) console.error(`  - ${v}`);
   process.exit(1);
 }
 console.log("guard-no-module-client OK");

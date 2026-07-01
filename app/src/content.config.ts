@@ -4,7 +4,7 @@ import { z } from "astro/zod";
 
 // Git-backed content: one markdown file per page under src/content/pages.
 // The filename stem IS the slug (so a slug rename = a file rename). Metadata
-// that used to live in the D1 `pages` row now lives in frontmatter.
+// (title, section, sort, visibility, groups, status) lives in frontmatter.
 //
 // FAIL CLOSED: a file with a missing/typo'd `visibility` defaults to the
 // TIGHTEST tier (restricted), and missing `status` defaults to `draft`, so a
