@@ -38,12 +38,18 @@ export function getGithubAuthorizeUrl(o: {
   return u.toString();
 }
 
-export async function fetchGithubAuthToken(o: {
-  clientId: string;
-  clientSecret: string;
-  code: string;
-  redirectUri: string;
-}): Promise<{ accessToken: string } | { error: string }> {
+// Token set from GitHub. A GitHub App issues EXPIRING user tokens (~8h) with a
+// refresh token; a classic OAuth App issues a non-expiring token (refresh/expiry
+// absent). Both shapes flow through the same session plumbing.
+export interface GithubTokenSet {
+  accessToken: string;
+  refreshToken?: string;
+  expiresAt?: number; // epoch ms; undefined = non-expiring
+}
+
+async function postTokenEndpoint(
+  params: Record<string, string>,
+): Promise<GithubTokenSet | { error: string }> {
   const res = await fetch("https://github.com/login/oauth/access_token", {
     method: "POST",
     headers: {
@@ -51,16 +57,48 @@ export async function fetchGithubAuthToken(o: {
       Accept: "application/json",
       "User-Agent": UA,
     },
-    body: new URLSearchParams({
-      client_id: o.clientId,
-      client_secret: o.clientSecret,
-      code: o.code,
-      redirect_uri: o.redirectUri,
-    }),
+    body: new URLSearchParams(params),
   });
   if (!res.ok) return { error: `token_exchange_${res.status}` };
-  const json = (await res.json()) as { access_token?: string };
-  return json.access_token ? { accessToken: json.access_token } : { error: "no_access_token" };
+  const json = (await res.json()) as {
+    access_token?: string;
+    refresh_token?: string;
+    expires_in?: number;
+  };
+  if (!json.access_token) return { error: "no_access_token" };
+  return {
+    accessToken: json.access_token,
+    refreshToken: json.refresh_token,
+    expiresAt: json.expires_in ? Date.now() + json.expires_in * 1000 : undefined,
+  };
+}
+
+export async function fetchGithubAuthToken(o: {
+  clientId: string;
+  clientSecret: string;
+  code: string;
+  redirectUri: string;
+}): Promise<GithubTokenSet | { error: string }> {
+  return postTokenEndpoint({
+    client_id: o.clientId,
+    client_secret: o.clientSecret,
+    code: o.code,
+    redirect_uri: o.redirectUri,
+  });
+}
+
+/** Exchange a GitHub App refresh token for a fresh user token. */
+export async function refreshGithubToken(o: {
+  clientId: string;
+  clientSecret: string;
+  refreshToken: string;
+}): Promise<GithubTokenSet | { error: string }> {
+  return postTokenEndpoint({
+    client_id: o.clientId,
+    client_secret: o.clientSecret,
+    grant_type: "refresh_token",
+    refresh_token: o.refreshToken,
+  });
 }
 
 /** The signed-in user's GitHub login (username). Public profile; no scopes. */

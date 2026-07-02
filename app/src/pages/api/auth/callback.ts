@@ -61,9 +61,21 @@ export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
   if (!role) return fail("access_denied");
 
   // 6. Mint session: login + verified role, stamped for periodic re-verification.
+  //    The user's own token rides along (encrypted) so editor saves commit AS
+  //    THE PERSON — expiring GitHub App tokens get refreshed by the middleware.
   const now = Date.now();
   const cookie = await encryptSession(
-    { login: user.login, role, checkedAt: now, exp: now + 7 * 86_400_000 },
+    {
+      login: user.login,
+      role,
+      checkedAt: now,
+      exp: now + 7 * 86_400_000,
+      ghToken: {
+        access: token.accessToken,
+        refresh: token.refreshToken,
+        expiresAt: token.expiresAt,
+      },
+    },
     env.COOKIE_ENCRYPTION_KEY,
   );
   cookies.set(SESSION_COOKIE, cookie, sessionCookieOptions(origin));

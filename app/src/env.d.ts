@@ -12,8 +12,9 @@ declare namespace Cloudflare {
     // GitHub OAuth App (login) — identity only, no scopes
     GITHUB_OAUTH_CLIENT_ID?: string;
     GITHUB_OAUTH_CLIENT_SECRET?: string;
-    // Bot token: reads collaborator permissions (role checks); later also the
-    // prod content-write driver. Worker secret / .dev.vars — never committed.
+    // Bot token: reads collaborator permissions (ROLE CHECKS ONLY — content
+    // writes use the signed-in user's own token, never this one).
+    // Worker secret / .dev.vars — never committed.
     GITHUB_TOKEN?: string;
     GITHUB_REPO?: string; // owner/name, default osbrjp/handbook
     GITHUB_BRANCH?: string;

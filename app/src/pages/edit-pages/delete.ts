@@ -25,11 +25,9 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
       editor: locals.visitor?.login ?? "unknown",
       message: `Delete "${page.title}" (${slug})`,
     });
-  } catch {
-    return new Response(
-      "Could not delete. In local dev, ensure the content agent is running (pnpm content:agent). In production, the GitHub write driver isn't configured yet.",
-      { status: 503 },
-    );
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : "unknown error";
+    return new Response(`Could not delete. ${detail}`, { status: 503 });
   }
 
   return redirect("/edit-pages?deleted=1", 303);

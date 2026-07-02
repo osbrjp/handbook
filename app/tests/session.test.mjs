@@ -20,6 +20,17 @@ test("round-trips a valid session", async () => {
   assert.equal(typeof out?.checkedAt, "number");
 });
 
+test("round-trips the user's ghToken (the per-user commit credential)", async () => {
+  const ghToken = { access: "ghu_x", refresh: "ghr_y", expiresAt: Date.now() + 8 * 3_600_000 };
+  const out = await decryptSession(await encryptSession(sess({ ghToken }), KEY), KEY);
+  assert.deepEqual(out?.ghToken, ghToken);
+});
+
+test("rejects a malformed ghToken (fail closed)", async () => {
+  const tok = await encryptSession(sess({ ghToken: { access: 123 } }), KEY);
+  assert.equal(await decryptSession(tok, KEY), null);
+});
+
 test("rejects an expired session (server-side exp)", async () => {
   const tok = await encryptSession(sess({ exp: Date.now() - 1 }), KEY);
   assert.equal(await decryptSession(tok, KEY), null);

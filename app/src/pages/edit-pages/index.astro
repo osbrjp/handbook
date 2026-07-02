@@ -3,6 +3,7 @@ import Base from "../../layouts/Base.astro";
 import { requireEditor } from "../../lib/auth/requireEditor";
 import { issueCsrf } from "../../lib/csrf";
 import { listAllPages } from "../../lib/content/pages";
+import { isWritable } from "../../lib/content/store";
 
 const denied = requireEditor(Astro.locals);
 if (denied) return denied;
@@ -13,7 +14,7 @@ Astro.response.headers.set("Vary", "Cookie");
 const pages = await listAllPages();
 const sections = [...new Set(pages.map((p) => p.section))];
 const deleted = Astro.url.searchParams.get("deleted");
-const writable = Astro.locals.contentStore.kind === "local";
+const writable = isWritable(Astro.locals.contentStore);
 const csrf = writable ? issueCsrf(Astro.cookies, Astro.url.protocol === "https:") : "";
 ---
 

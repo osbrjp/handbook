@@ -2,10 +2,10 @@ import type { PageMeta } from "./acl";
 
 // The editor writes CONTENT AS FILES (git), not DB rows. The SSR runtime is
 // workerd (dev AND prod) — no local filesystem, no child_process — so the ONLY
-// way to persist from a request is over the network: commit via the GitHub API.
-// That driver (fetch-based) is DEFERRED for now (needs a repo-scoped token + a
-// build-on-commit pipeline), so in-browser editing is stubbed; content is edited
-// by committing markdown to the repo directly. See store.github.ts.
+// way to persist from a request is over the network. Two drivers:
+//   dev  (DEV_LOGIN=1): the local content agent (Node) writes the file + commits
+//   prod: the GitHub Contents API, using the SIGNED-IN USER's own token — every
+//         save is a commit authored by the actual person (see store.github.ts)
 
 export interface PageFile {
   slug: string;
@@ -27,13 +27,19 @@ export interface ContentStoreConfig {
   kind: "local" | "github";
   localAgentUrl?: string; // dev: the Node content agent (file write + git commit)
   localAgentToken?: string;
-  github?: { token?: string; repo?: string; branch?: string };
+  github?: { token?: string; repo?: string; branch?: string }; // token = the USER's session token
+}
+
+/** Whether a real write path exists for this request (drives the editor UI). */
+export function isWritable(config: ContentStoreConfig): boolean {
+  if (config.kind === "local") return !!config.localAgentUrl;
+  return !!(config.github?.token && config.github?.repo);
 }
 
 export async function getContentStore(config: ContentStoreConfig): Promise<ContentStore> {
   // Dev: talk to the local content agent (Node) over fetch — it does the real
-  // file write + git commit that workerd can't. Prod: the GitHub API driver
-  // (deferred until a token + build-on-commit pipeline exist).
+  // file write + git commit that workerd can't. Prod: the GitHub Contents API
+  // with the signed-in user's token (per-person commits).
   if (config.kind === "local" && config.localAgentUrl) {
     const mod = await import("./store.local");
     return mod.createLocalStore(config.localAgentUrl, config.localAgentToken ?? "dev-agent");

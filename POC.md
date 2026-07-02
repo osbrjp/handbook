@@ -5,10 +5,11 @@ Astro app on Cloudflare, with **git-backed markdown content** and
 **server-side per-page reader access** keyed to GitHub identity — all
 written from scratch, no Directus/headless-CMS.
 
-> The reader ACL, editor RBAC, CSRF, and stored-XSS defenses are **verified live**
-> (see below). Deferred: the live GitHub OAuth handshake (needs an OAuth App +
-> bot token — see below) and in-browser editor **writes** (the workerd runtime
-> can't touch the filesystem, so writes must go via the GitHub API — see below).
+> The reader ACL, editor RBAC, CSRF, stored-XSS defenses, and the **real GitHub
+> OAuth login** are all **verified live** (see below). Editor saves commit via
+> the GitHub API **as the signed-in person** (no bot) — implemented and
+> unit-tested; live use needs the GitHub App installed on the repo plus a
+> deploy-on-push pipeline (the remaining deferred piece).
 
 ## Architecture
 
@@ -50,7 +51,15 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  — NO DATABASE (statele
   Note: the permission API reports `read` for *any* GitHub user while the repo
   is public, so the gate is the **explicit-collaborator check** (204/404) —
   which behaves identically once the repo goes private.
-- **Editing:** for now, edit the markdown files under `src/content/pages/` and commit. The in-browser editor is **preview-only** (its write path — commit via the GitHub API + a build-on-commit pipeline — is scaffolded but deferred).
+- **Editing:** a save in the in-browser editor becomes a **git commit authored
+  by the signed-in person** — locally via the content agent (your own git), in
+  production via the GitHub Contents API using the user's **own GitHub App
+  token** (carried encrypted in the session, auto-refreshed). No bot identity:
+  attribution is real, and GitHub refuses the write the instant someone's push
+  access is revoked. Concurrent edits 409 (sha check) instead of clobbering.
+  A published change appears on the live site after the next rebuild/redeploy
+  (content is bundled at build) — the deploy-on-push pipeline is the remaining
+  deferred piece.
 - **Public repo caveat:** while the content repo is public, `internal`/`restricted` page *source* is readable in git even though the deployed site gates the rendered page. Move the content repo private to make gated content actually private (no code change needed).
 
 ## What's verified
@@ -78,9 +87,19 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  — NO DATABASE (statele
 - Stored XSS: content containing `<script>`/`javascript:` → the reader page strips both, callout still renders.
 - Search is ACL-gated: an internal-only term returns 0 for anon, results for a signed-in reader.
 
+**Verified LIVE — the real GitHub OAuth round-trip** (local `astro dev`, real
+GitHub, real repo): sign-in → token exchange → collaborator/permission check →
+editor role resolved → session minted. The dev shim is now only a convenience,
+not the only proof.
+
 **Deferred:**
-- **In-browser editor writes.** The workerd SSR runtime has no filesystem, so a save can't write a file — it must commit via the GitHub API (scaffolded in `lib/content/store.ts`), which needs a repo-scoped token + a build-on-commit pipeline. Until then the editor is preview-only; edit content by committing markdown to the repo.
-- The live GitHub OAuth handshake (`/api/auth/login` + `/api/auth/callback` are written and code-reviewable); dev-login shim proves the session/enforcement machinery, and the authorization API calls were probed live.
+- **GitHub App provisioning.** Editor writes are implemented (per-user commits
+  via the Contents API, `store.github.ts`, unit-tested against a mock API) but
+  need a **GitHub App** created for login (its client id/secret replace the
+  OAuth App's — same env vars) and **installed on this repo** by a repo/org
+  admin (`contents: write`). Until then, deployed editors see "Preview only".
+- **Deploy-on-push pipeline** so a content commit rebuilds + redeploys the
+  Worker (a saved change is otherwise live only after the next manual deploy).
 - The `restricted`/groups tier is supported by the schema/ACL but has no group source yet — it would map to **GitHub teams** (see `lib/auth/groups.ts`).
 - Production: Worker secrets, prod cookie flags (`secure` keys off `https`). No datastore to provision.
 
@@ -175,10 +194,13 @@ redeploy of the same thing.
    `GITHUB_OAUTH_CLIENT_ID` / `GITHUB_OAUTH_CLIENT_SECRET` / `GITHUB_TOKEN`
    (bot PAT for role checks) + `COOKIE_ENCRYPTION_KEY` as **Worker secrets**
    (`wrangler secret put …`), `DEV_LOGIN=0`.
-3. **Enable editor writes in prod (deferred piece).** Provision a **GitHub App**
-   (repo-scoped, `contents:write`), store its key as a Worker secret, finish
-   `src/lib/content/store.github.ts`, and add a **deploy-on-push** action so a
-   content commit rebuilds + redeploys the Worker.
+3. **Enable editor writes in prod.** Create a **GitHub App** (org-owned): callback
+   `https://handbook.osbrjp.com/api/auth/callback`, permission `contents: write`,
+   "expire user tokens" on. Install it **on this repo** (org admin approves).
+   Its client id/secret replace the OAuth App's in the same env vars — sign-in
+   then yields each user's own commit credential (per-person commits, no bot;
+   the write driver is already implemented). Add a **deploy-on-push** action so
+   a content commit rebuilds + redeploys the Worker.
 4. **DNS cutover.** Point `handbook.osbrjp.com` at the Cloudflare Worker (add it
    as a custom domain / route on the Worker) instead of `osbrjp.github.io`.
 5. **Retire GitHub Pages.** Remove the Pages custom domain (frees the CNAME) and

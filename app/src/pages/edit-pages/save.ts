@@ -84,13 +84,12 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
     } else {
       await store.write(file, { editor, message });
     }
-  } catch {
-    // Dev: the local content agent is likely not running. Prod: the GitHub
-    // write driver is deferred. Either way, the save didn't persist.
-    return new Response(
-      "Could not save. In local dev, ensure the content agent is running (pnpm content:agent). In production, the GitHub write driver isn't configured yet.",
-      { status: 503 },
-    );
+  } catch (e) {
+    // Dev: the local content agent is likely not running (pnpm content:agent).
+    // Prod: no/expired user token, or a GitHub-side edit conflict — the store's
+    // message says which, and it never contains the token.
+    const detail = e instanceof Error ? e.message : "unknown error";
+    return new Response(`Could not save. ${detail}`, { status: 503 });
   }
 
   // Redirect by slug (the edit route keys on slug); slug may have just changed.

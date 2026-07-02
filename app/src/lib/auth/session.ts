@@ -12,11 +12,21 @@ import type { Role } from "./visitor";
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 
+// The signed-in user's own GitHub token — used by the editor write path so
+// content commits are authored by the ACTUAL PERSON (no bot). refresh/expiresAt
+// are present for GitHub App tokens (expiring), absent for classic OAuth tokens.
+export interface GhTokenSet {
+  access: string;
+  refresh?: string;
+  expiresAt?: number; // epoch ms
+}
+
 export interface SessionData {
   login: string; // GitHub username — the only identity in the system (no emails)
   role: Role;
   checkedAt: number; // epoch ms of the last successful GitHub role check
   exp: number; // epoch ms
+  ghToken?: GhTokenSet; // absent for dev-shim sessions
 }
 
 async function getKey(secret: string): Promise<CryptoKey> {
@@ -66,6 +76,7 @@ export async function decryptSession(token: string, secret: string): Promise<Ses
     if (!data || typeof data.login !== "string" || typeof data.exp !== "number") return null;
     if (data.role !== "editor" && data.role !== "reader") return null;
     if (typeof data.checkedAt !== "number") return null;
+    if (data.ghToken && typeof data.ghToken.access !== "string") return null;
     if (Date.now() > data.exp) return null; // server-side expiry — don't trust cookie maxAge alone
     return data;
   } catch {

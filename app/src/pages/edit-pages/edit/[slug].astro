@@ -5,6 +5,7 @@ import { requireEditor } from "../../../lib/auth/requireEditor";
 import { issueCsrf } from "../../../lib/csrf";
 import { listGroups } from "../../../lib/auth/groups";
 import { getEditablePageBySlug, listAllPages } from "../../../lib/content/pages";
+import { isWritable } from "../../../lib/content/store";
 
 const denied = requireEditor(Astro.locals);
 if (denied) return denied;
@@ -48,7 +49,7 @@ const savedMsg = saved === "published" ? "Published" : saved === "draft" ? "Save
       csrf={csrf}
       groups={groups}
       sections={sections}
-      writable={Astro.locals.contentStore.kind === "local"}
+      writable={isWritable(Astro.locals.contentStore)}
     />
   </div>
 </Base>
