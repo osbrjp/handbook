@@ -31,7 +31,14 @@ const reviewMode = cfg.kind === "github" && cfg.github?.mode !== "direct";
   <div class="container admin-page">
   <div class="admin-head">
     <h1>Pages</h1>
-    {writable && <a class="btn btn-brand" href="/edit-pages/create">+ New page</a>}
+    <div>
+      {
+        Astro.locals.visitor?.role === "admin" && reviewMode && (
+          <a class="btn btn-alt" href="/edit-pages/reviews">Reviews</a>
+        )
+      }
+      {writable && <a class="btn btn-brand" href="/edit-pages/create">+ New page</a>}
+    </div>
   </div>
   <a class="btn-cancel admin-back" href="/" id="admin-back">← Back to handbook</a>
   {deleted && <div class="notice">✓ Page deleted.</div>}

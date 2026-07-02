@@ -51,13 +51,22 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  — NO DATABASE (statele
   Note: the permission API reports `read` for *any* GitHub user while the repo
   is public, so the gate is the **explicit-collaborator check** (204/404) —
   which behaves identically once the repo goes private.
-- **Editing:** a save in the in-browser editor becomes a **git commit authored
-  by the signed-in person** — locally via the content agent (your own git), in
-  production via the GitHub Contents API using the user's **own GitHub App
-  token** (carried encrypted in the session, auto-refreshed). No bot identity:
-  attribution is real, and GitHub refuses the write the instant someone's push
-  access is revoked. Concurrent edits 409 (sha check) instead of clobbering.
-  A published change appears on the live site after the next rebuild/redeploy
+- **Editing = submit for review.** A save in the in-browser editor becomes a
+  **git commit authored by the signed-in person** (their own GitHub App token,
+  carried encrypted in the session, auto-refreshed — no bot identity). Because
+  `main` is PR-protected (1 approval + code-owner + `run-tests`), the save goes
+  onto an edit branch `handbook/<slug>` and opens **one pull request per page**;
+  repeat saves stack onto the same review.
+- **Review dashboard** (`/edit-pages/reviews`, admins only): pending edits with
+  author + checks state; **Approve & publish** performs a real GitHub review +
+  merge *as the signed-in admin* (ruleset fully honored — GitHub blocks
+  self-approval, failing checks, stale branches; a blocked merge auto-triggers
+  update-branch). **Reject** closes the review and discards the edits.
+- **Roles come from GitHub repo permission**: `admin`/`maintain` → handbook
+  **admin** (review dashboard), `write` → **editor** (submit for review),
+  collaborator → **reader**. Locally (agent mode) saves stay direct commits;
+  `GITHUB_WRITE_MODE=direct` restores direct API commits for unprotected setups.
+  A merged change appears on the live site after the next rebuild/redeploy
   (content is bundled at build) — the deploy-on-push pipeline is the remaining
   deferred piece.
 - **Public repo caveat:** while the content repo is public, `internal`/`restricted` page *source* is readable in git even though the deployed site gates the rendered page. Move the content repo private to make gated content actually private (no code change needed).

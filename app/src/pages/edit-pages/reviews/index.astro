@@ -1,0 +1,127 @@
+---
+import Base from "../../../layouts/Base.astro";
+import { requireAdmin } from "../../../lib/auth/requireEditor";
+import { issueCsrf } from "../../../lib/csrf";
+import { listReviews, type ReviewItem } from "../../../lib/content/reviews";
+
+// Admin-only review dashboard: pending handbook edits (submit-for-review PRs),
+// with approve & publish / reject actions performed as the signed-in admin.
+const denied = requireAdmin(Astro.locals);
+if (denied) return denied;
+
+Astro.response.headers.set("Cache-Control", "private, no-store");
+Astro.response.headers.set("Vary", "Cookie");
+
+const gh = Astro.locals.contentStore.github;
+const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
+
+let reviews: ReviewItem[] = [];
+let loadError: string | null = null;
+if (gh?.token && gh?.repo) {
+  try {
+    reviews = await listReviews({ token: gh.token, repo: gh.repo, base: gh.branch || "main" });
+  } catch {
+    loadError = "Could not load pending reviews from GitHub. Refresh to retry.";
+  }
+} else {
+  loadError =
+    "Sign in with GitHub to load pending reviews (the dev-login shim has no GitHub credential).";
+}
+
+// Action feedback (set by approve.ts / reject.ts redirects). err is a
+// server-generated message we round-trip through the query string.
+const ok = Astro.url.searchParams.get("ok");
+const err = Astro.url.searchParams.get("err");
+
+const CHECK_LABEL = {
+  passing: "✓ checks passed",
+  failing: "✗ checks failing",
+  pending: "… checks running",
+  none: "– no checks yet",
+} as const;
+---
+
+<Base title="Reviews" visitor={Astro.locals.visitor}>
+  <div class="container admin-page">
+    <div class="admin-head">
+      <h1>Pending reviews</h1>
+    </div>
+    <a class="btn-cancel admin-back" href="/edit-pages">← Back to pages</a>
+
+    {ok && <div class="notice">✓ {ok}</div>}
+    {err && <div class="notice notice-warn">{err}</div>}
+    {loadError && <div class="notice notice-warn">{loadError}</div>}
+
+    {
+      !loadError && reviews.length === 0 && (
+        <div class="notice">Nothing awaiting review — all handbook changes are published.</div>
+      )
+    }
+
+    {
+      reviews.length > 0 && (
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Change</th>
+              <th>Page</th>
+              <th>By</th>
+              <th>Checks</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {reviews.map((r) => (
+              <tr>
+                <td>
+                  <a href={r.url} target="_blank" rel="noopener" title="View the full diff on GitHub">
+                    {r.title}
+                  </a>
+                </td>
+                <td>
+                  <code>{r.slug}</code>
+                </td>
+                <td>{r.author}</td>
+                <td>{CHECK_LABEL[r.checks]}</td>
+                <td class="col-actions">
+                  <form method="POST" action="/edit-pages/reviews/approve" class="inline-form">
+                    <input type="hidden" name="csrf" value={csrf} />
+                    <input type="hidden" name="pr" value={r.number} />
+                    <button type="submit" class="btn btn-brand btn-sm">Approve &amp; publish</button>
+                  </form>
+                  <form
+                    method="POST"
+                    action="/edit-pages/reviews/reject"
+                    class="inline-form review-reject"
+                  >
+                    <input type="hidden" name="csrf" value={csrf} />
+                    <input type="hidden" name="pr" value={r.number} />
+                    <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                  </form>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )
+    }
+  </div>
+</Base>
+
+<script>
+  // Confirm before discarding someone's submitted edits.
+  for (const form of document.querySelectorAll("form.review-reject")) {
+    form.addEventListener("submit", (e) => {
+      if (!confirm("Reject this change? The submitted edits will be discarded.")) {
+        e.preventDefault();
+      }
+    });
+  }
+</script>
+
+<style>
+  .inline-form {
+    display: inline-block;
+    margin-right: 0.4rem;
+  }
+</style>
