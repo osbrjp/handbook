@@ -2,7 +2,8 @@
 // seed-content.mjs — convert the original VitePress handbook (doc/*.md) into
 // Astro content-collection files at app/src/content/pages/<slug>.md with
 // frontmatter. Git-backed content is the source of truth; this is a one-time
-// (re-runnable) importer used to bootstrap / reset local content. PURE NODE.
+// (re-runnable) importer used to bootstrap / reset local content. Runs in
+// plain Node (the shared .ts serializer loads via Node's type stripping).
 //
 // Body is stored as MARKDOWN VERBATIM (the render pipeline handles :::, [[TOC]]
 // and mermaid). The leading `# H1` becomes the `title` and is stripped from the
@@ -15,6 +16,9 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+// The ONE frontmatter serializer, shared with the editor's write path (Node
+// ≥22.18 strips the types) — seeded files and editor saves can never drift.
+import { serializePageFile } from "../src/lib/content/serialize.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url)); // app/scripts
 const appDir = path.resolve(here, ".."); // app
@@ -72,34 +76,6 @@ export function slugToTitle(slug) {
     .join(" ");
 }
 
-// Serialize frontmatter as YAML. Double-quoted scalars (via JSON.stringify) are
-// valid YAML and safely escape colons/quotes; used by the editor's write path too.
-export function toYamlScalar(s) {
-  return JSON.stringify(String(s));
-}
-export function buildFrontmatter(fm) {
-  const lines = ["---"];
-  lines.push(`title: ${toYamlScalar(fm.title)}`);
-  lines.push(`section: ${toYamlScalar(fm.section)}`);
-  lines.push(`nav_label: ${toYamlScalar(fm.nav_label ?? "")}`);
-  lines.push(`sort: ${Number(fm.sort) || 0}`);
-  lines.push(`visibility: ${fm.visibility}`);
-  lines.push(`status: ${fm.status}`);
-  if (fm.groups?.length) {
-    lines.push("groups:");
-    for (const g of fm.groups) lines.push(`  - ${toYamlScalar(g)}`);
-  } else {
-    lines.push("groups: []");
-  }
-  if (fm.updated_by) lines.push(`updated_by: ${toYamlScalar(fm.updated_by)}`);
-  if (fm.updated_at) lines.push(`updated_at: ${toYamlScalar(fm.updated_at)}`);
-  lines.push("---");
-  return lines.join("\n");
-}
-export function buildPageFile(fm, body) {
-  return `${buildFrontmatter(fm)}\n\n${body.trim()}\n`;
-}
-
 async function main() {
   await mkdir(outDir, { recursive: true });
   const slugs = Object.keys(PAGE_META);
@@ -122,7 +98,7 @@ async function main() {
       groups: meta.groups || [],
       status: "published",
     };
-    await writeFile(path.join(outDir, `${slug}.md`), buildPageFile(fm, stripLeadingH1(raw)));
+    await writeFile(path.join(outDir, `${slug}.md`), serializePageFile(fm, stripLeadingH1(raw)));
     n++;
   }
   console.log(`Wrote ${n} content files -> app/src/content/pages/`);

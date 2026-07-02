@@ -30,8 +30,10 @@ const PR = { token: "user-token", repo: "osbrjp/handbook", branch: "main", mode:
  *  files: {slug: sha} on any branch (contents GET)
  *  branches: Set of existing branch names (git/ref GET)
  *  openPrs: array of {number, html_url} returned for pull list
+ *  compareStatus: what base...editBranch compare reports ("behind" = no unique
+ *    commits [merged leftover]; "ahead" = orphaned commits from a failed PR)
  */
-function mockApi({ files = {}, branches = ["main"], openPrs = [] } = {}) {
+function mockApi({ files = {}, branches = ["main"], openPrs = [], compareStatus = "behind" } = {}) {
   const calls = [];
   const fn = async (url, init = {}) => {
     const method = init.method ?? "GET";
@@ -40,6 +42,9 @@ function mockApi({ files = {}, branches = ["main"], openPrs = [] } = {}) {
 
     if (method === "GET" && u.includes("/pulls?")) {
       return new Response(JSON.stringify(openPrs), { status: 200 });
+    }
+    if (method === "GET" && u.includes("/compare/")) {
+      return new Response(JSON.stringify({ status: compareStatus }), { status: 200 });
     }
     if (method === "GET" && u.includes("/git/ref/")) {
       const name = decodeURIComponent(u.split("/git/ref/")[1]).replace(/^heads\//, "");
@@ -157,12 +162,30 @@ test("pr: save with an OPEN review reuses branch + PR (no create, no reset)", as
   assert.equal(calls.filter((c) => c.method === "PATCH").length, 0); // no force reset
 });
 
-test("pr: STALE leftover branch (merged review, no open PR) is force-reset to base head", async () => {
-  const { calls, fn } = mockApi({ branches: ["main", "handbook/test-page"], openPrs: [] });
+test("pr: STALE leftover branch (merged review, no open PR, no unique commits) is force-reset to base head", async () => {
+  const { calls, fn } = mockApi({
+    branches: ["main", "handbook/test-page"],
+    openPrs: [],
+    compareStatus: "behind", // its work was merged — nothing unique to lose
+  });
   await createGithubStore(PR, fn).write(FILE, OPTS);
   const reset = calls.find((c) => c.method === "PATCH");
   assert.ok(decodeURIComponent(reset.url).includes("heads/handbook/test-page"));
   assert.deepEqual(reset.body, { sha: "sha-of-main", force: true });
+});
+
+test("pr: branch with ORPHANED commits (failed PR create) is NEVER reset — commits survive into the new review", async () => {
+  // Regression for the data-loss bug: save 1 committed but PR creation 500'd;
+  // save 2 must NOT force-reset the branch (that would orphan save 1's commit
+  // beyond any ref) — it commits on top and the new PR carries both.
+  const { calls, fn } = mockApi({
+    branches: ["main", "handbook/test-page"],
+    openPrs: [],
+    compareStatus: "ahead", // unique commits exist on the edit branch
+  });
+  const result = await createGithubStore(PR, fn).write(FILE, OPTS);
+  assert.equal(calls.filter((c) => c.method === "PATCH").length, 0); // no force reset
+  assert.equal(result.reviewNumber, 42); // review created, prior commits included
 });
 
 test("pr: file sha is read from the EDIT branch, not base", async () => {

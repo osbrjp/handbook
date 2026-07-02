@@ -44,6 +44,11 @@ export function isWritable(config: ContentStoreConfig): boolean {
   return !!(config.github?.token && config.github?.repo);
 }
 
+/** Whether saves become submit-for-review PRs (drives editor banners/labels). */
+export function isReviewMode(config: ContentStoreConfig): boolean {
+  return config.kind === "github" && config.github?.mode !== "direct";
+}
+
 export async function getContentStore(config: ContentStoreConfig): Promise<ContentStore> {
   // Dev: talk to the local content agent (Node) over fetch — it does the real
   // file write + git commit that workerd can't. Prod: the GitHub Contents API

@@ -1,6 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { env } from "cloudflare:workers";
-import { refreshGithubToken, resolveRole } from "./lib/auth/github";
+import { GithubApiError, refreshGithubToken, resolveRole } from "./lib/auth/github";
 import { SESSION_COOKIE, sessionCookieOptions } from "./lib/auth/cookies";
 import { getOrigin } from "./lib/auth/origin";
 import { decryptSession, encryptSession, type GhTokenSet } from "./lib/auth/session";
@@ -35,6 +35,7 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
       ghToken = session.ghToken;
       let changed = false;
       let revoked = false;
+      let credentialFailure = false;
 
       // Re-verify a stale role against GitHub. Skipped in dev (DEV_LOGIN=1),
       // where sessions come from the dev-login shim and aren't real GitHub users.
@@ -54,10 +55,24 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
             revoked = true;
             ctx.cookies.delete(SESSION_COOKIE, { path: "/" });
           }
-        } catch {
-          // GitHub API trouble (outage/rate limit): keep the previously
-          // VERIFIED role until the next successful check rather than locking
-          // the whole company out. New logins still fail closed in callback.ts.
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          if (e instanceof GithubApiError && /_40[13]$/.test(msg)) {
+            // 401/403 = OUR bot credential is bad (GITHUB_TOKEN missing,
+            // rotated, or revoked) — NOT a GitHub outage. Fail closed for this
+            // request (visitor stays anonymous; cookie kept so sessions resume
+            // once the secret is fixed). Without this, a lost bot token would
+            // silently disable role revocation for every live session.
+            credentialFailure = true;
+            console.error(
+              `role check failed — bot credential rejected (${msg}); check GITHUB_TOKEN`,
+            );
+          } else {
+            // GitHub API trouble (outage/rate limit): keep the previously
+            // VERIFIED role until the next successful check rather than locking
+            // the whole company out. New logins still fail closed in callback.ts.
+            console.error(`role revalidation skipped (${msg}); keeping previously verified role`);
+          }
         }
       }
 
@@ -84,7 +99,7 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
         changed = true;
       }
 
-      if (!revoked) {
+      if (!revoked && !credentialFailure) {
         if (changed) {
           const cookie = await encryptSession(
             { login: session.login, role, checkedAt, exp: session.exp, ghToken },

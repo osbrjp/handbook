@@ -29,7 +29,9 @@ export function serializePageFile(fm: PageMeta, body: string): string {
 
 // A slug becomes a FILENAME (and a repo path), so it must be strictly safe:
 // lowercase alphanumerics + hyphens only, no dots/slashes/traversal. This is
-// the path-traversal guard for the write drivers.
-export function isSafeSlug(slug: string): boolean {
-  return /^[a-z0-9][a-z0-9-]*$/.test(slug);
+// THE path-traversal guard for every write driver — the content agent imports
+// it too, so dev and prod can never drift. The runtime typeof check matters:
+// the agent feeds this raw JSON payload values, and TS types vanish at runtime.
+export function isSafeSlug(slug: unknown): slug is string {
+  return typeof slug === "string" && /^[a-z0-9][a-z0-9-]*$/.test(slug);
 }

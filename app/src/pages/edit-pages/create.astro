@@ -5,7 +5,7 @@ import { requireEditor } from "../../lib/auth/requireEditor";
 import { issueCsrf } from "../../lib/csrf";
 import { listGroups } from "../../lib/auth/groups";
 import { listAllPages } from "../../lib/content/pages";
-import { isWritable } from "../../lib/content/store";
+import { isReviewMode, isWritable } from "../../lib/content/store";
 
 const denied = requireEditor(Astro.locals);
 if (denied) return denied;
@@ -26,8 +26,7 @@ const sections = [...new Set((await listAllPages()).map((p) => p.section))];
       groups={groups}
       sections={sections}
       writable={isWritable(Astro.locals.contentStore)}
-      reviewMode={Astro.locals.contentStore.kind === "github" &&
-        Astro.locals.contentStore.github?.mode !== "direct"}
+      reviewMode={isReviewMode(Astro.locals.contentStore)}
     />
   </div>
 </Base>

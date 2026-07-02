@@ -16,6 +16,9 @@ import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+// The ONE path-traversal guard, shared with the SSR write drivers (Node ≥22.18
+// strips the types) — dev and prod slug validation can never drift.
+import { isSafeSlug } from "../src/lib/content/serialize.ts";
 
 const exec = promisify(execFile);
 const here = path.dirname(fileURLToPath(import.meta.url)); // app/scripts
@@ -25,7 +28,6 @@ const CONTENT_REL = "app/src/content/pages";
 
 const PORT = Number(process.env.CONTENT_AGENT_PORT || 4322);
 const TOKEN = process.env.CONTENT_AGENT_TOKEN || "dev-agent";
-const isSafeSlug = (s) => typeof s === "string" && /^[a-z0-9][a-z0-9-]*$/.test(s);
 
 async function git(args) {
   await exec("git", args, { cwd: repoRoot });

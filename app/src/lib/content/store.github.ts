@@ -1,6 +1,7 @@
 import type { ContentStore, PageFile, WriteOpts, WriteResult } from "./store";
-// .ts extension: this module is also imported by node --test (which strips
+// .ts extensions: this module is also imported by node --test (which strips
 // types but does NOT resolve extensionless specifiers).
+import { GITHUB_API as API, githubHeaders } from "../githubApi.ts";
 import { serializePageFile } from "./serialize.ts";
 
 // Production driver: persist content via the GitHub API, WITH THE SIGNED-IN
@@ -23,8 +24,6 @@ import { serializePageFile } from "./serialize.ts";
 // (content is bundled at build) — the deploy-on-push pipeline is the remaining
 // deferred piece.
 
-const API = "https://api.github.com";
-const UA = "osbr-handbook";
 // Repo-relative home of the content files (mirrors scripts/content-agent.mjs).
 const CONTENT_DIR = "app/src/content/pages";
 const EDIT_BRANCH_PREFIX = "handbook/";
@@ -59,12 +58,7 @@ export function createGithubStore(
     );
   }
   const owner = repo.split("/")[0];
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    Accept: "application/vnd.github+json",
-    "User-Agent": UA,
-    "Content-Type": "application/json",
-  };
+  const headers = githubHeaders(token, true);
   // slug is isSafeSlug-validated upstream ([a-z0-9-]); encode it anyway.
   const fileUrl = (slug: string) =>
     `${API}/repos/${repo}/contents/${CONTENT_DIR}/${encodeURIComponent(slug)}.md`;
@@ -145,6 +139,18 @@ export function createGithubStore(
     }
     if (!existing.ok) throw new Error(`github branch lookup failed (${existing.status})`);
     if (!hasOpenPr) {
+      // Reset ONLY when the branch has no unique commits ("identical"/"behind"
+      // = its work was merged or it's empty). A branch that is ahead/diverged
+      // holds commits from a save whose PR creation failed — resetting would
+      // DESTROY that content (unreachable from any ref), so keep the commits
+      // and let ensurePr sweep them into the new review instead.
+      const cmp = await api(
+        "GET",
+        `${API}/repos/${repo}/compare/${encodeURIComponent(base)}...${encodeURIComponent(editBranch)}`,
+      );
+      if (!cmp.ok) throw new Error(`github compare failed (${cmp.status})`);
+      const { status } = (await cmp.json()) as { status?: string };
+      if (status !== "identical" && status !== "behind") return; // unique commits — preserve
       const res = await api(
         "PATCH",
         `${API}/repos/${repo}/git/refs/${encodeURIComponent(`heads/${editBranch}`)}`,

@@ -4,8 +4,9 @@
 // the branch ruleset (1 approval, code-owner, run-tests) is fully honored.
 // GitHub also enforces you can't approve your own submission.
 
-const API = "https://api.github.com";
-const UA = "osbr-handbook";
+// .ts extension: imported by node --test too (no extensionless resolution).
+import { GITHUB_API as API, githubHeaders } from "../githubApi.ts";
+
 const EDIT_BRANCH_PREFIX = "handbook/";
 
 export interface ReviewsConfig {
@@ -26,14 +27,7 @@ export interface ReviewItem {
   checks: ChecksState;
 }
 
-function headers(token: string) {
-  return {
-    Authorization: `Bearer ${token}`,
-    Accept: "application/vnd.github+json",
-    "User-Agent": UA,
-    "Content-Type": "application/json",
-  };
-}
+const headers = (token: string) => githubHeaders(token, true);
 
 /** Roll individual check runs up into one badge state. Exported for tests. */
 export function rollupChecks(
@@ -46,7 +40,13 @@ export function rollupChecks(
     : "failing";
 }
 
-/** Open handbook-edit PRs, newest first. */
+/**
+ * Open handbook-edit PRs, newest first.
+ *
+ * KNOWN N+1: one check-runs call per open review (parallelized, admin-only
+ * page, ≤50 PRs) — fine at this scale. If it ever matters, replace with a
+ * single GraphQL query using `statusCheckRollup` across all PRs.
+ */
 export async function listReviews(
   cfg: ReviewsConfig,
   fetchImpl: typeof fetch = fetch,

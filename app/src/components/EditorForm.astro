@@ -120,13 +120,33 @@ const visibility = page?.visibility ?? "internal";
     <legend>Who can read this</legend>
     <label><input type="radio" name="visibility" value="public" checked={visibility === "public"} /> Anyone (public)</label>
     <label><input type="radio" name="visibility" value="internal" checked={visibility === "internal"} /> Signed-in staff</label>
-    <label><input type="radio" name="visibility" value="restricted" checked={visibility === "restricted"} /> Specific groups</label>
-    <div class="groups">
-      {groups.map((g) => (
-        <label><input type="checkbox" name="groups" value={g.key} checked={pageGroupKeys.includes(g.key)} /> {g.label}</label>
-      ))}
-      <small>(applied only when "Specific groups" is selected)</small>
-    </div>
+    {/* The groups tier only makes sense once access groups exist (they'd map to
+        GitHub teams — see lib/auth/groups.ts). With none defined, hide the
+        option: selecting it would create a page NO reader can see, with zero
+        checkboxes to explain why. Still shown if this page is already
+        restricted (legacy content), so its current state isn't invisible. */}
+    {
+      (groups.length > 0 || visibility === "restricted") && (
+        <>
+          <label>
+            <input type="radio" name="visibility" value="restricted" checked={visibility === "restricted"} /> Specific
+            groups
+          </label>
+          <div class="groups">
+            {groups.map((g) => (
+              <label>
+                <input type="checkbox" name="groups" value={g.key} checked={pageGroupKeys.includes(g.key)} /> {g.label}
+              </label>
+            ))}
+            {groups.length === 0 ? (
+              <small>(no access groups are defined yet — only editors/admins can read this page)</small>
+            ) : (
+              <small>(applied only when "Specific groups" is selected)</small>
+            )}
+          </div>
+        </>
+      )
+    }
   </fieldset>
   </div>
   </details>

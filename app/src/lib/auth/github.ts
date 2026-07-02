@@ -18,11 +18,9 @@
 // NOT the user's OAuth token — the user grants no scopes at all (public
 // profile only), and a reader's own token couldn't query the collaborator API.
 
+// .ts extension: imported by node --test too (no extensionless resolution).
+import { GITHUB_API as API, GITHUB_UA as UA, githubHeaders } from "../githubApi.ts";
 import type { Role } from "./visitor";
-
-const API = "https://api.github.com";
-// GitHub's API rejects requests without a User-Agent (workerd sets none).
-const UA = "osbr-handbook";
 
 export function getGithubAuthorizeUrl(o: {
   clientId: string;
@@ -133,11 +131,7 @@ export async function resolveRole(
   o: { token: string; repo: string; login: string },
   fetchImpl: typeof fetch = fetch,
 ): Promise<Role | null> {
-  const headers = {
-    Authorization: `Bearer ${o.token}`,
-    Accept: "application/vnd.github+json",
-    "User-Agent": UA,
-  };
+  const headers = githubHeaders(o.token);
   const login = encodeURIComponent(o.login);
 
   // Gate: EXPLICIT collaborator (204) or not (404). Public-repo-safe.
