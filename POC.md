@@ -182,6 +182,28 @@ app/
   wrangler.toml      vars (no bindings — stateless)
 ```
 
+## Deploy to staging
+
+A separate Worker (`osbr-handbook-staging`, `[env.staging]` in `wrangler.toml`)
+so staging can never touch production. Any host other than
+`handbook.osbrjp.com` serves `X-Robots-Tag: noindex` (search engines won't
+index the staging copy).
+
+1. Free Cloudflare account → `npx wrangler login` (in `app/`).
+2. First deploy: `pnpm build && npx wrangler deploy --env staging` → note the
+   `https://osbr-handbook-staging.<account>.workers.dev` URL. Public pages work
+   immediately; login 503s until configured.
+3. Create a **staging** GitHub OAuth App (callback `<staging-url>/api/auth/callback`).
+4. Set the staging secrets (each: `npx wrangler secret put <NAME> --env staging`):
+   `COOKIE_ENCRYPTION_KEY`, `GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET`,
+   `GITHUB_TOKEN` (bot PAT, role checks), `OAUTH_ORIGIN` (= the staging URL).
+5. Sign in on the staging URL and verify the ACL matrix with real accounts.
+
+**Deferred (tracked, non-blocking):** deploy-on-push CI (needs a
+`CLOUDFLARE_API_TOKEN` repo secret), rate limiting on `/api/auth/*` (do as a
+Cloudflare dashboard rule), observability beyond `wrangler tail`, CSP/HSTS at
+prod cutover.
+
 ## Migration & production cutover
 
 **Where the OLD handbook lives today:** static **VitePress on GitHub Pages**.

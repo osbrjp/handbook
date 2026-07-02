@@ -1,7 +1,7 @@
 name: Run Tests
 on:
   pull_request:
-    types: [review_requested, synchronize, labeled]
+    types: [opened, review_requested, synchronize, labeled]
   push:
     branches:
       - "main"
@@ -12,10 +12,14 @@ permissions:
 
 jobs:
   run-tests:
+    # handbook/* head branches are editor "submit for review" PRs (opened by
+    # the handbook app, never review_requested/labeled) — run-tests is a
+    # REQUIRED check on main, so without this clause those PRs could never merge.
     if: |
       (github.event.action == 'review_requested' ||
       (github.event.action == 'labeled' && github.event.label.name == 'ci-testing') ||
       (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'ci-testing'))) ||
+      (github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'handbook/')) ||
       (github.event_name == 'push')
 
     runs-on: ubuntu-latest

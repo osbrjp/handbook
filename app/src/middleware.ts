@@ -6,6 +6,11 @@ import { getOrigin } from "./lib/auth/origin";
 import { decryptSession, encryptSession, type GhTokenSet } from "./lib/auth/session";
 import type { Visitor } from "./lib/auth/visitor";
 
+// The one canonical production host. Any OTHER host serving this app (the
+// *.workers.dev staging URL, previews) gets X-Robots-Tag: noindex so search
+// engines never index a duplicate/staging copy of the handbook.
+const PROD_HOST = "handbook.osbrjp.com";
+
 // How long a GitHub-verified role is trusted before re-checking. Short enough
 // that revoking someone on GitHub locks them out in minutes; long enough that
 // requests almost never pay the GitHub API round-trip.
@@ -140,5 +145,13 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
     },
   };
 
-  return next();
+  const res = await next();
+  // Baseline security headers on every response (CSP/HSTS are a prod-cutover
+  // task — HSTS in particular must wait for the real domain).
+  res.headers.set("X-Content-Type-Options", "nosniff");
+  res.headers.set("X-Frame-Options", "DENY");
+  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  const host = ctx.request.headers.get("host") ?? "";
+  if (host !== PROD_HOST) res.headers.set("X-Robots-Tag", "noindex");
+  return res;
 });

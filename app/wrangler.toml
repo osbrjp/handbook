@@ -12,3 +12,14 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 DEV_LOGIN = "0"
 GITHUB_REPO = "osbrjp/handbook"
+
+# Staging: a separate Worker so a staging deploy can never touch production.
+#   pnpm build && npx wrangler deploy --env staging
+# Secrets are per-environment: `npx wrangler secret put <NAME> --env staging`
+# (COOKIE_ENCRYPTION_KEY, GITHUB_OAUTH_CLIENT_ID/SECRET, GITHUB_TOKEN,
+# OAUTH_ORIGIN = the workers.dev URL). NOTE: envs do NOT inherit [vars].
+[env.staging]
+name = "osbr-handbook-staging"
+[env.staging.vars]
+DEV_LOGIN = "0"
+GITHUB_REPO = "osbrjp/handbook"
