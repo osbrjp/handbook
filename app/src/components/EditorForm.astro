@@ -10,8 +10,17 @@ interface Props {
   groups: Group[];
   sections: string[];
   writable?: boolean; // true when a content-store write path is available (dev)
+  reviewMode?: boolean; // true when saves become submit-for-review pull requests
 }
-const { page = null, pageGroupKeys = [], csrf, groups, sections, writable = false } = Astro.props;
+const {
+  page = null,
+  pageGroupKeys = [],
+  csrf,
+  groups,
+  sections,
+  writable = false,
+  reviewMode = false,
+} = Astro.props;
 const visibility = page?.visibility ?? "internal";
 ---
 
@@ -27,7 +36,12 @@ const visibility = page?.visibility ?? "internal";
 </div>
 
 {
-  writable ? (
+  writable && reviewMode ? (
+    <div class="notice">
+      ✎ <strong>Submit for review.</strong> Saving submits your change as a review request — an
+      admin approves &amp; publishes it before it appears in the handbook.
+    </div>
+  ) : writable ? (
     <div class="notice">
       ✎ <strong>Local editing.</strong> Saving writes the page's markdown file and makes a git
       commit on this machine (via the local content agent). In production, saves commit through
@@ -133,8 +147,12 @@ const visibility = page?.visibility ?? "internal";
   </details>
 
   <div class="actions">
-    <button type="submit" name="status" value="draft" class="btn btn-alt" disabled={!writable}>Save draft</button>
-    <button type="submit" name="status" value="published" class="btn btn-brand" disabled={!writable}>Publish</button>
+    <button type="submit" name="status" value="draft" class="btn btn-alt" disabled={!writable}>
+      {reviewMode ? "Submit draft" : "Save draft"}
+    </button>
+    <button type="submit" name="status" value="published" class="btn btn-brand" disabled={!writable}>
+      {reviewMode ? "Submit for review" : "Publish"}
+    </button>
   </div>
 </form>
 

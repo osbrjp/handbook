@@ -119,6 +119,9 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
       token: ghToken?.access,
       repo: env.GITHUB_REPO || "osbrjp/handbook",
       branch: env.GITHUB_BRANCH,
+      // "pr" (default): saves become submit-for-review pull requests — main is
+      // PR-protected, so direct pushes would be refused anyway.
+      mode: env.GITHUB_WRITE_MODE === "direct" ? "direct" : "pr",
     },
   };
 

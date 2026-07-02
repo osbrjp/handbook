@@ -1,6 +1,6 @@
 ---
 import "../styles/global.css";
-import type { Visitor } from "../lib/auth/visitor";
+import { isEditorRole, type Visitor } from "../lib/auth/visitor";
 
 interface Props {
   title: string;
@@ -72,7 +72,7 @@ const { title, visitor = null } = Astro.props;
         {
           visitor ? (
             <>
-              {visitor.role === "editor" && <a class="nav-edit" href="/edit-pages">Editor</a>}
+              {isEditorRole(visitor.role) && <a class="nav-edit" href="/edit-pages">Editor</a>}
               <span class="who">{visitor.login}</span>
               <form method="POST" action="/api/auth/logout" class="logout-form">
                 <button type="submit" class="linkbtn">Sign out</button>

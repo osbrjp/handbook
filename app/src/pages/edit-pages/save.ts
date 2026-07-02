@@ -3,7 +3,7 @@ import { requireEditor } from "../../lib/auth/requireEditor";
 import { checkCsrf } from "../../lib/csrf";
 import { getEditablePageBySlug, type Visibility } from "../../lib/content/pages";
 import { listGroups } from "../../lib/auth/groups";
-import { getContentStore, type PageFile } from "../../lib/content/store";
+import { type ContentStore, getContentStore, type PageFile } from "../../lib/content/store";
 import { isSafeSlug } from "../../lib/content/serialize";
 
 const VISIBILITIES = new Set(["public", "internal", "restricted"]);
@@ -77,12 +77,13 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   };
 
   const message = `${status === "published" ? "Publish" : "Save"} "${title}" (${slug})`;
+  let result: Awaited<ReturnType<ContentStore["write"]>>;
   try {
     const store = await getContentStore(locals.contentStore);
     if (origSlug && origSlug !== slug) {
-      await store.rename(origSlug, file, { editor, message });
+      result = await store.rename(origSlug, file, { editor, message });
     } else {
-      await store.write(file, { editor, message });
+      result = await store.write(file, { editor, message });
     }
   } catch (e) {
     // Dev: the local content agent is likely not running (pnpm content:agent).
@@ -92,6 +93,12 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
     return new Response(`Could not save. ${detail}`, { status: 503 });
   }
 
+  // PR mode: the change is now a pending review, NOT in the built content —
+  // the edit route for a brand-new page would 404, so land on the listing with
+  // a "submitted for review" banner instead.
+  if (result?.reviewNumber) {
+    return redirect(`/edit-pages?submitted=${slug}&pr=${result.reviewNumber}`, 303);
+  }
   // Redirect by slug (the edit route keys on slug); slug may have just changed.
   return redirect(`/edit-pages/edit/${slug}?saved=${status}`, 303);
 };

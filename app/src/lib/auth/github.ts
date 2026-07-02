@@ -113,9 +113,9 @@ export async function fetchGithubUser(accessToken: string): Promise<{ login: str
 
 /** Pure mapping: GitHub role_name -> handbook role. Exported for tests. */
 export function roleFromPermission(roleName: string | undefined): Role {
-  return roleName === "admin" || roleName === "maintain" || roleName === "write"
-    ? "editor"
-    : "reader";
+  if (roleName === "admin" || roleName === "maintain") return "admin";
+  if (roleName === "write") return "editor";
+  return "reader";
 }
 
 export class GithubApiError extends Error {}

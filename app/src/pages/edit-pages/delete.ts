@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { requireEditor } from "../../lib/auth/requireEditor";
 import { checkCsrf } from "../../lib/csrf";
 import { getEditablePageBySlug } from "../../lib/content/pages";
-import { getContentStore } from "../../lib/content/store";
+import { type ContentStore, getContentStore } from "../../lib/content/store";
 import { isSafeSlug } from "../../lib/content/serialize";
 
 export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => {
@@ -19,9 +19,10 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   const page = await getEditablePageBySlug(slug);
   if (!page) return new Response(null, { status: 404 });
 
+  let result: Awaited<ReturnType<ContentStore["remove"]>>;
   try {
     const store = await getContentStore(locals.contentStore);
-    await store.remove(slug, {
+    result = await store.remove(slug, {
       editor: locals.visitor?.login ?? "unknown",
       message: `Delete "${page.title}" (${slug})`,
     });
@@ -30,5 +31,8 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
     return new Response(`Could not delete. ${detail}`, { status: 503 });
   }
 
+  if (result?.reviewNumber) {
+    return redirect(`/edit-pages?submitted=${slug}&pr=${result.reviewNumber}`, 303);
+  }
   return redirect("/edit-pages?deleted=1", 303);
 };

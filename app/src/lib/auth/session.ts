@@ -74,7 +74,7 @@ export async function decryptSession(token: string, secret: string): Promise<Ses
     const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct);
     const data = JSON.parse(dec.decode(pt)) as SessionData;
     if (!data || typeof data.login !== "string" || typeof data.exp !== "number") return null;
-    if (data.role !== "editor" && data.role !== "reader") return null;
+    if (data.role !== "admin" && data.role !== "editor" && data.role !== "reader") return null;
     if (typeof data.checkedAt !== "number") return null;
     if (data.ghToken && typeof data.ghToken.access !== "string") return null;
     if (Date.now() > data.exp) return null; // server-side expiry — don't trust cookie maxAge alone

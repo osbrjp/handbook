@@ -16,6 +16,15 @@ const sections = [...new Set(pages.map((p) => p.section))];
 const deleted = Astro.url.searchParams.get("deleted");
 const writable = isWritable(Astro.locals.contentStore);
 const csrf = writable ? issueCsrf(Astro.cookies, Astro.url.protocol === "https:") : "";
+
+// "Submitted for review" banner (PR mode). pr is numeric-validated; the link is
+// built from the server-known repo, never from user input.
+const submitted = Astro.url.searchParams.get("submitted");
+const prParam = Astro.url.searchParams.get("pr") ?? "";
+const prNumber = /^[0-9]{1,8}$/.test(prParam) ? prParam : null;
+const cfg = Astro.locals.contentStore;
+const prUrl = prNumber ? `https://github.com/${cfg.github?.repo}/pull/${prNumber}` : null;
+const reviewMode = cfg.kind === "github" && cfg.github?.mode !== "direct";
 ---
 
 <Base title="Editor" visitor={Astro.locals.visitor}>
@@ -26,9 +35,23 @@ const csrf = writable ? issueCsrf(Astro.cookies, Astro.url.protocol === "https:"
   </div>
   <a class="btn-cancel admin-back" href="/" id="admin-back">← Back to handbook</a>
   {deleted && <div class="notice">✓ Page deleted.</div>}
+  {
+    submitted && prNumber && (
+      <div class="notice">
+        ✓ <strong>Submitted for review.</strong> Your change to <code>{submitted}</code> is pending
+        approval (<a href={prUrl} target="_blank" rel="noopener">review #{prNumber}</a>). It goes
+        live once an admin approves &amp; publishes it.
+      </div>
+    )
+  }
 
   {
-    writable ? (
+    writable && reviewMode ? (
+      <div class="notice">
+        ✎ <strong>Submit for review.</strong> Saving a page opens a review request — an admin
+        approves &amp; publishes it before it goes live.
+      </div>
+    ) : writable ? (
       <div class="notice">
         ✎ <strong>Local editing.</strong> Create/edit/delete write markdown files + git commits on
         this machine via the local content agent.

@@ -22,23 +22,54 @@ const FILE = {
   body: "body",
 };
 const OPTS = { editor: "octocat", message: "Save T" };
-const CFG = { token: "user-token", repo: "osbrjp/handbook", branch: "main" };
+const DIRECT = { token: "user-token", repo: "osbrjp/handbook", branch: "main", mode: "direct" };
+const PR = { token: "user-token", repo: "osbrjp/handbook", branch: "main", mode: "pr" };
 
-/** Records calls; getSha responses fed per-URL: existing -> {sha}, else 404. */
-function recorder(existing = {}) {
+/**
+ * Scriptable GitHub API mock. State:
+ *  files: {slug: sha} on any branch (contents GET)
+ *  branches: Set of existing branch names (git/ref GET)
+ *  openPrs: array of {number, html_url} returned for pull list
+ */
+function mockApi({ files = {}, branches = ["main"], openPrs = [] } = {}) {
   const calls = [];
   const fn = async (url, init = {}) => {
     const method = init.method ?? "GET";
-    calls.push({ method, url: String(url), body: init.body ? JSON.parse(init.body) : null });
-    if (method === "GET") {
-      for (const [slug, sha] of Object.entries(existing)) {
-        if (String(url).includes(`/${slug}.md`)) {
+    const u = String(url);
+    calls.push({ method, url: u, body: init.body ? JSON.parse(init.body) : null });
+
+    if (method === "GET" && u.includes("/pulls?")) {
+      return new Response(JSON.stringify(openPrs), { status: 200 });
+    }
+    if (method === "GET" && u.includes("/git/ref/")) {
+      const name = decodeURIComponent(u.split("/git/ref/")[1]).replace(/^heads\//, "");
+      return branches.includes(name)
+        ? new Response(JSON.stringify({ object: { sha: `sha-of-${name}` } }), { status: 200 })
+        : new Response(null, { status: 404 });
+    }
+    if (method === "POST" && u.endsWith("/git/refs")) {
+      return new Response(JSON.stringify({}), { status: 201 });
+    }
+    if (method === "PATCH" && u.includes("/git/refs/")) {
+      return new Response(JSON.stringify({}), { status: 200 });
+    }
+    if (method === "POST" && u.endsWith("/pulls")) {
+      return new Response(
+        JSON.stringify({ number: 42, html_url: "https://github.com/x/pull/42" }),
+        {
+          status: 201,
+        },
+      );
+    }
+    if (method === "GET" && u.includes("/contents/")) {
+      for (const [slug, sha] of Object.entries(files)) {
+        if (u.includes(`/${slug}.md`)) {
           return new Response(JSON.stringify({ sha }), { status: 200 });
         }
       }
       return new Response(null, { status: 404 });
     }
-    return new Response(JSON.stringify({}), { status: 200 });
+    return new Response(JSON.stringify({}), { status: 200 }); // PUT/DELETE contents
   };
   return { calls, fn };
 }
@@ -48,35 +79,37 @@ test("throws without a user token (dev-shim session) — save.ts turns this into
   assert.throws(() => createGithubStore({ token: "t" }), /sign in/i);
 });
 
-test("write: NEW file -> PUT without sha, with branch + message + b64 content", async () => {
-  const { calls, fn } = recorder();
-  await createGithubStore(CFG, fn).write(FILE, OPTS);
+// ---------- direct mode ----------
+
+test("direct: NEW file -> PUT without sha, on the base branch", async () => {
+  const { calls, fn } = mockApi();
+  const result = await createGithubStore(DIRECT, fn).write(FILE, OPTS);
+  assert.equal(result, undefined); // no review created
   const put = calls.find((c) => c.method === "PUT");
   assert.ok(put.url.endsWith("/contents/app/src/content/pages/test-page.md"));
   assert.equal(put.body.sha, undefined);
   assert.equal(put.body.branch, "main");
-  assert.equal(put.body.message, "Save T");
   assert.ok(Buffer.from(put.body.content, "base64").toString("utf8").includes("title:"));
 });
 
-test("write: EXISTING file -> PUT includes its sha (concurrent edits 409, not clobber)", async () => {
-  const { calls, fn } = recorder({ "test-page": "abc123" });
-  await createGithubStore(CFG, fn).write(FILE, OPTS);
+test("direct: EXISTING file -> PUT includes its sha (concurrent edits 409, not clobber)", async () => {
+  const { calls, fn } = mockApi({ files: { "test-page": "abc123" } });
+  await createGithubStore(DIRECT, fn).write(FILE, OPTS);
   assert.equal(calls.find((c) => c.method === "PUT").body.sha, "abc123");
 });
 
-test("write: 409/422 from GitHub surfaces as an edit-conflict error", async () => {
+test("direct: 409/422 from GitHub surfaces as an edit-conflict error", async () => {
   const fn = async (_url, init = {}) =>
     (init.method ?? "GET") === "GET"
       ? new Response(null, { status: 404 })
       : new Response(null, { status: 409 });
-  await assert.rejects(() => createGithubStore(CFG, fn).write(FILE, OPTS), /conflict/i);
+  await assert.rejects(() => createGithubStore(DIRECT, fn).write(FILE, OPTS), /conflict/i);
 });
 
-test("rename: writes the NEW path before deleting the old (never loses content)", async () => {
-  const { calls, fn } = recorder({ "old-page": "oldsha" });
-  await createGithubStore(CFG, fn).rename("old-page", FILE, OPTS);
-  const mutations = calls.filter((c) => c.method !== "GET");
+test("direct: rename writes the NEW path before deleting the old (never loses content)", async () => {
+  const { calls, fn } = mockApi({ files: { "old-page": "oldsha" } });
+  await createGithubStore(DIRECT, fn).rename("old-page", FILE, OPTS);
+  const mutations = calls.filter((c) => !["GET"].includes(c.method));
   assert.deepEqual(
     mutations.map((c) => [c.method, c.url.split("/").pop()]),
     [
@@ -87,8 +120,71 @@ test("rename: writes the NEW path before deleting the old (never loses content)"
   assert.equal(mutations[1].body.sha, "oldsha");
 });
 
-test("remove: missing file is a no-op (idempotent, like the local agent)", async () => {
-  const { calls, fn } = recorder();
-  await createGithubStore(CFG, fn).remove("gone", OPTS);
+test("direct: removing a missing file is a no-op (idempotent, like the local agent)", async () => {
+  const { calls, fn } = mockApi();
+  await createGithubStore(DIRECT, fn).remove("gone", OPTS);
   assert.equal(calls.filter((c) => c.method === "DELETE").length, 0);
+});
+
+// ---------- pr (submit-for-review) mode ----------
+
+test("pr: first save creates branch handbook/<slug> from base head, commits there, opens a PR", async () => {
+  const { calls, fn } = mockApi();
+  const result = await createGithubStore(PR, fn).write(FILE, OPTS);
+  assert.deepEqual(result, { reviewNumber: 42, reviewUrl: "https://github.com/x/pull/42" });
+
+  const createRef = calls.find((c) => c.method === "POST" && c.url.endsWith("/git/refs"));
+  assert.equal(createRef.body.ref, "refs/heads/handbook/test-page");
+  assert.equal(createRef.body.sha, "sha-of-main");
+
+  const put = calls.find((c) => c.method === "PUT");
+  assert.equal(put.body.branch, "handbook/test-page");
+
+  const pr = calls.find((c) => c.method === "POST" && c.url.endsWith("/pulls"));
+  assert.equal(pr.body.head, "handbook/test-page");
+  assert.equal(pr.body.base, "main");
+  assert.ok(pr.body.body.includes("@octocat"));
+});
+
+test("pr: save with an OPEN review reuses branch + PR (no create, no reset)", async () => {
+  const { calls, fn } = mockApi({
+    branches: ["main", "handbook/test-page"],
+    openPrs: [{ number: 7, html_url: "https://github.com/x/pull/7" }],
+  });
+  const result = await createGithubStore(PR, fn).write(FILE, OPTS);
+  assert.deepEqual(result, { reviewNumber: 7, reviewUrl: "https://github.com/x/pull/7" });
+  assert.equal(calls.filter((c) => c.method === "POST").length, 0); // no ref create, no PR create
+  assert.equal(calls.filter((c) => c.method === "PATCH").length, 0); // no force reset
+});
+
+test("pr: STALE leftover branch (merged review, no open PR) is force-reset to base head", async () => {
+  const { calls, fn } = mockApi({ branches: ["main", "handbook/test-page"], openPrs: [] });
+  await createGithubStore(PR, fn).write(FILE, OPTS);
+  const reset = calls.find((c) => c.method === "PATCH");
+  assert.ok(decodeURIComponent(reset.url).includes("heads/handbook/test-page"));
+  assert.deepEqual(reset.body, { sha: "sha-of-main", force: true });
+});
+
+test("pr: file sha is read from the EDIT branch, not base", async () => {
+  const { calls, fn } = mockApi({
+    branches: ["main", "handbook/test-page"],
+    openPrs: [{ number: 7, html_url: "u" }],
+    files: { "test-page": "branch-sha" },
+  });
+  await createGithubStore(PR, fn).write(FILE, OPTS);
+  const shaRead = calls.find((c) => c.method === "GET" && c.url.includes("/contents/"));
+  assert.ok(shaRead.url.includes("ref=handbook%2Ftest-page"));
+  assert.equal(calls.find((c) => c.method === "PUT").body.sha, "branch-sha");
+});
+
+test("pr: no-op change (PR create 422: no commits) resolves without a review", async () => {
+  const base = mockApi();
+  const fn = async (url, init = {}) => {
+    if ((init.method ?? "GET") === "POST" && String(url).endsWith("/pulls")) {
+      return new Response(JSON.stringify({ message: "No commits between..." }), { status: 422 });
+    }
+    return base.fn(url, init);
+  };
+  const result = await createGithubStore(PR, fn).remove("gone", OPTS);
+  assert.deepEqual(result, {});
 });

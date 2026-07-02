@@ -17,17 +17,25 @@ export interface WriteOpts {
   message: string; // commit message
 }
 
+// In PR ("submit for review") mode, a mutation yields the pull request that now
+// carries it; empty/void when the change applied directly (local dev, direct mode).
+export interface WriteResult {
+  reviewNumber?: number;
+  reviewUrl?: string;
+}
+
 export interface ContentStore {
-  write(file: PageFile, opts: WriteOpts): Promise<void>;
-  rename(oldSlug: string, file: PageFile, opts: WriteOpts): Promise<void>;
-  remove(slug: string, opts: WriteOpts): Promise<void>;
+  write(file: PageFile, opts: WriteOpts): Promise<WriteResult | void>;
+  rename(oldSlug: string, file: PageFile, opts: WriteOpts): Promise<WriteResult | void>;
+  remove(slug: string, opts: WriteOpts): Promise<WriteResult | void>;
 }
 
 export interface ContentStoreConfig {
   kind: "local" | "github";
   localAgentUrl?: string; // dev: the Node content agent (file write + git commit)
   localAgentToken?: string;
-  github?: { token?: string; repo?: string; branch?: string }; // token = the USER's session token
+  // token = the USER's session token; mode "pr" = submit-for-review (default)
+  github?: { token?: string; repo?: string; branch?: string; mode?: "pr" | "direct" };
 }
 
 /** Whether a real write path exists for this request (drives the editor UI). */

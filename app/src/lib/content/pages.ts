@@ -1,5 +1,5 @@
 import { type CollectionEntry, getCollection, getEntry } from "astro:content";
-import type { Visitor } from "../auth/visitor";
+import { isEditorRole, type Visitor } from "../auth/visitor";
 import { canRead, type PageRow, searchRows, type SearchHit, type SidebarRow } from "./acl";
 
 // Astro-bound content reads. All content comes from the `pages` collection
@@ -26,10 +26,9 @@ export async function getPageBySlug(slug: string, v: Visitor | null): Promise<Pa
 /** Nav list. Reflects PUBLISHED reality even for editors (drafts via the editor). */
 export async function getNavPages(v: Visitor | null): Promise<PageRow[]> {
   const rows = await allRows();
-  const visible =
-    v?.role === "editor"
-      ? rows.filter((r) => r.status === "published")
-      : rows.filter((r) => canRead(r, v));
+  const visible = isEditorRole(v?.role)
+    ? rows.filter((r) => r.status === "published")
+    : rows.filter((r) => canRead(r, v));
   return visible.sort((a, b) => a.sort - b.sort);
 }
 

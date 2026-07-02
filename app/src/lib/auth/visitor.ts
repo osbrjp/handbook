@@ -1,4 +1,13 @@
-export type Role = "editor" | "reader";
+// Roles map 1:1 onto GitHub repo permission levels (see auth/github.ts):
+//   admin/maintain -> "admin"   (edit + review dashboard: approve & publish)
+//   write          -> "editor"  (edit -> submit for review)
+//   collaborator   -> "reader"
+export type Role = "admin" | "editor" | "reader";
+
+/** Editing capability — admins can do everything editors can. */
+export function isEditorRole(role: Role | undefined | null): boolean {
+  return role === "editor" || role === "admin";
+}
 
 export interface Visitor {
   login: string; // GitHub username — no emails anywhere in the system

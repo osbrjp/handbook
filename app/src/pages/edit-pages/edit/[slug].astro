@@ -50,6 +50,8 @@ const savedMsg = saved === "published" ? "Published" : saved === "draft" ? "Save
       groups={groups}
       sections={sections}
       writable={isWritable(Astro.locals.contentStore)}
+      reviewMode={Astro.locals.contentStore.kind === "github" &&
+        Astro.locals.contentStore.github?.mode !== "direct"}
     />
   </div>
 </Base>

@@ -1,4 +1,5 @@
-import type { Visitor } from "../auth/visitor";
+// .ts extension: imported by node --test too (no extensionless resolution).
+import { isEditorRole, type Visitor } from "../auth/visitor.ts";
 
 // Pure content-ACL + search core. NO `astro:content` import here, so this module
 // is unit-testable under plain `node --test` (the Astro-bound wrappers live in
@@ -45,7 +46,7 @@ export function canRead(
   v: Visitor | null,
 ): boolean {
   if (!v) return fm.status === "published" && fm.visibility === "public";
-  if (v.role === "editor") return true; // editors see drafts and every visibility
+  if (isEditorRole(v.role)) return true; // editors/admins see drafts and every visibility
   if (fm.status !== "published") return false;
   if (fm.visibility === "public" || fm.visibility === "internal") return true;
   if (fm.visibility === "restricted") return (fm.groups ?? []).some((k) => v.groupKeys.includes(k));
