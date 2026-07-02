@@ -1,19 +1,25 @@
 import { defineMiddleware } from "astro:middleware";
 import { env } from "cloudflare:workers";
-import { isAllowed } from "./lib/auth/accessList";
-import { SESSION_COOKIE } from "./lib/auth/cookies";
-import { lookupUser } from "./lib/auth/directory";
-import { decryptSession } from "./lib/auth/session";
+import { resolveRole } from "./lib/auth/github";
+import { SESSION_COOKIE, sessionCookieOptions } from "./lib/auth/cookies";
+import { getOrigin } from "./lib/auth/origin";
+import { decryptSession, encryptSession } from "./lib/auth/session";
 import type { Visitor } from "./lib/auth/visitor";
+
+// How long a GitHub-verified role is trusted before re-checking. Short enough
+// that revoking someone on GitHub locks them out in minutes; long enough that
+// requests almost never pay the GitHub API round-trip.
+const ROLE_TTL_MS = 10 * 60_000;
 
 // Resolves the per-request visitor and content-store config into locals.
 //
 // GUARDRAIL: per-request only (Workers reuse module scope across requests, so a
 // module-scoped visitor would bleed identity). `env` is the binding accessor
-// (secrets/vars), not per-visitor state. FAIL CLOSED: any tamper/expiry/unknown
-// user leaves visitor = null (anonymous). Role + groups are re-resolved from the
-// git directory EVERY request (the cookie carries identity only) so a change
-// takes effect at once. No database — identity is a git-committed config.
+// (secrets/vars), not per-visitor state. FAIL CLOSED: any tamper/expiry leaves
+// visitor = null (anonymous). Identity is the GitHub login; the role was
+// verified against the repo's collaborator permissions when the session was
+// minted and is RE-VERIFIED here once it's older than ROLE_TTL_MS — no
+// database, no directory, no allow-list in the codebase.
 export const onRequest = defineMiddleware(async (ctx, next) => {
   ctx.locals.visitor = null;
   // Content store config (read from env here; the editor builds the driver
@@ -29,20 +35,51 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   const raw = ctx.cookies.get(SESSION_COOKIE)?.value;
   if (raw) {
     const session = await decryptSession(raw, env.COOKIE_ENCRYPTION_KEY);
-    // Enforce the domain allow-list here too (defense-in-depth with the sign-in
-    // gate). DEV_USERS is a LOCAL-DEV-ONLY override — honored only when
-    // DEV_LOGIN=1, so it can never widen access in production.
-    if (session?.email && isAllowed(session.email)) {
-      const devUsers = env.DEV_LOGIN === "1" ? env.DEV_USERS : undefined;
-      const user = lookupUser(session.email, devUsers);
-      if (user) {
+    if (session) {
+      let { role, checkedAt } = session;
+      let revoked = false;
+
+      // Re-verify a stale role against GitHub. Skipped in dev (DEV_LOGIN=1),
+      // where sessions come from the dev-login shim and aren't real GitHub users.
+      if (env.DEV_LOGIN !== "1" && Date.now() - checkedAt > ROLE_TTL_MS) {
+        try {
+          const fresh = await resolveRole({
+            token: env.GITHUB_TOKEN ?? "",
+            repo: env.GITHUB_REPO || "osbrjp/handbook",
+            login: session.login,
+          });
+          if (fresh) {
+            role = fresh;
+            checkedAt = Date.now();
+            // Re-mint so the next ~10 min of requests skip the API round-trip.
+            const cookie = await encryptSession(
+              { login: session.login, role, checkedAt, exp: session.exp },
+              env.COOKIE_ENCRYPTION_KEY,
+            );
+            ctx.cookies.set(
+              SESSION_COOKIE,
+              cookie,
+              sessionCookieOptions(getOrigin(ctx.request, env)),
+            );
+          } else {
+            // Definitive 404: no longer a collaborator — revoked on GitHub.
+            revoked = true;
+            ctx.cookies.delete(SESSION_COOKIE, { path: "/" });
+          }
+        } catch {
+          // GitHub API trouble (outage/rate limit): keep the previously
+          // VERIFIED role until the next successful check rather than locking
+          // the whole company out. New logins still fail closed in callback.ts.
+        }
+      }
+
+      if (!revoked) {
         ctx.locals.visitor = {
-          email: user.email,
-          role: user.role,
-          groupKeys: user.groups ?? [],
+          login: session.login,
+          role,
+          groupKeys: [], // groups tier unused; would map to GitHub teams (see auth/groups.ts)
         } satisfies Visitor;
       }
-      // unknown user (not in the directory) => stays anonymous
     }
   }
   return next();

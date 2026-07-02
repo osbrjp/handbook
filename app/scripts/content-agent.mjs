@@ -40,7 +40,7 @@ async function stagedHasChanges(paths) {
     return true;
   }
 }
-async function commit(paths, message, editorEmail) {
+async function commit(paths, message, editor) {
   // No-op (e.g. deleting an already-absent file, or a save with no change): skip
   // so we don't fail with "nothing to commit". Scope the commit to `paths` so a
   // concurrent unrelated staged change can't be swept into this commit.
@@ -48,7 +48,7 @@ async function commit(paths, message, editorEmail) {
   await git([
     "commit",
     "-m",
-    `${message}\n\nEdited-by: ${editorEmail || "unknown"}`,
+    `${message}\n\nEdited-by: ${editor || "unknown"}`,
     "--author",
     "OSBR Handbook <handbook@osbrjp.com>",
     "--",
@@ -78,7 +78,7 @@ const server = http.createServer(async (req, res) => {
 
     const op = new URL(req.url, "http://localhost").pathname.replace(/^\//, "");
     const p = JSON.parse((await readBody(req)) || "{}");
-    const { slug, oldSlug, text, title, editorEmail, message } = p;
+    const { slug, oldSlug, text, title, editor, message } = p;
     if (!isSafeSlug(slug)) return send(400, { error: "invalid slug" });
 
     const rel = `${CONTENT_REL}/${slug}.md`;
@@ -98,11 +98,11 @@ const server = http.createServer(async (req, res) => {
         paths.unshift(oldRel); // staging the removed path records the delete
       }
       await git(["add", "--", ...paths]);
-      await commit(paths, message || `Save "${title || slug}" (${slug})`, editorEmail);
+      await commit(paths, message || `Save "${title || slug}" (${slug})`, editor);
     } else if (op === "remove") {
       await rm(abs, { force: true });
       await git(["add", "--", rel]);
-      await commit([rel], message || `Delete "${title || slug}" (${slug})`, editorEmail);
+      await commit([rel], message || `Delete "${title || slug}" (${slug})`, editor);
     } else {
       return send(404, { error: "unknown op" });
     }

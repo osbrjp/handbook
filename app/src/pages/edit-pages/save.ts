@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { requireEditor } from "../../lib/auth/requireEditor";
 import { checkCsrf } from "../../lib/csrf";
 import { getEditablePageBySlug, type Visibility } from "../../lib/content/pages";
-import { listGroups } from "../../lib/auth/directory";
+import { listGroups } from "../../lib/auth/groups";
 import { getContentStore, type PageFile } from "../../lib/content/store";
 import { isSafeSlug } from "../../lib/content/serialize";
 
@@ -59,7 +59,7 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
       .filter((k) => known.has(k));
   }
 
-  const editorEmail = locals.visitor?.email ?? "unknown";
+  const editor = locals.visitor?.login ?? "unknown";
   const file: PageFile = {
     slug,
     frontmatter: {
@@ -70,7 +70,7 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
       visibility,
       groups,
       status,
-      updated_by: editorEmail,
+      updated_by: editor, // GitHub login — no emails in content files
       updated_at: new Date().toISOString(),
     },
     body,
@@ -80,9 +80,9 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   try {
     const store = await getContentStore(locals.contentStore);
     if (origSlug && origSlug !== slug) {
-      await store.rename(origSlug, file, { editorEmail, message });
+      await store.rename(origSlug, file, { editor, message });
     } else {
-      await store.write(file, { editorEmail, message });
+      await store.write(file, { editor, message });
     }
   } catch {
     // Dev: the local content agent is likely not running. Prod: the GitHub

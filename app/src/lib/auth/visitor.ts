@@ -1,7 +1,7 @@
 export type Role = "editor" | "reader";
 
 export interface Visitor {
-  email: string;
+  login: string; // GitHub username — no emails anywhere in the system
   role: Role;
   groupKeys: string[]; // group keys the user belongs to — used by the content ACL
 }

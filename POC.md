@@ -2,13 +2,13 @@
 
 A proof-of-concept moving the OSBR handbook **off VitePress** to a fully custom
 Astro app on Cloudflare, with **git-backed markdown content** and
-**server-side per-page reader access** keyed to Google Workspace identity — all
+**server-side per-page reader access** keyed to GitHub identity — all
 written from scratch, no Directus/headless-CMS.
 
 > The reader ACL, editor RBAC, CSRF, and stored-XSS defenses are **verified live**
-> (see below). Deferred: the live Google OAuth handshake (needs a Workspace OAuth
-> client) and in-browser editor **writes** (the workerd runtime can't touch the
-> filesystem, so writes must go via the GitHub API — see below).
+> (see below). Deferred: the live GitHub OAuth handshake (needs an OAuth App +
+> bot token — see below) and in-browser editor **writes** (the workerd runtime
+> can't touch the filesystem, so writes must go via the GitHub API — see below).
 
 ## Architecture
 
@@ -18,30 +18,47 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  — NO DATABASE (statele
             - CONTENT = git-backed markdown (src/content/pages/*.md, frontmatter
               carries title/section/sort/visibility/groups/status), read via an
               Astro content collection bundled at build
-            - IDENTITY = git-committed config (src/lib/auth/directory.ts):
-              who may sign in, their role, and group membership
+            - ACCESS = GitHub itself: sign in with GitHub, then your access to
+              the handbook repo IS your access to the site (collaborator ->
+              reader, push permission -> editor). NO allow-list in the codebase.
             - canRead(): ONE predicate over frontmatter = the entire reader ACL
-            - middleware: decrypt session cookie, resolve role + group keys from
-              the directory per request (no identity bleed)
-            - hand-written Google OAuth (AES-GCM session cookie), coop-pattern
+            - middleware: decrypt session cookie; the GitHub-verified role is
+              re-checked against the repo every ~10 min (no identity bleed)
+            - hand-written GitHub OAuth (AES-GCM session cookie), coop-pattern
 ```
 
-- **Everything in git** — content AND identity. No datastore; the Worker is
-  stateless (session identity lives in the signed cookie). One Worker deploy.
+- **Everything in git/GitHub** — content in the repo, access control on the
+  repo. No datastore; the Worker is stateless (session identity lives in the
+  signed cookie). One Worker deploy.
+- **Who gets in = who has repo access.** Managed on GitHub (org People / repo
+  Collaborators — a private page, so nothing about staff is published even
+  while the repo itself is public): grant someone the repo -> they can read the
+  handbook; grant them **write** -> they can also use the editor; revoke ->
+  locked out within ~10 minutes. Outside collaborators (people beyond the org)
+  work exactly the same way. Identity is the GitHub username — **no emails
+  anywhere in the system**.
 - A published content change goes live after a **rebuild/redeploy** (content is
   bundled at build). Local dev picks up file edits via HMR.
 - Reader access is enforced **server-side**, fails **closed**, and forbidden == not-found (both 404 — no existence signal). A file with missing/invalid `visibility` defaults to the **tightest** tier (restricted) via the collection schema.
 - **Sidebar shows `restricted` pages a signed-in user can't read as "no access"** (title visible, body gated) — a deliberate transparency choice so staff know such content exists and can request it. **Content guideline:** because the title is disclosed to signed-in users, **keep `restricted` page titles non-sensitive** (e.g. "Leadership Resources", not "Acme Acquisition Terms") — put the sensitive detail in the body, which stays gated. A page whose very title must be secret does not belong in this system.
 - Page bodies are **markdown**, **sanitized at render** (`rehype-sanitize`), shared by the reader page and the editor preview.
-- Auth = **hand-written Google OAuth** ported from `osbrjp/coop-csnet-poc` (AES-GCM encrypted session cookie), hardened with a state-nonce CSRF check the original lacked.
+- Auth = **hand-written GitHub OAuth** (session crypto ported from
+  `osbrjp/coop-csnet-poc`, AES-GCM encrypted cookie), hardened with a
+  state-nonce CSRF check the original lacked. The user grants **no scopes**
+  (public identity only); authorization runs server-side with a bot token
+  (`GITHUB_TOKEN` secret) against the repo's collaborator permissions.
+  Note: the permission API reports `read` for *any* GitHub user while the repo
+  is public, so the gate is the **explicit-collaborator check** (204/404) —
+  which behaves identically once the repo goes private.
 - **Editing:** for now, edit the markdown files under `src/content/pages/` and commit. The in-browser editor is **preview-only** (its write path — commit via the GitHub API + a build-on-commit pipeline — is scaffolded but deferred).
 - **Public repo caveat:** while the content repo is public, `internal`/`restricted` page *source* is readable in git even though the deployed site gates the rendered page. Move the content repo private to make gated content actually private (no code change needed).
 
 ## What's verified
 
-**Verified locally with no Docker/Google (unit):**
-- `pnpm check` (types), `pnpm build`, `pnpm test` (33 tests), `pnpm guard`.
-- Session crypto round-trip + tamper/expiry/wrong-key rejection; the `canRead` ACL truth table + `searchRows` ACL; render pipeline (callouts/TOC/mermaid + XSS sanitize); `doc/*.md → content-file` helpers.
+**Verified locally with no Docker/GitHub (unit):**
+- `pnpm check` (types), `pnpm build`, `pnpm test` (47 tests), `pnpm guard`.
+- Session crypto round-trip + tamper/expiry/wrong-key/bad-role rejection; the `canRead` ACL truth table + `searchRows` ACL; the GitHub role mapping (collaborator 404 → no access even where a public repo reports `read`); render pipeline (callouts/TOC/mermaid + XSS sanitize); `doc/*.md → content-file` helpers.
+- The role-resolution calls were also probed against the **live GitHub API** (real org/repo): collaborator 204/404 gate + `role_name` mapping behave as coded.
 
 **Verified LIVE via `astro dev` (no database):**
 - Reader ACL matrix through the real app (dev-login shim as each persona):
@@ -63,17 +80,17 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  — NO DATABASE (statele
 
 **Deferred:**
 - **In-browser editor writes.** The workerd SSR runtime has no filesystem, so a save can't write a file — it must commit via the GitHub API (scaffolded in `lib/content/store.ts`), which needs a repo-scoped token + a build-on-commit pipeline. Until then the editor is preview-only; edit content by committing markdown to the repo.
-- The live Google OAuth handshake (`/api/auth/login` + `/api/auth/callback` are written and code-reviewable); dev-login shim proves the session/enforcement machinery.
-- Google Group → role/group sync (POC seeds identity by hand).
+- The live GitHub OAuth handshake (`/api/auth/login` + `/api/auth/callback` are written and code-reviewable); dev-login shim proves the session/enforcement machinery, and the authorization API calls were probed live.
+- The `restricted`/groups tier is supported by the schema/ACL but has no group source yet — it would map to **GitHub teams** (see `lib/auth/groups.ts`).
 - Production: Worker secrets, prod cookie flags (`secure` keys off `https`). No datastore to provision.
 
 ## Prerequisites
 
 - Node 20+ and pnpm
 - `wrangler` (installed as a dev dependency)
-- (Optional, for the real login) a Google OAuth **Internal** Workspace client
+- (Optional, for the real login) a GitHub **OAuth App** under the org + a bot token
 
-## Quickstart (local, no Google needed)
+## Quickstart (local, no GitHub OAuth needed)
 
 ```sh
 cd app
@@ -84,30 +101,36 @@ pnpm dev                                # astro dev on http://localhost:4321  (n
 # or: pnpm dev:edit                     # also runs the local content agent (in-browser editing)
 ```
 
-Log in as a seeded persona without Google via the dev-login shim (works only when `DEV_LOGIN=1`):
+Log in as any persona without GitHub via the dev-login shim (works only when `DEV_LOGIN=1`):
 
 ```
-http://localhost:4321/api/auth/dev-login?email=editor@osbrjp.com    # editor
-http://localhost:4321/api/auth/dev-login?email=reader@osbrjp.com     # reader
+http://localhost:4321/api/auth/dev-login?user=alice&role=editor
+http://localhost:4321/api/auth/dev-login?user=bob&role=reader
 ```
 
 - Reader site: http://localhost:4321/  · Editor: http://localhost:4321/edit-pages
 
 ### Acceptance test (scripted)
 
-`pnpm dev` running, then exercise the matrix above with the dev-login shim (see the persona table). `pnpm test` covers the pure ACL/crypto/render units.
+`pnpm dev` running, then exercise the matrix above with the dev-login shim (see the persona table). `pnpm test` covers the pure ACL/crypto/render/role-mapping units.
 
-## Real Google login (when you have a client)
+## Real GitHub login (when you have the OAuth App)
 
-Create an OAuth 2.0 **Web** client in Google Cloud Console as an **Internal**
-(Workspace-only) app:
+1. **OAuth App** (org Settings → Developer settings → OAuth Apps → New): set the
+   callback URL to `<origin>/api/auth/callback` (one app per origin — make a
+   separate one for localhost testing). No special permissions; it only proves
+   identity.
+2. **Bot token** for the role checks: a **fine-grained PAT** scoped to the
+   handbook repo (read access to metadata/collaborators is enough), or an org
+   GitHub App token later. This token also becomes the prod content-write
+   credential when editor writes land.
+3. Put `GITHUB_OAUTH_CLIENT_ID` / `GITHUB_OAUTH_CLIENT_SECRET` / `GITHUB_TOKEN`
+   in `app/.dev.vars`, set `DEV_LOGIN=0`, restart `pnpm dev`, hit "Sign in".
 
-- Authorized redirect URI: `http://localhost:4321/api/auth/callback` (and your prod origin)
-- Put `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in `app/.dev.vars`, set `DEV_LOGIN=0`.
-
-Login is restricted by `src/lib/auth/accessList.ts` (Workspace domains) **and** a
-entry in the directory (`src/lib/auth/directory.ts`) — new staff are provisioned by editing
-that git config / a Google-Group sync (pre-prod), not auto-created.
+**Provisioning people = GitHub, not code.** Anyone with access to the handbook
+repo (org member via team, or outside collaborator) can sign in: repo access →
+reader, push permission → editor, revoked → locked out within ~10 minutes.
+There is no allow-list, directory, or email anywhere in this codebase.
 
 ## Layout
 
@@ -118,8 +141,9 @@ app/
   src/lib/content/   acl.ts (canRead + searchRows, pure), pages.ts (collection reads),
                      store.ts + store.local.ts (dev agent) + store.github.ts (prod, deferred),
                      serialize.ts
-  src/lib/auth/      directory.ts (WHO can sign in — git config, no DB), session (AES-GCM),
-                     oauth, origin, accessList, cookies, visitor, requireEditor
+  src/lib/auth/      github.ts (OAuth + role from repo permissions — the WHOLE
+                     access model), session (AES-GCM), origin, cookies, visitor,
+                     groups (restricted-tier stub), requireEditor
   src/lib/csrf.ts    double-submit CSRF
   src/middleware.ts  per-request: decrypt session, resolve role + group keys, fail closed
   src/pages/         index, [...slug], sitemap.xml, api/auth/*, api/search, edit-pages/*
@@ -139,17 +163,18 @@ to the `release` branch; `handbook.osbrjp.com` is a CNAME to `osbrjp.github.io`
 serves static files and can't gate per user.
 
 **Why the host must change:** this app is Astro **SSR on Cloudflare Workers** —
-it checks Google identity and per-page access on every request, which a static
+it checks GitHub identity and per-page access on every request, which a static
 host (GitHub Pages) fundamentally can't do. So the cutover is a host swap, not a
 redeploy of the same thing.
 
 **Cutover steps (when ready to go live):**
 1. **Deploy the Worker.** `wrangler deploy` (or a CI job) publishes the Astro
    build. Verify on the `*.workers.dev` URL first.
-2. **Real Google OAuth.** Create the Internal Workspace OAuth client; set
-   `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` + `COOKIE_ENCRYPTION_KEY` as
-   **Worker secrets** (`wrangler secret put …`), `DEV_LOGIN=0`, and add the prod
-   redirect URI `https://handbook.osbrjp.com/api/auth/callback`.
+2. **Real GitHub OAuth.** Create the org OAuth App (callback
+   `https://handbook.osbrjp.com/api/auth/callback`); set
+   `GITHUB_OAUTH_CLIENT_ID` / `GITHUB_OAUTH_CLIENT_SECRET` / `GITHUB_TOKEN`
+   (bot PAT for role checks) + `COOKIE_ENCRYPTION_KEY` as **Worker secrets**
+   (`wrangler secret put …`), `DEV_LOGIN=0`.
 3. **Enable editor writes in prod (deferred piece).** Provision a **GitHub App**
    (repo-scoped, `contents:write`), store its key as a Worker secret, finish
    `src/lib/content/store.github.ts`, and add a **deploy-on-push** action so a

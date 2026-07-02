@@ -2,11 +2,13 @@ name = "osbr-handbook"
 compatibility_date = "2026-06-01"
 compatibility_flags = ["nodejs_compat"]
 
-# No datastore: content is git-backed markdown and identity is a git-committed
-# config (src/lib/auth/directory.ts). The Worker is stateless.
+# No datastore: content is git-backed markdown, and access control lives in
+# GitHub itself (repo collaborators / org membership — no allow-list in this
+# codebase). The Worker is stateless.
 
 # Non-secret vars. DEV_LOGIN is "0" here (prod-safe default); .dev.vars sets it
-# to "1" for local dev only. Secrets (COOKIE_ENCRYPTION_KEY, GOOGLE_*) live in
-# .dev.vars locally and as Worker secrets in prod — never here.
+# to "1" for local dev only. Secrets (COOKIE_ENCRYPTION_KEY, GITHUB_OAUTH_*,
+# GITHUB_TOKEN) live in .dev.vars locally and as Worker secrets in prod — never here.
 [vars]
 DEV_LOGIN = "0"
+GITHUB_REPO = "osbrjp/handbook"

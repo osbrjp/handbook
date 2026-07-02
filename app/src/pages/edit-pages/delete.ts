@@ -22,7 +22,7 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   try {
     const store = await getContentStore(locals.contentStore);
     await store.remove(slug, {
-      editorEmail: locals.visitor?.email ?? "unknown",
+      editor: locals.visitor?.login ?? "unknown",
       message: `Delete "${page.title}" (${slug})`,
     });
   } catch {

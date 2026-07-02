@@ -13,7 +13,7 @@ export interface PageFile {
   body: string;
 }
 export interface WriteOpts {
-  editorEmail: string;
+  editor: string; // GitHub login of the signed-in editor (commit attribution)
   message: string; // commit message
 }
 

@@ -3,7 +3,7 @@ import Base from "../../layouts/Base.astro";
 import EditorForm from "../../components/EditorForm.astro";
 import { requireEditor } from "../../lib/auth/requireEditor";
 import { issueCsrf } from "../../lib/csrf";
-import { listGroups } from "../../lib/auth/directory";
+import { listGroups } from "../../lib/auth/groups";
 import { listAllPages } from "../../lib/content/pages";
 
 const denied = requireEditor(Astro.locals);

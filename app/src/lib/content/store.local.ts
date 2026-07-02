@@ -24,7 +24,7 @@ export function createLocalStore(baseUrl: string, token: string): ContentStore {
         slug: file.slug,
         title: file.frontmatter.title,
         text: serializePageFile(file.frontmatter, file.body),
-        editorEmail: opts.editorEmail,
+        editor: opts.editor,
         message: opts.message,
       });
     },
@@ -34,12 +34,12 @@ export function createLocalStore(baseUrl: string, token: string): ContentStore {
         oldSlug,
         title: file.frontmatter.title,
         text: serializePageFile(file.frontmatter, file.body),
-        editorEmail: opts.editorEmail,
+        editor: opts.editor,
         message: opts.message,
       });
     },
     async remove(slug: string, opts: WriteOpts) {
-      await call("remove", { slug, editorEmail: opts.editorEmail, message: opts.message });
+      await call("remove", { slug, editor: opts.editor, message: opts.message });
     },
   };
 }

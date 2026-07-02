@@ -2,11 +2,13 @@
 COOKIE_ENCRYPTION_KEY=generate-with-openssl-rand-hex-32-min-32-chars
 DEV_LOGIN=1
 OAUTH_ORIGIN=http://localhost:4321
-# Google OAuth client (Internal Workspace app). Fill both to test the real login;
-# leave blank to use the dev-login shim. Redirect URI must be OAUTH_ORIGIN + /api/auth/callback.
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-# LOCAL-DEV-ONLY extra authorized users (kept out of the git directory). Lets you
-# sign in with your real Workspace email locally. Format: email:role,email:role
-# e.g. DEV_USERS=you@osbrjp.com:editor
-DEV_USERS=
+# GitHub OAuth App (login). Fill all three to test the real login locally; leave
+# blank to use the dev-login shim (/api/auth/dev-login?user=x&role=editor).
+# Callback URL on the OAuth App must be OAUTH_ORIGIN + /api/auth/callback.
+GITHUB_OAUTH_CLIENT_ID=
+GITHUB_OAUTH_CLIENT_SECRET=
+# Bot token for role checks (reads repo collaborator permissions). A
+# fine-grained PAT scoped to the handbook repo is enough. Required for the real
+# login; unused by the dev-login shim.
+GITHUB_TOKEN=
+GITHUB_REPO=osbrjp/handbook

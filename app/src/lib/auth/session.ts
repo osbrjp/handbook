@@ -1,16 +1,21 @@
 // AES-GCM encrypted session cookie (Web Crypto — works on Workers and in Node).
-// Ported from OSBR coop-csnet-poc's encryption pattern. The cookie carries
-// IDENTITY ONLY ({email, exp}); role/groups are re-resolved from the git
-// directory (src/lib/auth/directory.ts) per request.
+// Ported from OSBR coop-csnet-poc's encryption pattern. The cookie carries the
+// GitHub login plus the role verified against the repo at `checkedAt`; the
+// middleware re-verifies the role against GitHub once it's older than its TTL,
+// so a GitHub-side revoke takes effect within minutes, not the cookie lifetime.
 //
 // decryptSession fails CLOSED: any tamper/parse error OR a past `exp` returns
 // null. AES-GCM's auth tag makes a tampered cookie fail decryption outright.
+
+import type { Role } from "./visitor";
 
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 
 export interface SessionData {
-  email: string;
+  login: string; // GitHub username — the only identity in the system (no emails)
+  role: Role;
+  checkedAt: number; // epoch ms of the last successful GitHub role check
   exp: number; // epoch ms
 }
 
@@ -58,7 +63,9 @@ export async function decryptSession(token: string, secret: string): Promise<Ses
     const ct = payload.slice(12);
     const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct);
     const data = JSON.parse(dec.decode(pt)) as SessionData;
-    if (!data || typeof data.email !== "string" || typeof data.exp !== "number") return null;
+    if (!data || typeof data.login !== "string" || typeof data.exp !== "number") return null;
+    if (data.role !== "editor" && data.role !== "reader") return null;
+    if (typeof data.checkedAt !== "number") return null;
     if (Date.now() > data.exp) return null; // server-side expiry — don't trust cookie maxAge alone
     return data;
   } catch {

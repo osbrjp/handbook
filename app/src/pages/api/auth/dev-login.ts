@@ -2,25 +2,26 @@ import type { APIRoute } from "astro";
 import { env } from "cloudflare:workers";
 import { encryptSession } from "../../../lib/auth/session";
 import { SESSION_COOKIE, sessionCookieOptions } from "../../../lib/auth/cookies";
-import { isAllowed } from "../../../lib/auth/accessList";
-import { lookupUser } from "../../../lib/auth/directory";
 import { getOrigin } from "../../../lib/auth/origin";
 
-// DEV-ONLY login shim. Mints the SAME session cookie as the real Google flow so
-// the middleware/ACL/editor paths are exercised locally with no Google client.
-// Bypasses ONLY the Google round-trip — still requires DEV_LOGIN=1, an allowed
-// email, AND a directory entry. Returns 404 in prod (no signal it exists).
+// DEV-ONLY login shim. Mints the SAME session cookie as the real GitHub flow so
+// the middleware/ACL/editor paths are exercised locally with no OAuth app or
+// bot token. Bypasses ONLY the GitHub round-trip — still requires DEV_LOGIN=1
+// (the middleware also skips role re-verification in dev, so these fake users
+// survive past the revalidation TTL). Returns 404 in prod (no signal it exists).
+//
+//   /api/auth/dev-login?user=alice&role=editor
+//   /api/auth/dev-login?user=bob&role=reader
 export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
   if (env.DEV_LOGIN !== "1") return new Response(null, { status: 404 });
 
-  const email = (url.searchParams.get("email") ?? "editor@osbrjp.com").toLowerCase();
-  if (!isAllowed(email)) return new Response(null, { status: 404 });
-
-  if (!lookupUser(email, env.DEV_USERS)) return new Response(null, { status: 404 });
+  const login = url.searchParams.get("user") ?? "dev-editor";
+  const role = url.searchParams.get("role") === "reader" ? "reader" : "editor";
 
   const origin = getOrigin(request, env);
+  const now = Date.now();
   const cookie = await encryptSession(
-    { email, exp: Date.now() + 86_400_000 },
+    { login, role, checkedAt: now, exp: now + 86_400_000 },
     env.COOKIE_ENCRYPTION_KEY,
   );
   cookies.set(SESSION_COOKIE, cookie, sessionCookieOptions(origin));

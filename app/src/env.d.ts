@@ -9,15 +9,17 @@ declare namespace Cloudflare {
     COOKIE_ENCRYPTION_KEY: string;
     DEV_LOGIN?: string;
     OAUTH_ORIGIN?: string;
-    DEV_USERS?: string; // LOCAL DEV ONLY (.dev.vars): "email:role,..." extra allowed users
-    GOOGLE_CLIENT_ID?: string;
-    GOOGLE_CLIENT_SECRET?: string;
+    // GitHub OAuth App (login) — identity only, no scopes
+    GITHUB_OAUTH_CLIENT_ID?: string;
+    GITHUB_OAUTH_CLIENT_SECRET?: string;
+    // Bot token: reads collaborator permissions (role checks); later also the
+    // prod content-write driver. Worker secret / .dev.vars — never committed.
+    GITHUB_TOKEN?: string;
+    GITHUB_REPO?: string; // owner/name, default osbrjp/handbook
+    GITHUB_BRANCH?: string;
     // content store: dev (DEV_LOGIN=1) uses the local content agent; prod the GitHub driver
     CONTENT_AGENT_URL?: string; // default http://127.0.0.1:4322
     CONTENT_AGENT_TOKEN?: string; // shared token with the local agent
-    GITHUB_TOKEN?: string;
-    GITHUB_REPO?: string;
-    GITHUB_BRANCH?: string;
   }
 }
 
