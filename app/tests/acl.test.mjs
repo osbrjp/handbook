@@ -10,8 +10,8 @@ const internal = { status: "published", visibility: "internal", groups: [] };
 const restricted = { status: "published", visibility: "restricted", groups: ["leadership"] };
 const draft = { status: "draft", visibility: "public", groups: [] };
 
-const editor = { email: "e@osbrjp.com", role: "editor", groupKeys: [] };
-const reader = (keys = []) => ({ email: "r@osbrjp.com", role: "reader", groupKeys: keys });
+const editor = { login: "ed", role: "editor", groupKeys: [] };
+const reader = (keys = []) => ({ login: "rd", role: "reader", groupKeys: keys });
 
 test("anonymous: only published public pages", () => {
   assert.equal(canRead(pub, null), true);

@@ -36,8 +36,8 @@ const ROWS = [
   }),
 ];
 
-const reader = (keys = []) => ({ email: "r@osbrjp.com", role: "reader", groupKeys: keys });
-const editor = { email: "e@osbrjp.com", role: "editor", groupKeys: [] };
+const reader = (keys = []) => ({ login: "rd", role: "reader", groupKeys: keys });
+const editor = { login: "ed", role: "editor", groupKeys: [] };
 
 test("empty / whitespace query returns []", () => {
   assert.deepEqual(searchRows(ROWS, "   ", reader()), []);
