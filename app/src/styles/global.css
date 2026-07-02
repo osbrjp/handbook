@@ -130,13 +130,6 @@ a:hover {
   color: var(--brand);
   text-decoration: none;
 }
-.linkbtn {
-  background: none;
-  border: none;
-  color: var(--brand);
-  cursor: pointer;
-  font: inherit;
-}
 
 /* ===== navbar search ===== */
 .search {
@@ -255,8 +248,18 @@ a:hover {
   gap: 0.75rem;
   flex-wrap: wrap;
 }
-/* Single button system: one base + colour variants, used everywhere
-   (homepage, New page, Save/Publish, Delete, modal actions). */
+/* ===== THE button system — the ONLY way to style an action control. =====
+   Base `.btn` + ONE colour variant (+ optional `.btn-sm`); text-style actions
+   use `.btn-link` / `.btn-link-danger`. Do not invent new one-off button CSS.
+     .btn-brand   filled, primary action        (Publish, + New page, Approve)
+     .btn-alt     soft neutral                  (Save draft, Cancel, secondary nav)
+     .btn-danger  OUTLINE at rest, fills on hover (Delete, Reject)
+     .btn-sm      compact — for buttons inside table rows
+     .btn-link        text-style action (Sign out, row Edit/View)
+     .btn-link-danger text-style destructive (row Delete)
+     .btn-cancel      muted back-navigation link (“← Back …”)
+   Disabled state is uniform: dimmed, inert, and hover effects (incl. the
+   danger fill) never fire. */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -276,15 +279,32 @@ a:hover {
 .btn:hover {
   text-decoration: none;
 }
+.btn-sm {
+  padding: 0.3rem 0.75rem;
+  min-height: 1.9rem;
+  font-size: 0.8rem;
+}
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none; /* also suppresses the danger hover-fill */
+}
 .btn-brand {
   background: var(--brand-solid);
   color: #fff;
   border-color: var(--brand-solid);
 }
+.btn-brand:hover {
+  filter: brightness(1.08);
+}
 .btn-alt {
   background: var(--soft);
   color: var(--text);
   border-color: var(--divider);
+}
+.btn-alt:hover {
+  border-color: var(--text-2);
 }
 .btn-danger {
   background: transparent;
@@ -294,6 +314,36 @@ a:hover {
 .btn-danger:hover {
   background: #d9534f;
   color: #fff;
+}
+/* Text-style actions (buttons or links) — used inside table rows and the navbar. */
+.btn-link,
+.btn-link-danger {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-link {
+  color: var(--brand);
+}
+.btn-link-danger {
+  color: #d9534f;
+}
+.btn-link:hover,
+.btn-link-danger:hover {
+  text-decoration: underline;
+}
+/* Muted back-navigation link (“← Back to handbook”). */
+.btn-cancel {
+  padding: 0.5rem 0.6rem;
+  color: var(--text-2);
+  text-decoration: none;
+}
+.btn-cancel:hover {
+  color: var(--text);
+  text-decoration: underline;
 }
 .features {
   display: grid;
@@ -746,17 +796,6 @@ a:hover {
   justify-content: flex-end;
   gap: 0.75rem;
 }
-.row-delete {
-  font: inherit;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: #d9534f;
-  cursor: pointer;
-}
-.row-delete:hover {
-  text-decoration: underline;
-}
 .admin-section .admin-list tr:last-child td {
   border-bottom: none;
 }
@@ -971,15 +1010,6 @@ a:hover {
   gap: 0.75rem;
   background: var(--bg);
   border-top: 1px solid var(--divider);
-}
-.btn-cancel {
-  padding: 0.5rem 0.6rem;
-  color: var(--text-2);
-  text-decoration: none;
-}
-.btn-cancel:hover {
-  color: var(--text);
-  text-decoration: underline;
 }
 /* Delete confirmation modal. */
 .confirm-dialog {

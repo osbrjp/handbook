@@ -75,7 +75,7 @@ const { title, visitor = null } = Astro.props;
               {isEditorRole(visitor.role) && <a class="nav-edit" href="/edit-pages">Editor</a>}
               <span class="who">{visitor.login}</span>
               <form method="POST" action="/api/auth/logout" class="logout-form">
-                <button type="submit" class="linkbtn">Sign out</button>
+                <button type="submit" class="btn-link">Sign out</button>
               </form>
             </>
           ) : (

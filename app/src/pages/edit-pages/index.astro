@@ -98,10 +98,17 @@ const reviewMode = cfg.kind === "github" && cfg.github?.mode !== "direct";
                   </td>
                   <td class="col-right">{p.status}</td>
                   <td class="col-right row-actions">
-                    <a href={`/edit-pages/edit/${p.slug}`}>{writable ? "Edit" : "Preview"}</a>
-                    <a href={`/${p.slug}`}>View</a>
+                    <a class="btn-link" href={`/edit-pages/edit/${p.slug}`}>
+                      {writable ? "Edit" : "Preview"}
+                    </a>
+                    <a class="btn-link" href={`/${p.slug}`}>View</a>
                     {writable && (
-                      <button type="button" class="row-delete" data-slug={p.slug} data-title={p.title}>
+                      <button
+                        type="button"
+                        class="btn-link-danger row-delete"
+                        data-slug={p.slug}
+                        data-title={p.title}
+                      >
                         Delete
                       </button>
                     )}
