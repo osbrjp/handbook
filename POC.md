@@ -17,8 +17,9 @@ written from scratch, no Directus/headless-CMS.
 Browser ──> Astro SSR Worker (@astrojs/cloudflare)  — NO DATABASE (stateless)
             - custom UI, owns the whole frontend
             - CONTENT = git-backed markdown (src/content/pages/*.md, frontmatter
-              carries title/section/sort/visibility/groups/status), read via an
-              Astro content collection bundled at build
+              carries title/section/sort/visibility), read via an Astro content
+              collection bundled at build — everything in the build is PUBLISHED
+              (drafts/pending edits live on handbook/<slug> branches + their PRs)
             - ACCESS = GitHub itself: sign in with GitHub, then your access to
               the handbook repo IS your access to the site (collaborator ->
               reader, push permission -> editor). NO allow-list in the codebase.
@@ -40,8 +41,12 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  — NO DATABASE (statele
   anywhere in the system**.
 - A published content change goes live after a **rebuild/redeploy** (content is
   bundled at build). Local dev picks up file edits via HMR.
-- Reader access is enforced **server-side**, fails **closed**, and forbidden == not-found (both 404 — no existence signal). A file with missing/invalid `visibility` defaults to the **tightest** tier (restricted) via the collection schema.
-- **Sidebar shows `restricted` pages a signed-in user can't read as "no access"** (title visible, body gated) — a deliberate transparency choice so staff know such content exists and can request it. **Content guideline:** because the title is disclosed to signed-in users, **keep `restricted` page titles non-sensitive** (e.g. "Leadership Resources", not "Acme Acquisition Terms") — put the sensitive detail in the body, which stays gated. A page whose very title must be secret does not belong in this system.
+- **Two visibility tiers, roles play no part in reading:** `public` (anyone) and
+  `internal` (any signed-in person). There is deliberately NO finer tier: every
+  signed-in user is a repo collaborator who could read the markdown source on
+  GitHub anyway, so a site-side "restricted" tier would be theater. Truly
+  secret content belongs in a different (private) repo, not behind a flag here.
+- Reader access is enforced **server-side**, fails **closed**, and forbidden == not-found (both 404 — no existence signal). A file with missing/invalid `visibility` defaults to the **tightest** tier (internal) via the collection schema.
 - Page bodies are **markdown**, **sanitized at render** (`rehype-sanitize`), shared by the reader page and the editor preview.
 - Auth = **hand-written GitHub OAuth** (session crypto ported from
   `osbrjp/coop-csnet-poc`, AES-GCM encrypted cookie), hardened with a
@@ -51,44 +56,49 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  — NO DATABASE (statele
   Note: the permission API reports `read` for *any* GitHub user while the repo
   is public, so the gate is the **explicit-collaborator check** (204/404) —
   which behaves identically once the repo goes private.
-- **Editing = submit for review.** A save in the in-browser editor becomes a
-  **git commit authored by the signed-in person** (their own GitHub App token,
-  carried encrypted in the session, auto-refreshed — no bot identity). Because
-  `main` is PR-protected (1 approval + code-owner + `run-tests`), the save goes
-  onto an edit branch `handbook/<slug>` and opens **one pull request per page**;
-  repeat saves stack onto the same review.
+- **Publishing is git-native — there is no `status` field.** Published means
+  MERGED to the content branch; everything in the build is live. The editor's
+  two verbs map onto git states:
+  - **Save draft** → a commit on `handbook/<slug>` with NO pull request:
+    private work-in-progress, invisible to readers and to the review queue.
+    Reopening the page **resumes from the draft** (the editor reads the edit
+    branch, so a second session can't clobber it), and the Pages listing chips
+    it "draft in progress" (new-not-yet-published pages get their own section).
+  - **Submit for approval** → the same branch gets its **one PR per page** —
+    now it's pending. Further saves join the pending review.
+  Every commit is **authored by the signed-in person** (their own GitHub App
+  token, carried encrypted in the session, auto-refreshed — no bot identity).
 - **Review dashboard** (`/edit-pages/reviews`, admins only): pending edits with
   author + checks state; **Approve & publish** performs a real GitHub review +
   merge *as the signed-in admin* (ruleset fully honored — GitHub blocks
   self-approval, failing checks, stale branches; a blocked merge auto-triggers
   update-branch). **Reject** closes the review and discards the edits.
-- **Roles come from GitHub repo permission**: `admin`/`maintain` → handbook
-  **admin** (review dashboard), `write` → **editor** (submit for review),
-  collaborator → **reader**. Locally (agent mode) saves stay direct commits;
-  `GITHUB_WRITE_MODE=direct` restores direct API commits for unprotected setups.
-  A merged change appears on the live site after the next rebuild/redeploy
-  (content is bundled at build) — the deploy-on-push pipeline is the remaining
+- **Roles come from GitHub repo permission and are pure CAPABILITY**:
+  `admin`/`maintain` → handbook **admin** (review dashboard), `write` →
+  **editor** (draft + submit), collaborator → **reader**. Roles never change
+  what published content someone can read. Locally (agent mode) saves are
+  direct file writes (one "Save" button); `GITHUB_WRITE_MODE=direct` restores
+  direct API commits for unprotected setups. A merged change appears on the
+  live site after the next rebuild/redeploy — deploy-on-push is the remaining
   deferred piece.
-- **Public repo caveat:** while the content repo is public, `internal`/`restricted` page *source* is readable in git even though the deployed site gates the rendered page. Move the content repo private to make gated content actually private (no code change needed).
+- **Public repo caveat:** while the content repo is public, `internal` page *source* is readable in git even though the deployed site gates the rendered page. Move the content repo private to make gated content actually private (no code change needed).
 
 ## What's verified
 
 **Verified locally with no Docker/GitHub (unit):**
-- `pnpm check` (types), `pnpm build`, `pnpm test` (47 tests), `pnpm guard`.
+- `pnpm check` (types), `pnpm build`, `pnpm test` (72 tests), `pnpm guard`.
 - Session crypto round-trip + tamper/expiry/wrong-key/bad-role rejection; the `canRead` ACL truth table + `searchRows` ACL; the GitHub role mapping (collaborator 404 → no access even where a public repo reports `read`); render pipeline (callouts/TOC/mermaid + XSS sanitize); `doc/*.md → content-file` helpers.
 - The role-resolution calls were also probed against the **live GitHub API** (real org/repo): collaborator 204/404 gate + `role_name` mapping behave as coded.
 
 **Verified LIVE via `astro dev` (no database):**
-- Reader ACL matrix through the real app (dev-login shim as each persona):
+- Reader ACL matrix through the real app (dev-login shim as each persona) —
+  reading depends only on being signed in, roles are capability-only:
 
-  | persona | public | internal | restricted |
+  | persona | public | internal | /edit-pages |
   |---|:--:|:--:|:--:|
   | anonymous | 200 | 404 | 404 |
   | reader | 200 | 200 | 404 |
   | editor | 200 | 200 | 200 |
-
-  (The restricted/group-gated level is still supported by the schema and ACL,
-  but no access group or restricted page is seeded by default.)
 
 - Nav + sitemap as anon contain **only public** slugs (no enumeration).
 - Editor RBAC: `/edit-pages*` (preview) is 200 for editors, **404** for readers/anon.

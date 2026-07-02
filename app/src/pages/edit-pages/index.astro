@@ -6,6 +6,7 @@ import { isAdminRole } from "../../lib/auth/visitor";
 import { issueCsrf } from "../../lib/csrf";
 import { listAllPages } from "../../lib/content/pages";
 import { isReviewMode, isWritable } from "../../lib/content/store";
+import { type EditState, listEditStates } from "../../lib/content/store.github";
 
 const denied = requireEditor(Astro.locals);
 if (denied) return denied;
@@ -31,6 +32,17 @@ const prNumber = /^[0-9]{1,8}$/.test(prParam) ? prParam : null;
 const cfg = Astro.locals.contentStore;
 const prUrl = prNumber ? `https://github.com/${cfg.github?.repo}/pull/${prNumber}` : null;
 const reviewMode = isReviewMode(cfg);
+
+// Per-page edit state (draft / pending approval) — best-effort chips, plus a
+// section for drafted pages that don't exist in the published build yet.
+const editStates: Record<string, EditState> =
+  reviewMode && cfg.github?.token ? await listEditStates(cfg.github) : {};
+const knownSlugs = new Set(pages.map((p) => p.slug));
+const draftOnlySlugs = Object.keys(editStates).filter((s) => !knownSlugs.has(s));
+const STATE_LABEL: Record<EditState, string> = {
+  draft: "draft in progress",
+  pending: "pending approval",
+};
 ---
 
 <Base title="Editor" visitor={Astro.locals.visitor}>
@@ -94,6 +106,32 @@ const reviewMode = isReviewMode(cfg);
   }
 
   {
+    draftOnlySlugs.length > 0 && (
+      <details class="admin-section" open>
+        <summary class="admin-section-title">
+          New pages in progress <span class="admin-count">{draftOnlySlugs.length}</span>
+        </summary>
+        <table class="admin-list">
+          <tbody>
+            {draftOnlySlugs.map((s) => (
+              <tr>
+                <td>
+                  <code>{s}</code>
+                  <span class={`badge badge-state-${editStates[s]}`}>{STATE_LABEL[editStates[s]]}</span>
+                </td>
+                <td class="col-right row-actions">
+                  <a class="btn-link" href={`/edit-pages/edit/${s}`}>
+                    Continue editing
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </details>
+    )
+  }
+  {
     sections.map((section) => {
       const items = pages.filter((p) => p.section === section);
       return (
@@ -112,7 +150,14 @@ const reviewMode = isReviewMode(cfg);
             <tbody>
               {items.map((p) => (
                 <tr>
-                  <td>{p.title}</td>
+                  <td>
+                    {p.title}
+                    {editStates[p.slug] && (
+                      <span class={`badge badge-state-${editStates[p.slug]}`}>
+                        {STATE_LABEL[editStates[p.slug]]}
+                      </span>
+                    )}
+                  </td>
                   <td class="col-right">
                     <span class={`badge badge-${p.visibility}`}>{p.visibility}</span>
                   </td>

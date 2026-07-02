@@ -2,6 +2,7 @@ import type { ContentStore, PageFile, WriteOpts, WriteResult } from "./store";
 // .ts extensions: this module is also imported by node --test (which strips
 // types but does NOT resolve extensionless specifiers).
 import { GITHUB_API as API, githubHeaders } from "../githubApi.ts";
+import { type ParsedPage, parsePageFile } from "./frontmatter.ts";
 import { serializePageFile } from "./serialize.ts";
 
 // Production driver: persist content via the GitHub API, WITH THE SIGNED-IN
@@ -10,13 +11,13 @@ import { serializePageFile } from "./serialize.ts";
 // moment their push access is revoked).
 //
 // Two modes:
-//   "pr" (default — main is PR-protected): a save commits to an edit branch
-//        `handbook/<slug>` and opens ONE pull request per page ("submit for
-//        review"). Repeat saves stack commits onto the same open PR. An admin
-//        approves & merges — from the in-app review dashboard or on GitHub —
-//        and only then is the change live (after rebuild). NOTE: while a page
-//        has a pending review, the editor still loads the PUBLISHED version,
-//        so a second edit round starts from that, not the pending text.
+//   "pr" (default — main is PR-protected): a save commits to the edit branch
+//        `handbook/<slug>`. "Save draft" stops there (no PR — private WIP);
+//        "Submit for approval" ensures ONE pull request per page. Repeat saves
+//        stack onto the branch/PR, and the editor RESUMES from the branch (see
+//        readDraft) so a second session never clobbers unmerged work. An admin
+//        approves & merges — dashboard or GitHub — and only then is the change
+//        live (after rebuild).
 //   "direct": straight commit to the base branch (only works where the branch
 //        ruleset allows direct pushes).
 //
@@ -41,6 +42,117 @@ export function toBase64Utf8(s: string): string {
   let bin = "";
   for (const b of bytes) bin += String.fromCharCode(b);
   return btoa(bin);
+}
+function fromBase64Utf8(b64: string): string {
+  const bin = atob(b64.replace(/\n/g, "")); // the contents API wraps base64 in newlines
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+/**
+ * The visitor's unmerged work on a page, if any: the page file as it stands on
+ * `handbook/<slug>` — but ONLY when that branch has unique commits ("ahead" /
+ * "diverged"), i.e. a real draft or pending review. A leftover branch from an
+ * already-merged review has nothing unique and returns null, so the editor
+ * falls back to the published version. Any API/parse trouble → null (same
+ * fallback — never block editing).
+ */
+export async function readDraft(
+  config: GithubConfig,
+  slug: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<ParsedPage | null> {
+  const { token, repo } = config;
+  const base = config.branch || "main";
+  if (!token || !repo) return null;
+  const headers = githubHeaders(token);
+  const editBranch = `${EDIT_BRANCH_PREFIX}${slug}`;
+  try {
+    const cmp = await fetchImpl(
+      `${API}/repos/${repo}/compare/${encodeURIComponent(base)}...${encodeURIComponent(editBranch)}`,
+      { headers },
+    );
+    if (!cmp.ok) return null; // 404 = no edit branch at all
+    const { status } = (await cmp.json()) as { status?: string };
+    if (status !== "ahead" && status !== "diverged") return null; // nothing unique
+
+    const res = await fetchImpl(
+      `${API}/repos/${repo}/contents/${CONTENT_DIR}/${encodeURIComponent(slug)}.md?ref=${encodeURIComponent(editBranch)}`,
+      { headers },
+    );
+    if (!res.ok) return null; // e.g. the draft is a pending DELETE of this page
+    const { content } = (await res.json()) as { content?: string };
+    if (!content) return null;
+    return parsePageFile(fromBase64Utf8(content));
+  } catch {
+    return null;
+  }
+}
+
+export type EditState = "pending" | "draft";
+
+/**
+ * slug → edit state for the listing chips: "pending" = an open review PR,
+ * "draft" = an edit branch with unique commits but no PR. Best-effort — any
+ * API trouble yields fewer chips, never an error.
+ */
+export async function listEditStates(
+  config: GithubConfig,
+  fetchImpl: typeof fetch = fetch,
+): Promise<Record<string, EditState>> {
+  const { token, repo } = config;
+  const base = config.branch || "main";
+  if (!token || !repo) return {};
+  const headers = githubHeaders(token);
+  const states: Record<string, EditState> = {};
+  try {
+    const [prsRes, branchesRes] = await Promise.all([
+      fetchImpl(
+        `${API}/repos/${repo}/pulls?state=open&base=${encodeURIComponent(base)}&per_page=100`,
+        {
+          headers,
+        },
+      ),
+      fetchImpl(`${API}/repos/${repo}/branches?per_page=100`, { headers }),
+    ]);
+    const prs = prsRes.ok ? ((await prsRes.json()) as Array<{ head: { ref: string } }>) : [];
+    const branches = branchesRes.ok ? ((await branchesRes.json()) as Array<{ name: string }>) : [];
+
+    const pending = new Set(
+      prs
+        .map((p) => p.head.ref)
+        .filter((r) => r.startsWith(EDIT_BRANCH_PREFIX))
+        .map((r) => r.slice(EDIT_BRANCH_PREFIX.length)),
+    );
+    for (const slug of pending) states[slug] = "pending";
+
+    // Branches without a PR are drafts only if they hold unique commits
+    // (a merged review's leftover branch has none).
+    const candidates = branches
+      .map((b) => b.name)
+      .filter((n) => n.startsWith(EDIT_BRANCH_PREFIX))
+      .map((n) => n.slice(EDIT_BRANCH_PREFIX.length))
+      .filter((slug) => !pending.has(slug));
+    await Promise.all(
+      candidates.map(async (slug) => {
+        try {
+          const cmp = await fetchImpl(
+            `${API}/repos/${repo}/compare/${encodeURIComponent(base)}...${encodeURIComponent(`${EDIT_BRANCH_PREFIX}${slug}`)}`,
+            { headers },
+          );
+          if (!cmp.ok) return;
+          const { status } = (await cmp.json()) as { status?: string };
+          if (status === "ahead" || status === "diverged") states[slug] = "draft";
+        } catch {
+          // best-effort
+        }
+      }),
+    );
+  } catch {
+    // best-effort
+  }
+  return states;
 }
 
 export function createGithubStore(

@@ -1011,6 +1011,20 @@ a:hover {
   background: var(--bg);
   border-top: 1px solid var(--divider);
 }
+/* Edit-state chips on the Pages listing (draft in progress / pending approval). */
+.badge-state-draft,
+.badge-state-pending {
+  margin-left: 0.5rem;
+}
+.badge-state-draft {
+  background: rgba(71, 73, 199, 0.18);
+  color: #8b8dff;
+}
+.badge-state-pending {
+  background: rgba(185, 137, 0, 0.18);
+  color: #d9a514;
+}
+
 /* Environment ribbon — sits above the header on local/staging (never prod). */
 .env-ribbon {
   text-align: center;

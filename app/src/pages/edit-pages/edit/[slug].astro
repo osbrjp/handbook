@@ -3,8 +3,10 @@ import Base from "../../../layouts/Base.astro";
 import EditorForm from "../../../components/EditorForm.astro";
 import { requireEditor } from "../../../lib/auth/requireEditor";
 import { issueCsrf } from "../../../lib/csrf";
-import { getEditablePageBySlug, listAllPages } from "../../../lib/content/pages";
+import { getEditablePageBySlug, listAllPages, type PageRow } from "../../../lib/content/pages";
 import { isReviewMode, isWritable } from "../../../lib/content/store";
+import { readDraft } from "../../../lib/content/store.github";
+import { isSafeSlug } from "../../../lib/content/serialize";
 
 const denied = requireEditor(Astro.locals);
 if (denied) return denied;
@@ -13,8 +15,23 @@ Astro.response.headers.set("Cache-Control", "private, no-store");
 Astro.response.headers.set("Vary", "Cookie");
 
 const slug = Astro.params.slug;
-const page = slug ? await getEditablePageBySlug(slug) : null;
-if (!page) return new Response(null, { status: 404 });
+if (!slug || !isSafeSlug(slug)) return new Response(null, { status: 404 });
+
+// The published version (from the built collection) …
+const published = await getEditablePageBySlug(slug);
+
+// … and the visitor's unmerged work, if any (draft/pending commits on
+// handbook/<slug>). When it exists, the FORM MUST show it — otherwise a second
+// editing session would silently start from the published text and clobber
+// the draft. Covers brand-new pages too (draft exists, nothing published yet).
+const cfg = Astro.locals.contentStore;
+const draft = cfg.kind === "github" && cfg.github?.token ? await readDraft(cfg.github, slug) : null;
+
+if (!published && !draft) return new Response(null, { status: 404 });
+
+const page: PageRow = draft
+  ? { slug, body: draft.body, ...draft.frontmatter }
+  : (published as PageRow);
 
 const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
 const sections = [...new Set((await listAllPages()).map((p) => p.section))];
@@ -30,6 +47,14 @@ const readonly = Astro.url.searchParams.get("error") === "readonly";
     {
       readonly && (
         <div class="notice notice-warn">⚠ That change can’t be saved in this environment (preview only).</div>
+      )
+    }
+    {
+      draft && (
+        <div class="notice">
+          ✎ <strong>Continuing your unpublished work.</strong> This is the draft/pending version of
+          the page{published ? ", not what readers currently see" : " — it isn't published yet"}.
+        </div>
       )
     }
     {
