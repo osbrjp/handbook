@@ -26,11 +26,17 @@ const sections = [...new Set((await listAllPages()).map((p) => p.section))];
 // Confirmation after a save (set by /edit-pages/save).
 const saved = Astro.url.searchParams.get("saved");
 const savedMsg = saved === "published" ? "Published" : saved === "draft" ? "Saved as draft" : null;
+const readonly = Astro.url.searchParams.get("error") === "readonly";
 ---
 
 <Base title={`Edit: ${page.title}`} visitor={Astro.locals.visitor}>
   <div class="container editor-page">
     <h1>Edit: {page.title}</h1>
+    {
+      readonly && (
+        <div class="notice notice-warn">⚠ That change can’t be saved in this environment (preview only).</div>
+      )
+    }
     {
       savedMsg && (
         <div class="notice">

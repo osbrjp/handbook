@@ -1,5 +1,6 @@
 ---
 import Base from "../../layouts/Base.astro";
+import AlertDialog from "../../components/AlertDialog.astro";
 import { requireEditor } from "../../lib/auth/requireEditor";
 import { isAdminRole } from "../../lib/auth/visitor";
 import { issueCsrf } from "../../lib/csrf";
@@ -16,7 +17,10 @@ const pages = await listAllPages();
 const sections = [...new Set(pages.map((p) => p.section))];
 const deleted = Astro.url.searchParams.get("deleted");
 const writable = isWritable(Astro.locals.contentStore);
-const csrf = writable ? issueCsrf(Astro.cookies, Astro.url.protocol === "https:") : "";
+// Always issue CSRF: the New page / Delete controls are live even in
+// preview-only (so they hover/look real), and a preview-only delete must reach
+// the endpoint's friendly readonly redirect — not a bare 403 for a blank token.
+const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
 
 // "Submitted for review" banner (PR mode). pr is numeric-validated; the link is
 // built from the server-known repo, never from user input.
@@ -29,7 +33,7 @@ const reviewMode = isReviewMode(cfg);
 ---
 
 <Base title="Editor" visitor={Astro.locals.visitor}>
-  <div class="container admin-page">
+  <div class="container admin-page" data-readonly={String(!writable)}>
   <div class="admin-head">
     <h1>Pages</h1>
     <div>
@@ -38,11 +42,16 @@ const reviewMode = isReviewMode(cfg);
           <a class="btn btn-alt" href="/edit-pages/reviews">Reviews</a>
         )
       }
-      {writable && <a class="btn btn-brand" href="/edit-pages/create">+ New page</a>}
+      <a class="btn btn-brand" href="/edit-pages/create">+ New page</a>
     </div>
   </div>
   <a class="btn-cancel admin-back" href="/" id="admin-back">← Back to handbook</a>
   {deleted && <div class="notice">✓ Page deleted.</div>}
+  {
+    Astro.url.searchParams.get("error") === "readonly" && (
+      <div class="notice notice-warn">⚠ That change can’t be saved in this environment (preview only).</div>
+    )
+  }
   {
     submitted && prNumber && (
       <div class="notice">
@@ -66,9 +75,10 @@ const reviewMode = isReviewMode(cfg);
       </div>
     ) : (
       <div class="notice notice-warn">
-        ✎ <strong>Preview only.</strong> Content is git-backed — in-browser editing isn't enabled
-        in this environment. To add, change, or remove a page, edit the markdown files under
-        <code>app/src/content/pages/</code> and commit. Open a page below to preview it.
+        ✎ <strong>Preview only.</strong> Editing isn't enabled in this environment — you can open
+        and preview pages, but New / Delete return an error. To add, change, or remove a page,
+        commit its markdown under <code>app/src/content/pages/</code> (or use an environment with
+        editing enabled).
       </div>
     )
   }
@@ -99,20 +109,16 @@ const reviewMode = isReviewMode(cfg);
                   </td>
                   <td class="col-right">{p.status}</td>
                   <td class="col-right row-actions">
-                    <a class="btn-link" href={`/edit-pages/edit/${p.slug}`}>
-                      {writable ? "Edit" : "Preview"}
-                    </a>
+                    <a class="btn-link" href={`/edit-pages/edit/${p.slug}`}>Edit</a>
                     <a class="btn-link" href={`/${p.slug}`}>View</a>
-                    {writable && (
-                      <button
-                        type="button"
-                        class="btn-link-danger row-delete"
-                        data-slug={p.slug}
-                        data-title={p.title}
-                      >
-                        Delete
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      class="btn-link-danger row-delete"
+                      data-slug={p.slug}
+                      data-title={p.title}
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -124,44 +130,65 @@ const reviewMode = isReviewMode(cfg);
   }
   </div>
 
-  {
-    writable && (
-      <dialog id="del-dialog" class="confirm-dialog">
-        <h2>Delete this page?</h2>
-        <p>
-          Are you sure you want to delete “<strong id="del-title" />”? This cannot be undone.
-        </p>
-        <form method="POST" action="/edit-pages/delete" id="del-form">
-          <input type="hidden" name="csrf" value={csrf} />
-          <input type="hidden" name="slug" id="del-slug" />
-          <div class="confirm-actions">
-            <button type="button" class="btn btn-alt" id="del-cancel">
-              Cancel
-            </button>
-            <button type="submit" class="btn btn-danger">
-              Delete page
-            </button>
-          </div>
-        </form>
-      </dialog>
-    )
-  }
+  <dialog id="del-dialog" class="confirm-dialog">
+    <h2>Delete this page?</h2>
+    <p>
+      Are you sure you want to delete “<strong id="del-title" />”? This cannot be undone.
+    </p>
+    <form method="POST" action="/edit-pages/delete" id="del-form">
+      <input type="hidden" name="csrf" value={csrf} />
+      <input type="hidden" name="slug" id="del-slug" />
+      <div class="confirm-actions">
+        <button type="button" class="btn btn-alt" id="del-cancel">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-danger">
+          Delete page
+        </button>
+      </div>
+    </form>
+  </dialog>
+  <AlertDialog />
 </Base>
 
 <script>
   import { wireBackLink } from "../../lib/ui/backLink";
   wireBackLink("admin-back");
 
-  // Delete confirmation (only present when local editing is enabled).
+  // Delete: confirmation dialog when editing is enabled; in preview-only, the
+  // readonly notice instead of confirming a delete that can't happen.
+  const readonly = document.querySelector(".admin-page")?.getAttribute("data-readonly") === "true";
+  const showAlert = (msg: string) =>
+    document.dispatchEvent(new CustomEvent("app:alert", { detail: msg }));
+  const READONLY_MSG =
+    "Editing isn't enabled in this environment (preview only). To change the handbook, commit the markdown to the repository — or use an environment with editing enabled.";
   const dialog = document.getElementById("del-dialog") as HTMLDialogElement | null;
+  const delForm = document.getElementById("del-form") as HTMLFormElement | null;
   const slugInput = document.getElementById("del-slug") as HTMLInputElement | null;
   const titleEl = document.getElementById("del-title");
   for (const btn of document.querySelectorAll<HTMLButtonElement>(".row-delete")) {
     btn.addEventListener("click", () => {
+      if (readonly) return showAlert(READONLY_MSG);
       if (slugInput) slugInput.value = btn.dataset.slug ?? "";
       if (titleEl) titleEl.textContent = btn.dataset.title ?? "this page";
       dialog?.showModal();
     });
   }
   document.getElementById("del-cancel")?.addEventListener("click", () => dialog?.close());
+  // Submit delete via fetch so a server error pops up instead of a raw page.
+  delForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    dialog?.close();
+    try {
+      const res = await fetch(delForm.action, {
+        method: "POST",
+        body: new FormData(delForm),
+        headers: { "X-Requested-With": "fetch" },
+      });
+      if (res.ok) return void (window.location.href = res.url);
+      showAlert((await res.text().catch(() => "")) || `Couldn't delete (error ${res.status}).`);
+    } catch {
+      showAlert("Couldn't reach the server — check your connection and try again.");
+    }
+  });
 </script>

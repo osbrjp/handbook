@@ -1,6 +1,7 @@
 ---
 import type { PageRow } from "../lib/content/pages";
 import type { Group } from "../lib/auth/groups";
+import AlertDialog from "./AlertDialog.astro";
 import CollapsePersistence from "./CollapsePersistence.astro";
 
 interface Props {
@@ -28,7 +29,7 @@ const visibility = page?.visibility ?? "internal";
   <a class="btn-cancel" href="/edit-pages" id="back-link">← Back</a>
   {
     page && (
-      <button type="button" class="btn btn-danger" id="delete-open" disabled={!writable}>
+      <button type="button" class="btn btn-danger" id="delete-open">
         Delete page
       </button>
     )
@@ -49,15 +50,15 @@ const visibility = page?.visibility ?? "internal";
     </div>
   ) : (
     <div class="notice notice-warn">
-      ✎ <strong>Preview only.</strong> In-browser editing isn't enabled in this environment — the
-      site is git-backed, so to change this page, edit its markdown file in the repository and
-      commit. You can still preview your markdown live below.
+      ✎ <strong>Preview only.</strong> Saving isn't enabled in this environment — you can edit and
+      preview freely, but a Save/Publish/Delete here returns an error. To change the page for real,
+      commit its markdown to the repository (or use an environment with editing enabled).
     </div>
   )
 }
 
 {
-  writable && page && (
+  page && (
     <>
       <form method="POST" action="/edit-pages/delete" id="delete-form" class="delete-form">
         <input type="hidden" name="csrf" value={csrf} />
@@ -81,7 +82,7 @@ const visibility = page?.visibility ?? "internal";
   )
 }
 
-<form method="POST" action="/edit-pages/save" class="editor">
+<form method="POST" action="/edit-pages/save" class="editor" data-readonly={String(!writable)}>
   <input type="hidden" name="csrf" value={csrf} />
   <input type="hidden" name="orig_slug" value={page?.slug ?? ""} />
   <input type="hidden" name="sort" value={page?.sort ?? 0} />
@@ -167,10 +168,10 @@ const visibility = page?.visibility ?? "internal";
   </details>
 
   <div class="actions">
-    <button type="submit" name="status" value="draft" class="btn btn-alt" disabled={!writable}>
+    <button type="submit" name="status" value="draft" class="btn btn-alt">
       {reviewMode ? "Submit draft" : "Save draft"}
     </button>
-    <button type="submit" name="status" value="published" class="btn btn-brand" disabled={!writable}>
+    <button type="submit" name="status" value="published" class="btn btn-brand">
       {reviewMode ? "Submit for review" : "Publish"}
     </button>
   </div>
@@ -259,12 +260,64 @@ const visibility = page?.visibility ?? "internal";
     });
   }
 
-  // Delete confirmation modal (only rendered when editing is enabled).
+  const showAlert = (msg: string) =>
+    document.dispatchEvent(new CustomEvent("app:alert", { detail: msg }));
+  const READONLY_MSG =
+    "Saving isn't enabled in this environment (preview only). Save draft / Submit for review only work where editing is enabled — otherwise commit the markdown to the repository.";
+
+  // Submit a form via fetch so a failure shows the popup instead of navigating
+  // to a raw error page; on success, follow the server's redirect.
+  async function submitForm(form: HTMLFormElement, submitter?: HTMLElement | null) {
+    const fd = new FormData(form, submitter ?? undefined);
+    // Older browsers ignore FormData's submitter arg — without this fallback
+    // the clicked button's name/value (status=draft|published) would vanish
+    // and a Publish would silently save as draft.
+    const btn = submitter as HTMLButtonElement | null;
+    if (btn?.name && !fd.has(btn.name)) fd.append(btn.name, btn.value);
+    try {
+      const res = await fetch(form.action, {
+        method: "POST",
+        body: fd,
+        headers: { "X-Requested-With": "fetch" },
+      });
+      if (res.ok) {
+        window.location.href = res.url; // 303 → the saved/submitted landing page
+        return;
+      }
+      showAlert((await res.text().catch(() => "")) || `Couldn't save (error ${res.status}).`);
+    } catch {
+      showAlert("Couldn't reach the server — check your connection and try again.");
+    }
+  }
+
+  // Preview-only: controls stay live (so they hover/look real) but there's no
+  // write path — pop the notice instead of round-tripping a save that can't
+  // happen. When writable, submit via fetch so server errors pop up too.
+  const editorForm = document.querySelector("form.editor") as HTMLFormElement | null;
+  const readonly = editorForm?.dataset.readonly === "true";
+
+  editorForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (readonly) return showAlert(READONLY_MSG);
+    submitForm(editorForm, (e as SubmitEvent).submitter);
+  });
+
+  // Delete: confirmation modal when writable; the readonly notice otherwise.
+  const deleteForm = document.getElementById("delete-form") as HTMLFormElement | null;
   const deleteOpen = document.getElementById("delete-open");
   const deleteCancel = document.getElementById("delete-cancel");
   const deleteDialog = document.getElementById("delete-dialog") as HTMLDialogElement | null;
-  deleteOpen?.addEventListener("click", () => deleteDialog?.showModal());
+  deleteOpen?.addEventListener("click", () => {
+    if (readonly) return showAlert(READONLY_MSG);
+    deleteDialog?.showModal();
+  });
   deleteCancel?.addEventListener("click", () => deleteDialog?.close());
+  deleteForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    deleteDialog?.close();
+    submitForm(deleteForm, (e as SubmitEvent).submitter);
+  });
 </script>
 
+<AlertDialog />
 <CollapsePersistence selector=".editor details[data-section]" storageKey="editorSections" />

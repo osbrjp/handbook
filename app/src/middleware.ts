@@ -6,10 +6,10 @@ import { getOrigin } from "./lib/auth/origin";
 import { decryptSession, encryptSession, type GhTokenSet } from "./lib/auth/session";
 import type { Visitor } from "./lib/auth/visitor";
 
-// The one canonical production host. Any OTHER host serving this app (the
-// *.workers.dev staging URL, previews) gets X-Robots-Tag: noindex so search
-// engines never index a duplicate/staging copy of the handbook.
-const PROD_HOST = "handbook.osbrjp.com";
+// PROD_HOST lives in lib/env.ts (shared with the environment ribbon): any
+// host that isn't production gets X-Robots-Tag: noindex so search engines
+// never index a duplicate/staging copy of the handbook.
+import { PROD_HOST } from "./lib/env";
 
 // How long a GitHub-verified role is trusted before re-checking. Short enough
 // that revoking someone on GitHub locks them out in minutes; long enough that

@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { requireEditor } from "../../lib/auth/requireEditor";
 import { checkCsrf } from "../../lib/csrf";
 import { getEditablePageBySlug } from "../../lib/content/pages";
-import { type ContentStore, getContentStore } from "../../lib/content/store";
+import { type ContentStore, getContentStore, isWritable } from "../../lib/content/store";
 import { isSafeSlug } from "../../lib/content/serialize";
 
 export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => {
@@ -11,6 +11,9 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
 
   const f = await request.formData();
   if (!checkCsrf(cookies, f.get("csrf"))) return new Response("Bad CSRF token", { status: 403 });
+
+  // Preview-only: buttons are live but there's no write path (see save.ts).
+  if (!isWritable(locals.contentStore)) return redirect("/edit-pages?error=readonly", 303);
 
   const slug = String(f.get("slug") ?? "").trim();
   if (!slug || !isSafeSlug(slug)) return new Response("Invalid page URL", { status: 400 });

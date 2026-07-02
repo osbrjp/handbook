@@ -3,7 +3,12 @@ import { requireEditor } from "../../lib/auth/requireEditor";
 import { checkCsrf } from "../../lib/csrf";
 import { getEditablePageBySlug, type Visibility } from "../../lib/content/pages";
 import { listGroups } from "../../lib/auth/groups";
-import { type ContentStore, getContentStore, type PageFile } from "../../lib/content/store";
+import {
+  type ContentStore,
+  getContentStore,
+  isWritable,
+  type PageFile,
+} from "../../lib/content/store";
 import { isSafeSlug } from "../../lib/content/serialize";
 
 const VISIBILITIES = new Set(["public", "internal", "restricted"]);
@@ -22,6 +27,15 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
 
   const f = await request.formData();
   if (!checkCsrf(cookies, f.get("csrf"))) return new Response("Bad CSRF token", { status: 403 });
+
+  // Preview-only environment: the buttons are live (so hover/layout look real)
+  // but there's no write path. Bounce back with a friendly error instead of a
+  // bare 503, and don't touch the store.
+  if (!isWritable(locals.contentStore)) {
+    const src = String(f.get("orig_slug") ?? "").trim();
+    const back = src && isSafeSlug(src) ? `/edit-pages/edit/${src}` : "/edit-pages/create";
+    return redirect(`${back}?error=readonly`, 303);
+  }
 
   const origSlug = String(f.get("orig_slug") ?? "").trim(); // empty on create
   const title = String(f.get("title") ?? "").trim();

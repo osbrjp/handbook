@@ -1,12 +1,17 @@
 ---
 import "../styles/global.css";
 import { isEditorRole, type Visitor } from "../lib/auth/visitor";
+import { environmentName } from "../lib/env";
 
 interface Props {
   title: string;
   visitor?: Visitor | null;
 }
 const { title, visitor = null } = Astro.props;
+// Environment ribbon above EVERYTHING (even the header) on non-production
+// hosts, so nobody mistakes local/staging for the live handbook. Production
+// renders nothing.
+const env = environmentName(Astro.url.host);
 ---
 
 <!doctype html>
@@ -30,6 +35,15 @@ const { title, visitor = null } = Astro.props;
     </script>
   </head>
   <body>
+    {
+      env !== "production" && (
+        <div class={`env-ribbon env-ribbon-${env}`}>
+          {env === "local"
+            ? "LOCAL environment — this is a development copy, not the live handbook"
+            : "STAGING environment — not the live handbook"}
+        </div>
+      )
+    }
     <header class="site-header">
       <a class="brand" href="/">
         <img class="brand-logo" src="/logo1.svg" alt="OSBR" width="32" height="32" />

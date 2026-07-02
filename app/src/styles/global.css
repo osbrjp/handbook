@@ -1011,8 +1011,28 @@ a:hover {
   background: var(--bg);
   border-top: 1px solid var(--divider);
 }
+/* Environment ribbon — sits above the header on local/staging (never prod). */
+.env-ribbon {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.3rem 1rem;
+}
+.env-ribbon-local {
+  background: #4749c7;
+  color: #fff;
+}
+.env-ribbon-staging {
+  background: #b98900;
+  color: #fff;
+}
+
 /* Delete confirmation modal. */
 .confirm-dialog {
+  /* the global `* { margin: 0 }` reset kills the UA's dialog centering
+     (margin: auto) — restore it so modals open dead-center, not top-left */
+  margin: auto;
   border: 1px solid var(--divider);
   border-radius: 12px;
   padding: 1.5rem;

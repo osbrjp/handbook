@@ -21,6 +21,11 @@ const sections = [...new Set((await listAllPages()).map((p) => p.section))];
 <Base title="Create page" visitor={Astro.locals.visitor}>
   <div class="container editor-page">
     <h1>Create page</h1>
+    {
+      Astro.url.searchParams.get("error") === "readonly" && (
+        <div class="notice notice-warn">⚠ That change can’t be saved in this environment (preview only).</div>
+      )
+    }
     <EditorForm
       csrf={csrf}
       groups={groups}
