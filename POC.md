@@ -232,6 +232,12 @@ redeploy of the same thing.
    then yields each user's own commit credential (per-person commits, no bot;
    the write driver is already implemented). Add a **deploy-on-push** action so
    a content commit rebuilds + redeploys the Worker.
+   **Ownership rule: NO production credential may belong to an individual.**
+   The GitHub App must be org-owned (it also supersedes the personal staging
+   OAuth App and the personal bot PAT — an app token can do the role checks),
+   and the Workers live in the company Cloudflare account. If any of these sat
+   on a personal account, that person leaving/losing access would break sign-in
+   or force a mass logout.
 4. **DNS cutover.** Point `handbook.osbrjp.com` at the Cloudflare Worker (add it
    as a custom domain / route on the Worker) instead of `osbrjp.github.io`.
 5. **Retire GitHub Pages.** Remove the Pages custom domain (frees the CNAME) and
