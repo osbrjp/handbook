@@ -3,7 +3,6 @@ import Base from "../../../layouts/Base.astro";
 import EditorForm from "../../../components/EditorForm.astro";
 import { requireEditor } from "../../../lib/auth/requireEditor";
 import { issueCsrf } from "../../../lib/csrf";
-import { listGroups } from "../../../lib/auth/groups";
 import { getEditablePageBySlug, listAllPages } from "../../../lib/content/pages";
 import { isReviewMode, isWritable } from "../../../lib/content/store";
 
@@ -17,15 +16,11 @@ const slug = Astro.params.slug;
 const page = slug ? await getEditablePageBySlug(slug) : null;
 if (!page) return new Response(null, { status: 404 });
 
-// Group grants now live in the page's frontmatter.
-const pageGroupKeys = page.groups;
 const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
-const groups = listGroups();
 const sections = [...new Set((await listAllPages()).map((p) => p.section))];
 
-// Confirmation after a save (set by /edit-pages/save).
+// Confirmation after a local-dev save (set by /edit-pages/save).
 const saved = Astro.url.searchParams.get("saved");
-const savedMsg = saved === "published" ? "Published" : saved === "draft" ? "Saved as draft" : null;
 const readonly = Astro.url.searchParams.get("error") === "readonly";
 ---
 
@@ -38,22 +33,15 @@ const readonly = Astro.url.searchParams.get("error") === "readonly";
       )
     }
     {
-      savedMsg && (
+      saved && (
         <div class="notice">
-          ✓ {savedMsg}.{" "}
-          {page.status === "published" ? (
-            <a href={`/${page.slug}`}>View page →</a>
-          ) : (
-            <span class="notice-muted">(draft — not visible to readers yet)</span>
-          )}
+          ✓ Saved. <a href={`/${page.slug}`}>View page →</a>
         </div>
       )
     }
     <EditorForm
       page={page}
-      pageGroupKeys={pageGroupKeys}
       csrf={csrf}
-      groups={groups}
       sections={sections}
       writable={isWritable(Astro.locals.contentStore)}
       reviewMode={isReviewMode(Astro.locals.contentStore)}

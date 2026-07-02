@@ -182,7 +182,11 @@ export function createGithubStore(
     return { reviewNumber: pr.number, reviewUrl: pr.html_url };
   }
 
-  /** Run `mutate(onBranch)` in the right place for the mode; PR mode wraps it in a review. */
+  /**
+   * Run `mutate(onBranch)` in the right place for the mode. Review mode:
+   * commit to the edit branch; on submit (or when a review is already open)
+   * make sure the PR exists — a plain draft stays PR-less on the branch.
+   */
   async function withMode(
     slug: string,
     title: string,
@@ -197,6 +201,7 @@ export function createGithubStore(
     const openPr = await findOpenPr(editBranch);
     await ensureEditBranch(editBranch, !!openPr);
     await mutate(editBranch);
+    if (!opts.submit && !openPr) return { draftSaved: true };
     return ensurePr(editBranch, openPr, title, opts, slug);
   }
 

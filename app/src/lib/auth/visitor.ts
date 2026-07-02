@@ -18,6 +18,5 @@ export function isAdminRole(role: Role | undefined | null): boolean {
 
 export interface Visitor {
   login: string; // GitHub username — no emails anywhere in the system
-  role: Role;
-  groupKeys: string[]; // group keys the user belongs to — used by the content ACL
+  role: Role; // capability ONLY (edit/approve) — reading depends solely on being signed in
 }

@@ -4,8 +4,6 @@ section: "Guideline"
 nav_label: "On-boarding Guide"
 sort: 50
 visibility: internal
-status: published
-groups: []
 ---
 
 Welcome to OSBR! This guide outlines the on-boarding process for new team members.

@@ -10,18 +10,11 @@ test("toBase64Utf8 survives multibyte content (btoa alone would corrupt it)", ()
 
 const FILE = {
   slug: "test-page",
-  frontmatter: {
-    title: "T",
-    section: "S",
-    nav_label: "T",
-    sort: 0,
-    visibility: "internal",
-    groups: [],
-    status: "draft",
-  },
+  frontmatter: { title: "T", section: "S", nav_label: "T", sort: 0, visibility: "internal" },
   body: "body",
 };
-const OPTS = { editor: "octocat", message: "Save T" };
+const OPTS = { editor: "octocat", message: "Save T", submit: true }; // "Submit for approval"
+const DRAFT = { editor: "octocat", message: "Draft T", submit: false }; // "Save draft"
 const DIRECT = { token: "user-token", repo: "osbrjp/handbook", branch: "main", mode: "direct" };
 const PR = { token: "user-token", repo: "osbrjp/handbook", branch: "main", mode: "pr" };
 
@@ -131,7 +124,41 @@ test("direct: removing a missing file is a no-op (idempotent, like the local age
   assert.equal(calls.filter((c) => c.method === "DELETE").length, 0);
 });
 
-// ---------- pr (submit-for-review) mode ----------
+// ---------- pr mode: DRAFTS (submit: false) ----------
+
+test("draft: commits to handbook/<slug> but does NOT open a review", async () => {
+  const { calls, fn } = mockApi();
+  const result = await createGithubStore(PR, fn).write(FILE, DRAFT);
+  assert.deepEqual(result, { draftSaved: true });
+  assert.ok(calls.find((c) => c.method === "PUT")); // the commit happened
+  assert.equal(
+    calls.filter((c) => c.method === "POST" && c.url.endsWith("/pulls")).length,
+    0, // no PR
+  );
+});
+
+test("draft while a review is ALREADY open: the commit joins the pending review", async () => {
+  const { calls, fn } = mockApi({
+    branches: ["main", "handbook/test-page"],
+    openPrs: [{ number: 7, html_url: "https://github.com/x/pull/7" }],
+  });
+  const result = await createGithubStore(PR, fn).write(FILE, DRAFT);
+  assert.deepEqual(result, { reviewNumber: 7, reviewUrl: "https://github.com/x/pull/7" });
+  assert.equal(calls.filter((c) => c.method === "POST").length, 0); // reuse, never create
+});
+
+test("draft commits are preserved by the next save (branch ahead → no reset)", async () => {
+  const { calls, fn } = mockApi({
+    branches: ["main", "handbook/test-page"],
+    openPrs: [],
+    compareStatus: "ahead", // prior draft commits
+  });
+  const result = await createGithubStore(PR, fn).write(FILE, OPTS); // now submitting
+  assert.equal(calls.filter((c) => c.method === "PATCH").length, 0); // drafts not reset
+  assert.equal(result.reviewNumber, 42); // review carries the drafts + this commit
+});
+
+// ---------- pr mode: SUBMIT for approval (submit: true) ----------
 
 test("pr: first save creates branch handbook/<slug> from base head, commits there, opens a PR", async () => {
   const { calls, fn } = mockApi();

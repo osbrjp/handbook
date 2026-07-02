@@ -4,8 +4,6 @@ section: "Policies"
 nav_label: "Security Policy"
 sort: 100
 visibility: internal
-status: published
-groups: []
 ---
 
 Security Policy Standards

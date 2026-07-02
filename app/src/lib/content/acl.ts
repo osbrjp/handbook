@@ -1,12 +1,10 @@
-// .ts extension: imported by node --test too (no extensionless resolution).
-import { isEditorRole, type Visitor } from "../auth/visitor.ts";
+import type { Visitor } from "../auth/visitor.ts";
 
 // Pure content-ACL + search core. NO `astro:content` import here, so this module
 // is unit-testable under plain `node --test` (the Astro-bound wrappers live in
-// ./pages.ts). This is the git-backed replacement for the old readableWhere SQL.
+// ./pages.ts).
 
-export type Visibility = "public" | "internal" | "restricted";
-export type Status = "draft" | "published";
+export type Visibility = "public" | "internal";
 
 export interface PageMeta {
   title: string;
@@ -14,17 +12,12 @@ export interface PageMeta {
   nav_label: string;
   sort: number;
   visibility: Visibility;
-  groups: string[];
-  status: Status;
   updated_by?: string;
   updated_at?: string;
 }
 export interface PageRow extends PageMeta {
   slug: string;
   body: string;
-}
-export interface SidebarRow extends PageRow {
-  accessible: number; // 1 if the visitor may read it, else 0
 }
 export interface SearchHit {
   slug: string;
@@ -35,21 +28,21 @@ export interface SearchHit {
 
 /**
  * THE ENTIRE READER ACL — one boolean predicate, reused by every surface
- * (single-page read, nav, sidebar, sitemap, search). It is the exact truth
- * table of the old `readableWhere` SQL: anon → published+public; reader →
- * +internal +their groups; editor → everything incl. drafts. Fails CLOSED —
- * an unknown visibility or a reader with no matching group never matches.
- * Review this function hardest.
+ * (single-page read, nav, sidebar, sitemap, search).
+ *
+ *   public   → anyone
+ *   internal → any signed-in person (a repo collaborator — who could read the
+ *              markdown source on GitHub anyway, so finer tiers here would be
+ *              theater, not security)
+ *
+ * ROLES PLAY NO PART: reading is about being signed in, roles are about
+ * editing/approving. Drafts never reach this predicate — everything in the
+ * build is published (unmerged work lives on handbook/<slug> branches).
+ * Fails CLOSED: unknown/missing visibility never matches.
  */
-export function canRead(
-  fm: Pick<PageMeta, "status" | "visibility" | "groups">,
-  v: Visitor | null,
-): boolean {
-  if (!v) return fm.status === "published" && fm.visibility === "public";
-  if (isEditorRole(v.role)) return true; // editors/admins see drafts and every visibility
-  if (fm.status !== "published") return false;
-  if (fm.visibility === "public" || fm.visibility === "internal") return true;
-  if (fm.visibility === "restricted") return (fm.groups ?? []).some((k) => v.groupKeys.includes(k));
+export function canRead(fm: Pick<PageMeta, "visibility">, v: Visitor | null): boolean {
+  if (fm.visibility === "public") return true;
+  if (fm.visibility === "internal") return v !== null;
   return false; // unknown/missing visibility => denied
 }
 

@@ -4,8 +4,6 @@ section: "About"
 nav_label: "What is Handbook?"
 sort: 10
 visibility: public
-status: published
-groups: []
 ---
 
 [[TOC]]

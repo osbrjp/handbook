@@ -3,7 +3,6 @@ import Base from "../../layouts/Base.astro";
 import EditorForm from "../../components/EditorForm.astro";
 import { requireEditor } from "../../lib/auth/requireEditor";
 import { issueCsrf } from "../../lib/csrf";
-import { listGroups } from "../../lib/auth/groups";
 import { listAllPages } from "../../lib/content/pages";
 import { isReviewMode, isWritable } from "../../lib/content/store";
 
@@ -14,7 +13,6 @@ Astro.response.headers.set("Cache-Control", "private, no-store");
 Astro.response.headers.set("Vary", "Cookie");
 
 const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
-const groups = listGroups();
 const sections = [...new Set((await listAllPages()).map((p) => p.section))];
 ---
 
@@ -28,7 +26,6 @@ const sections = [...new Set((await listAllPages()).map((p) => p.section))];
     }
     <EditorForm
       csrf={csrf}
-      groups={groups}
       sections={sections}
       writable={isWritable(Astro.locals.contentStore)}
       reviewMode={isReviewMode(Astro.locals.contentStore)}

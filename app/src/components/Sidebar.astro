@@ -1,9 +1,11 @@
 ---
-import type { SidebarRow } from "../lib/content/pages";
+import type { PageRow } from "../lib/content/pages";
 import CollapsePersistence from "./CollapsePersistence.astro";
 
+// The sidebar lists exactly what the visitor may read (getNavPages already
+// applied the ACL) — nothing to grey out: public|internal is the whole model.
 interface Props {
-  pages: SidebarRow[];
+  pages: PageRow[];
   current?: string;
 }
 const { pages, current } = Astro.props;
@@ -18,19 +20,11 @@ const sections = [...new Set(pages.map((p) => p.section))];
       return (
         <details class="sb-group" data-section={section} open={hasCurrent || undefined}>
           <summary class="sb-title">{section}</summary>
-          {items.map((p) =>
-            p.accessible ? (
-              <a class={`sb-link${p.slug === current ? " active" : ""}`} href={`/${p.slug}`}>
-                {p.nav_label || p.title}
-                {p.visibility === "restricted" && <span class="sb-badge">🔒</span>}
-              </a>
-            ) : (
-              <span class="sb-link sb-noaccess" title="You don't have access to this page">
-                {p.nav_label || p.title}
-                <span class="sb-badge">🔒 no access</span>
-              </span>
-            ),
-          )}
+          {items.map((p) => (
+            <a class={`sb-link${p.slug === current ? " active" : ""}`} href={`/${p.slug}`}>
+              {p.nav_label || p.title}
+            </a>
+          ))}
         </details>
       );
     })

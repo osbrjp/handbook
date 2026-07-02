@@ -15,13 +15,19 @@ export interface PageFile {
 export interface WriteOpts {
   editor: string; // GitHub login of the signed-in editor (commit attribution)
   message: string; // commit message
+  // true  → make sure a review (PR) is open for this page ("Submit for approval")
+  // false → draft: commit to the edit branch only; if a review is ALREADY open
+  //         the commit joins it (you can't draft "behind" a pending review)
+  submit?: boolean;
 }
 
-// In PR ("submit for review") mode, a mutation yields the pull request that now
-// carries it; empty/void when the change applied directly (local dev, direct mode).
+// Review mode outcomes: the PR now carrying the change, or draftSaved when the
+// work went to the edit branch with no review open. Void when the change
+// applied directly (local dev, direct mode).
 export interface WriteResult {
   reviewNumber?: number;
   reviewUrl?: string;
+  draftSaved?: boolean;
 }
 
 export interface ContentStore {

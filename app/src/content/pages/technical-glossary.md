@@ -4,8 +4,6 @@ section: "Guideline"
 nav_label: "Technical Glossary"
 sort: 80
 visibility: internal
-status: published
-groups: []
 ---
 
 This glossary contains technical terms commonly used at OSBR. Understanding these terms is essential for effective communication with team members and clients.

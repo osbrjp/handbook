@@ -4,8 +4,6 @@ section: "Guideline"
 nav_label: "Non-functional Requirements"
 sort: 70
 visibility: internal
-status: published
-groups: []
 ---
 
 In the development process, it is necessary to define non-functional and functional requirements. Functional requirements are deep-rooted in the specific things that a system needs to be able to do. What about non-functional requirements? (NFRs)

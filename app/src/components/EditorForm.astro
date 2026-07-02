@@ -1,27 +1,16 @@
 ---
 import type { PageRow } from "../lib/content/pages";
-import type { Group } from "../lib/auth/groups";
 import AlertDialog from "./AlertDialog.astro";
 import CollapsePersistence from "./CollapsePersistence.astro";
 
 interface Props {
   page?: PageRow | null;
-  pageGroupKeys?: string[];
   csrf: string;
-  groups: Group[];
   sections: string[];
   writable?: boolean; // true when a content-store write path is available (dev)
-  reviewMode?: boolean; // true when saves become submit-for-review pull requests
+  reviewMode?: boolean; // true when saves become draft-branch commits / review PRs
 }
-const {
-  page = null,
-  pageGroupKeys = [],
-  csrf,
-  groups,
-  sections,
-  writable = false,
-  reviewMode = false,
-} = Astro.props;
+const { page = null, csrf, sections, writable = false, reviewMode = false } = Astro.props;
 const visibility = page?.visibility ?? "internal";
 ---
 
@@ -39,8 +28,9 @@ const visibility = page?.visibility ?? "internal";
 {
   writable && reviewMode ? (
     <div class="notice">
-      ✎ <strong>Submit for review.</strong> Saving submits your change as a review request — an
-      admin approves &amp; publishes it before it appears in the handbook.
+      ✎ <strong>Draft &amp; review.</strong> “Save draft” keeps your work-in-progress private (it
+      isn't reviewed or published). “Submit for approval” sends it to an admin — it goes live once
+      approved.
     </div>
   ) : writable ? (
     <div class="notice">
@@ -121,33 +111,6 @@ const visibility = page?.visibility ?? "internal";
     <legend>Who can read this</legend>
     <label><input type="radio" name="visibility" value="public" checked={visibility === "public"} /> Anyone (public)</label>
     <label><input type="radio" name="visibility" value="internal" checked={visibility === "internal"} /> Signed-in staff</label>
-    {/* The groups tier only makes sense once access groups exist (they'd map to
-        GitHub teams — see lib/auth/groups.ts). With none defined, hide the
-        option: selecting it would create a page NO reader can see, with zero
-        checkboxes to explain why. Still shown if this page is already
-        restricted (legacy content), so its current state isn't invisible. */}
-    {
-      (groups.length > 0 || visibility === "restricted") && (
-        <>
-          <label>
-            <input type="radio" name="visibility" value="restricted" checked={visibility === "restricted"} /> Specific
-            groups
-          </label>
-          <div class="groups">
-            {groups.map((g) => (
-              <label>
-                <input type="checkbox" name="groups" value={g.key} checked={pageGroupKeys.includes(g.key)} /> {g.label}
-              </label>
-            ))}
-            {groups.length === 0 ? (
-              <small>(no access groups are defined yet — only editors/admins can read this page)</small>
-            ) : (
-              <small>(applied only when "Specific groups" is selected)</small>
-            )}
-          </div>
-        </>
-      )
-    }
   </fieldset>
   </div>
   </details>
@@ -168,12 +131,22 @@ const visibility = page?.visibility ?? "internal";
   </details>
 
   <div class="actions">
-    <button type="submit" name="status" value="draft" class="btn btn-alt">
-      {reviewMode ? "Submit draft" : "Save draft"}
-    </button>
-    <button type="submit" name="status" value="published" class="btn btn-brand">
-      {reviewMode ? "Submit for review" : "Publish"}
-    </button>
+    {
+      reviewMode ? (
+        <>
+          <button type="submit" name="action" value="draft" class="btn btn-alt">
+            Save draft
+          </button>
+          <button type="submit" name="action" value="submit" class="btn btn-brand">
+            Submit for approval
+          </button>
+        </>
+      ) : (
+        <button type="submit" name="action" value="draft" class="btn btn-brand">
+          Save
+        </button>
+      )
+    }
   </div>
 </form>
 

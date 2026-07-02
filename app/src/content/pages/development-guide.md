@@ -4,8 +4,6 @@ section: "Guideline"
 nav_label: "Development Guide"
 sort: 60
 visibility: internal
-status: published
-groups: []
 ---
 
 In this page, you will find the standard development policy and workflow in OSBR.

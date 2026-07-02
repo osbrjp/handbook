@@ -4,8 +4,6 @@ section: "Policies"
 nav_label: "SHEQ Policy"
 sort: 90
 visibility: internal
-status: published
-groups: []
 ---
 
 [[TOC]]

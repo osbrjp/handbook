@@ -2,7 +2,6 @@ import type { APIRoute } from "astro";
 import { requireEditor } from "../../lib/auth/requireEditor";
 import { checkCsrf } from "../../lib/csrf";
 import { getEditablePageBySlug, type Visibility } from "../../lib/content/pages";
-import { listGroups } from "../../lib/auth/groups";
 import {
   type ContentStore,
   getContentStore,
@@ -11,8 +10,7 @@ import {
 } from "../../lib/content/store";
 import { isSafeSlug } from "../../lib/content/serialize";
 
-const VISIBILITIES = new Set(["public", "internal", "restricted"]);
-const STATUSES = new Set(["draft", "published"]);
+const VISIBILITIES = new Set(["public", "internal"]);
 const bad = (msg: string) => new Response(msg, { status: 400 });
 const slugify = (s: string) =>
   s
@@ -21,6 +19,12 @@ const slugify = (s: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+// The action comes from the clicked button:
+//   draft  → commit the work to the page's edit branch, NO review opened
+//            (unless one is already pending — then the commit joins it)
+//   submit → commit AND make sure a review (PR) is open for it
+// "Published" is not a field — it means MERGED. Local dev has no reviews;
+// both actions are just a save there.
 export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => {
   const denied = requireEditor(locals);
   if (denied) return denied;
@@ -43,7 +47,7 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   const section = String(f.get("section") ?? "").trim();
   const nav_label = String(f.get("nav_label") ?? "").trim() || title;
   const visibility = String(f.get("visibility") ?? "internal") as Visibility;
-  const status = String(f.get("status") ?? "draft") as "draft" | "published";
+  const submit = String(f.get("action") ?? "draft") === "submit";
   const body = String(f.get("body") ?? "");
   const sort = Number(f.get("sort") ?? 0) || 0;
 
@@ -55,23 +59,11 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   if (origSlug && !isSafeSlug(origSlug)) return bad("Invalid original page URL");
   if (!section) return bad("Section is required");
   if (!VISIBILITIES.has(visibility)) return bad("Invalid visibility");
-  if (!STATUSES.has(status)) return bad("Invalid status");
   if (body.length > 256 * 1024) return bad("Body too large (max 256KB)");
 
   // Slug clash: a DIFFERENT page already occupies this slug/filename.
   const existing = await getEditablePageBySlug(slug);
   if (existing && slug !== origSlug) return bad("That page URL is already in use");
-
-  // Group grants apply only to restricted pages; validate keys against the
-  // directory's group definitions (git config). Unknown keys are dropped.
-  let groups: string[] = [];
-  if (visibility === "restricted") {
-    const known = new Set(listGroups().map((g) => g.key));
-    groups = f
-      .getAll("groups")
-      .map(String)
-      .filter((k) => known.has(k));
-  }
 
   const editor = locals.visitor?.login ?? "unknown";
   const file: PageFile = {
@@ -82,22 +74,20 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
       nav_label,
       sort,
       visibility,
-      groups,
-      status,
       updated_by: editor, // GitHub login — no emails in content files
       updated_at: new Date().toISOString(),
     },
     body,
   };
 
-  const message = `${status === "published" ? "Publish" : "Save"} "${title}" (${slug})`;
+  const message = `${submit ? "Submit" : "Draft"} "${title}" (${slug})`;
   let result: Awaited<ReturnType<ContentStore["write"]>>;
   try {
     const store = await getContentStore(locals.contentStore);
     if (origSlug && origSlug !== slug) {
-      result = await store.rename(origSlug, file, { editor, message });
+      result = await store.rename(origSlug, file, { editor, message, submit });
     } else {
-      result = await store.write(file, { editor, message });
+      result = await store.write(file, { editor, message, submit });
     }
   } catch (e) {
     // Dev: the local content agent is likely not running (pnpm content:agent).
@@ -107,12 +97,15 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
     return new Response(`Could not save. ${detail}`, { status: 503 });
   }
 
-  // PR mode: the change is now a pending review, NOT in the built content —
-  // the edit route for a brand-new page would 404, so land on the listing with
-  // a "submitted for review" banner instead.
+  // Review mode: the change lives on the edit branch / its PR, NOT in the
+  // built content — the edit route for a brand-new page would 404, so land on
+  // the listing with the appropriate banner.
   if (result?.reviewNumber) {
     return redirect(`/edit-pages?submitted=${slug}&pr=${result.reviewNumber}`, 303);
   }
-  // Redirect by slug (the edit route keys on slug); slug may have just changed.
-  return redirect(`/edit-pages/edit/${slug}?saved=${status}`, 303);
+  if (result?.draftSaved) {
+    return redirect(`/edit-pages?drafted=${slug}`, 303);
+  }
+  // Local dev: the file was written directly; back to the editor.
+  return redirect(`/edit-pages/edit/${slug}?saved=1`, 303);
 };

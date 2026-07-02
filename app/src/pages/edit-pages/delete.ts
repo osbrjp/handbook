@@ -28,6 +28,7 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
     result = await store.remove(slug, {
       editor: locals.visitor?.login ?? "unknown",
       message: `Delete "${page.title}" (${slug})`,
+      submit: true, // a delete is always a review request, never a silent draft
     });
   } catch (e) {
     const detail = e instanceof Error ? e.message : "unknown error";

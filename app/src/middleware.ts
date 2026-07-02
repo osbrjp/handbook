@@ -116,11 +116,7 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
             sessionCookieOptions(getOrigin(ctx.request, env)),
           );
         }
-        ctx.locals.visitor = {
-          login: session.login,
-          role,
-          groupKeys: [], // groups tier unused; would map to GitHub teams (see auth/groups.ts)
-        } satisfies Visitor;
+        ctx.locals.visitor = { login: session.login, role } satisfies Visitor;
       } else {
         ghToken = undefined;
       }

@@ -25,6 +25,7 @@ const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
 // "Submitted for review" banner (PR mode). pr is numeric-validated; the link is
 // built from the server-known repo, never from user input.
 const submitted = Astro.url.searchParams.get("submitted");
+const drafted = Astro.url.searchParams.get("drafted");
 const prParam = Astro.url.searchParams.get("pr") ?? "";
 const prNumber = /^[0-9]{1,8}$/.test(prParam) ? prParam : null;
 const cfg = Astro.locals.contentStore;
@@ -55,9 +56,18 @@ const reviewMode = isReviewMode(cfg);
   {
     submitted && prNumber && (
       <div class="notice">
-        ✓ <strong>Submitted for review.</strong> Your change to <code>{submitted}</code> is pending
-        approval (<a href={prUrl} target="_blank" rel="noopener">review #{prNumber}</a>). It goes
+        ✓ <strong>Submitted for approval.</strong> Your change to <code>{submitted}</code> is
+        pending (<a href={prUrl} target="_blank" rel="noopener">review #{prNumber}</a>). It goes
         live once an admin approves &amp; publishes it.
+      </div>
+    )
+  }
+  {
+    drafted && (
+      <div class="notice">
+        ✓ <strong>Draft saved.</strong> Your work on <code>{drafted}</code> is kept privately (not
+        submitted, not visible in the handbook). Open the page again to keep editing, and use
+        “Submit for approval” when it's ready.
       </div>
     )
   }
@@ -65,8 +75,8 @@ const reviewMode = isReviewMode(cfg);
   {
     writable && reviewMode ? (
       <div class="notice">
-        ✎ <strong>Submit for review.</strong> Saving a page opens a review request — an admin
-        approves &amp; publishes it before it goes live.
+        ✎ <strong>Draft &amp; review.</strong> “Save draft” keeps work-in-progress private;
+        “Submit for approval” sends it to an admin, who publishes it.
       </div>
     ) : writable ? (
       <div class="notice">
@@ -96,7 +106,6 @@ const reviewMode = isReviewMode(cfg);
               <tr>
                 <th>Title</th>
                 <th class="col-right">Visibility</th>
-                <th class="col-right">Status</th>
                 <th class="col-right">Actions</th>
               </tr>
             </thead>
@@ -107,7 +116,6 @@ const reviewMode = isReviewMode(cfg);
                   <td class="col-right">
                     <span class={`badge badge-${p.visibility}`}>{p.visibility}</span>
                   </td>
-                  <td class="col-right">{p.status}</td>
                   <td class="col-right row-actions">
                     <a class="btn-link" href={`/edit-pages/edit/${p.slug}`}>Edit</a>
                     <a class="btn-link" href={`/${p.slug}`}>View</a>

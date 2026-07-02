@@ -4,12 +4,16 @@ import { z } from "astro/zod";
 
 // Git-backed content: one markdown file per page under src/content/pages.
 // The filename stem IS the slug (so a slug rename = a file rename). Metadata
-// (title, section, sort, visibility, groups, status) lives in frontmatter.
+// (title, section, sort, visibility) lives in frontmatter.
+//
+// EVERYTHING IN THIS COLLECTION IS PUBLISHED — published means merged to the
+// content branch. Drafts/pending edits live as git commits on handbook/<slug>
+// branches (and their PRs), never as hidden pages in the build.
 //
 // FAIL CLOSED: a file with a missing/typo'd `visibility` defaults to the
-// TIGHTEST tier (restricted), and missing `status` defaults to `draft`, so a
-// malformed file can never accidentally render as public/published. The build
-// rejects files that don't satisfy this schema.
+// TIGHTEST tier (internal — signed-in staff only), so a malformed file can
+// never accidentally render as public. The build rejects files that don't
+// satisfy this schema. Unknown legacy keys (status/groups) are ignored.
 const pages = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/pages" }),
   schema: z.object({
@@ -17,9 +21,7 @@ const pages = defineCollection({
     section: z.string(),
     nav_label: z.string().default(""),
     sort: z.number().default(0),
-    visibility: z.enum(["public", "internal", "restricted"]).default("restricted"),
-    groups: z.array(z.string()).default([]),
-    status: z.enum(["draft", "published"]).default("draft"),
+    visibility: z.enum(["public", "internal"]).default("internal"),
     updated_by: z.string().optional(),
     updated_at: z.string().optional(),
   }),

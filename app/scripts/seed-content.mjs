@@ -93,10 +93,8 @@ async function main() {
       title: extractTitle(raw, slug),
       section: meta.section,
       nav_label: meta.nav_label || slugToTitle(slug),
-      sort: (i + 1) * 10, // sequential; groups sections in declaration order
+      sort: (i + 1) * 10, // sequential; keeps sections in declaration order
       visibility: meta.visibility,
-      groups: meta.groups || [],
-      status: "published",
     };
     await writeFile(path.join(outDir, `${slug}.md`), serializePageFile(fm, stripLeadingH1(raw)));
     n++;

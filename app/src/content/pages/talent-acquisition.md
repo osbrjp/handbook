@@ -4,8 +4,6 @@ section: "People & Culture"
 nav_label: "Talent Acquisition"
 sort: 40
 visibility: internal
-status: published
-groups: []
 ---
 
 :::info Überprogrammer

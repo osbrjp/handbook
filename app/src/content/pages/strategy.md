@@ -4,8 +4,6 @@ section: "About"
 nav_label: "Strategy"
 sort: 20
 visibility: internal
-status: published
-groups: []
 ---
 
 [[TOC]]
