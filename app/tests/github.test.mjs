@@ -5,9 +5,9 @@ const { roleFromPermission, resolveRole, GithubApiError } = await import(
   "../src/lib/auth/github.ts"
 );
 
-test("roleFromPermission: admin/maintain -> admin, write -> editor, rest readers", () => {
-  assert.equal(roleFromPermission("admin"), "admin");
-  assert.equal(roleFromPermission("maintain"), "admin");
+test("roleFromPermission: any push-capable level -> editor, rest readers", () => {
+  assert.equal(roleFromPermission("admin"), "editor");
+  assert.equal(roleFromPermission("maintain"), "editor");
   assert.equal(roleFromPermission("write"), "editor");
   assert.equal(roleFromPermission("triage"), "reader");
   assert.equal(roleFromPermission("read"), "reader");

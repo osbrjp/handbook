@@ -12,7 +12,6 @@ const internal = { visibility: "internal" };
 
 const reader = { login: "rd", role: "reader" };
 const editor = { login: "ed", role: "editor" };
-const admin = { login: "ad", role: "admin" };
 
 test("anonymous: public only", () => {
   assert.equal(canRead(pub, null), true);
@@ -20,7 +19,7 @@ test("anonymous: public only", () => {
 });
 
 test("any signed-in visitor reads public + internal — role plays NO part", () => {
-  for (const v of [reader, editor, admin]) {
+  for (const v of [reader, editor]) {
     assert.equal(canRead(pub, v), true);
     assert.equal(canRead(internal, v), true);
   }
@@ -28,6 +27,6 @@ test("any signed-in visitor reads public + internal — role plays NO part", () 
 
 test("fails closed on missing/unknown visibility, even signed in", () => {
   assert.equal(canRead({ visibility: undefined }, reader), false);
-  assert.equal(canRead({ visibility: "bogus" }, admin), false);
+  assert.equal(canRead({ visibility: "bogus" }, editor), false);
   assert.equal(canRead({ visibility: "restricted" }, editor), false); // legacy tier: denied
 });

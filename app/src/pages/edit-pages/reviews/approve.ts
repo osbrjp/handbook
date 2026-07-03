@@ -1,12 +1,13 @@
 import type { APIRoute } from "astro";
-import { requireAdmin } from "../../../lib/auth/requireEditor";
+import { requireEditor } from "../../../lib/auth/requireEditor";
 import { checkCsrf } from "../../../lib/csrf";
 import { approveAndPublish } from "../../../lib/content/reviews";
+import { resolveBase } from "../../../lib/content/store.github";
 
-// Approve + merge a pending handbook edit AS THE SIGNED-IN ADMIN. GitHub
+// Approve + merge a pending handbook edit AS THE SIGNED-IN EDITOR. GitHub
 // enforces the ruleset (checks, no self-approval) — we just surface its answer.
 export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => {
-  const denied = requireAdmin(locals);
+  const denied = requireEditor(locals);
   if (denied) return denied;
 
   const f = await request.formData();
@@ -24,7 +25,7 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   }
 
   try {
-    await approveAndPublish({ token: gh.token, repo: gh.repo, base: gh.branch || "main" }, pr);
+    await approveAndPublish({ token: gh.token, repo: gh.repo, base: await resolveBase(gh) }, pr);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Approve failed.";
     return redirect(`/edit-pages/reviews?err=${encodeURIComponent(msg)}`, 303);

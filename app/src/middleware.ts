@@ -138,6 +138,10 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
       // "pr" (default): saves become submit-for-review pull requests — main is
       // PR-protected, so direct pushes would be refused anyway.
       mode: env.GITHUB_WRITE_MODE === "direct" ? "direct" : "pr",
+      // Editing is only actually possible once the GitHub App is installed (it
+      // issues write-scoped user tokens). Set GITHUB_WRITE_ENABLED=1 then; until
+      // then the editor is preview-only and write buttons stop at the first check.
+      writeEnabled: env.GITHUB_WRITE_ENABLED === "1",
     },
   };
 

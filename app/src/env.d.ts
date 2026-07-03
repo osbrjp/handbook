@@ -19,6 +19,8 @@ declare namespace Cloudflare {
     GITHUB_REPO?: string; // owner/name, default osbrjp/handbook
     GITHUB_BRANCH?: string; // base branch for content (default "main")
     GITHUB_WRITE_MODE?: string; // "pr" (default: submit-for-review) | "direct"
+    GITHUB_WRITE_ENABLED?: string; // "1" once the GitHub App (write-scoped tokens) is installed
+
     // content store: dev (DEV_LOGIN=1) uses the local content agent; prod the GitHub driver
     CONTENT_AGENT_URL?: string; // default http://127.0.0.1:4322
     CONTENT_AGENT_TOKEN?: string; // shared token with the local agent

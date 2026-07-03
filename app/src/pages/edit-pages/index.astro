@@ -1,8 +1,8 @@
 ---
 import Base from "../../layouts/Base.astro";
 import AlertDialog from "../../components/AlertDialog.astro";
+import ReadonlyNotice from "../../components/ReadonlyNotice.astro";
 import { requireEditor } from "../../lib/auth/requireEditor";
-import { isAdminRole } from "../../lib/auth/visitor";
 import { issueCsrf } from "../../lib/csrf";
 import { listAllPages } from "../../lib/content/pages";
 import { isReviewMode, isWritable } from "../../lib/content/store";
@@ -49,22 +49,14 @@ const STATE_LABEL: Record<EditState, string> = {
   <div class="container admin-page" data-readonly={String(!writable)}>
   <div class="admin-head">
     <h1>Pages</h1>
-    <div>
-      {
-        isAdminRole(Astro.locals.visitor?.role) && reviewMode && (
-          <a class="btn btn-alt" href="/edit-pages/reviews">Reviews</a>
-        )
-      }
+    <div class="admin-head-actions">
+      {reviewMode && <a class="btn btn-alt" href="/edit-pages/reviews">Reviews</a>}
       <a class="btn btn-brand" href="/edit-pages/create">+ New page</a>
     </div>
   </div>
   <a class="btn-cancel admin-back" href="/" id="admin-back">← Back to handbook</a>
   {deleted && <div class="notice">✓ Page deleted.</div>}
-  {
-    Astro.url.searchParams.get("error") === "readonly" && (
-      <div class="notice notice-warn">⚠ That change can’t be saved in this environment (preview only).</div>
-    )
-  }
+  <ReadonlyNotice />
   {
     submitted && prNumber && (
       <div class="notice">
@@ -111,7 +103,7 @@ const STATE_LABEL: Record<EditState, string> = {
         <summary class="admin-section-title">
           New pages in progress <span class="admin-count">{draftOnlySlugs.length}</span>
         </summary>
-        <table class="admin-list">
+        <table class="admin-list admin-list-2col">
           <tbody>
             {draftOnlySlugs.map((s) => (
               <tr>
@@ -206,15 +198,12 @@ const STATE_LABEL: Record<EditState, string> = {
 
 <script>
   import { wireBackLink } from "../../lib/ui/backLink";
+  import { READONLY_MSG, showAlert, submitForm } from "../../lib/ui/editorForms";
   wireBackLink("admin-back");
 
   // Delete: confirmation dialog when editing is enabled; in preview-only, the
   // readonly notice instead of confirming a delete that can't happen.
   const readonly = document.querySelector(".admin-page")?.getAttribute("data-readonly") === "true";
-  const showAlert = (msg: string) =>
-    document.dispatchEvent(new CustomEvent("app:alert", { detail: msg }));
-  const READONLY_MSG =
-    "Editing isn't enabled in this environment (preview only). To change the handbook, commit the markdown to the repository — or use an environment with editing enabled.";
   const dialog = document.getElementById("del-dialog") as HTMLDialogElement | null;
   const delForm = document.getElementById("del-form") as HTMLFormElement | null;
   const slugInput = document.getElementById("del-slug") as HTMLInputElement | null;
@@ -228,20 +217,10 @@ const STATE_LABEL: Record<EditState, string> = {
     });
   }
   document.getElementById("del-cancel")?.addEventListener("click", () => dialog?.close());
-  // Submit delete via fetch so a server error pops up instead of a raw page.
-  delForm?.addEventListener("submit", async (e) => {
+  delForm?.addEventListener("submit", (e) => {
     e.preventDefault();
     dialog?.close();
-    try {
-      const res = await fetch(delForm.action, {
-        method: "POST",
-        body: new FormData(delForm),
-        headers: { "X-Requested-With": "fetch" },
-      });
-      if (res.ok) return void (window.location.href = res.url);
-      showAlert((await res.text().catch(() => "")) || `Couldn't delete (error ${res.status}).`);
-    } catch {
-      showAlert("Couldn't reach the server — check your connection and try again.");
-    }
+    if (readonly) return showAlert(READONLY_MSG); // environment check FIRST — no doomed round-trip
+    submitForm(delForm);
   });
 </script>

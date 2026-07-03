@@ -99,7 +99,7 @@ test("approveAndPublish: self-approval (422) gets a human message, merge never a
     calls.push(init.method ?? "GET");
     return new Response(JSON.stringify({}), { status: 422 });
   };
-  await assert.rejects(() => approveAndPublish(CFG, 5, fn), /different admin/i);
+  await assert.rejects(() => approveAndPublish(CFG, 5, fn), /different editor/i);
   assert.deepEqual(calls, ["POST"]);
 });
 

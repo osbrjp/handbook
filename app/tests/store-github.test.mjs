@@ -124,6 +124,20 @@ test("direct: removing a missing file is a no-op (idempotent, like the local age
   assert.equal(calls.filter((c) => c.method === "DELETE").length, 0);
 });
 
+// ---------- base-branch auto-resolution ----------
+
+test("resolveBase: configured branch wins while it exists; auto-falls back to main once deleted", async () => {
+  const { resolveBase } = await import("../src/lib/content/store.github.ts");
+  const cfg = (branch) => ({ token: "t", repo: "o/r", branch });
+  const exists = async () => new Response(JSON.stringify({}), { status: 200 });
+  const gone = async () => new Response(null, { status: 404 });
+
+  assert.equal(await resolveBase(cfg("i68-handbook-poc"), exists), "i68-handbook-poc");
+  assert.equal(await resolveBase(cfg("i68-handbook-poc"), gone), "main"); // merged+deleted
+  assert.equal(await resolveBase(cfg(undefined), exists), "main"); // unset → main, no API call
+  assert.equal(await resolveBase(cfg("main"), gone), "main"); // main is main
+});
+
 // ---------- pr mode: DRAFTS (submit: false) ----------
 
 test("draft: commits to handbook/<slug> but does NOT open a review", async () => {

@@ -5,7 +5,7 @@
 // managed there and never committed here.
 //
 // Role mapping (verified against the live API):
-//   push permission on the repo (write/maintain/admin)  -> editor
+//   push permission on the repo (write/maintain/admin)  -> editor (edit+approve)
 //   explicit collaborator with read/triage              -> reader
 //   not a collaborator                                  -> null (no access)
 //
@@ -101,19 +101,19 @@ export async function refreshGithubToken(o: {
 
 /** The signed-in user's GitHub login (username). Public profile; no scopes. */
 export async function fetchGithubUser(accessToken: string): Promise<{ login: string } | null> {
-  const res = await fetch(`${API}/user`, {
-    headers: { Authorization: `Bearer ${accessToken}`, "User-Agent": UA },
-  });
+  const res = await fetch(`${API}/user`, { headers: githubHeaders(accessToken) });
   if (!res.ok) return null;
   const json = (await res.json()) as { login?: string };
   return typeof json.login === "string" && json.login ? { login: json.login } : null;
 }
 
-/** Pure mapping: GitHub role_name -> handbook role. Exported for tests. */
+/** Pure mapping: GitHub role_name -> handbook role. Exported for tests.
+ * Any push-capable level is an editor (can edit + approve/merge reviews);
+ * read/triage is a reader. */
 export function roleFromPermission(roleName: string | undefined): Role {
-  if (roleName === "admin" || roleName === "maintain") return "admin";
-  if (roleName === "write") return "editor";
-  return "reader";
+  return roleName === "admin" || roleName === "maintain" || roleName === "write"
+    ? "editor"
+    : "reader";
 }
 
 export class GithubApiError extends Error {}

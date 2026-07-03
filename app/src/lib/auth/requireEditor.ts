@@ -1,15 +1,10 @@
-import { isAdminRole, isEditorRole, type Visitor } from "./visitor";
+import { isEditorRole, type Visitor } from "./visitor";
 
-// Hard write-gates. Return a 404 (NOT 403) for the unauthorized so the admin
+// Hard write-gate. Returns 404 (NOT 403) for non-editors so the editor
 // surfaces give no existence signal. Roles are pure CAPABILITY (edit/approve);
-// they never change what published content someone may read.
-
-/** Editing surface: editors AND admins. */
+// they never change what published content someone may read. Editors both
+// edit AND run the review dashboard (approve & publish) — anyone with repo
+// write can merge on GitHub anyway.
 export function requireEditor(locals: { visitor: Visitor | null }): Response | null {
   return isEditorRole(locals.visitor?.role) ? null : new Response(null, { status: 404 });
-}
-
-/** Review dashboard (approve & publish): admins only. */
-export function requireAdmin(locals: { visitor: Visitor | null }): Response | null {
-  return isAdminRole(locals.visitor?.role) ? null : new Response(null, { status: 404 });
 }

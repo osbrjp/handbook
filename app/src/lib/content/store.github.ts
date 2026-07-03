@@ -15,9 +15,9 @@ import { serializePageFile } from "./serialize.ts";
 //        `handbook/<slug>`. "Save draft" stops there (no PR — private WIP);
 //        "Submit for approval" ensures ONE pull request per page. Repeat saves
 //        stack onto the branch/PR, and the editor RESUMES from the branch (see
-//        readDraft) so a second session never clobbers unmerged work. An admin
-//        approves & merges — dashboard or GitHub — and only then is the change
-//        live (after rebuild).
+//        readDraft) so a second session never clobbers unmerged work. Another
+//        editor approves & merges — dashboard or GitHub — and only then is the
+//        change live (after rebuild).
 //   "direct": straight commit to the base branch (only works where the branch
 //        ruleset allows direct pushes).
 //
@@ -27,7 +27,9 @@ import { serializePageFile } from "./serialize.ts";
 
 // Repo-relative home of the content files (mirrors scripts/content-agent.mjs).
 const CONTENT_DIR = "app/src/content/pages";
-const EDIT_BRANCH_PREFIX = "handbook/";
+// One edit branch per page. The single source of truth for this prefix —
+// reviews.ts imports it (a PR whose head is handbook/* is a handbook edit).
+export const EDIT_BRANCH_PREFIX = "handbook/";
 
 export interface GithubConfig {
   token?: string; // the SIGNED-IN USER's token — never a shared credential
@@ -35,6 +37,25 @@ export interface GithubConfig {
   branch?: string; // base branch (default "main")
   mode?: "pr" | "direct";
 }
+
+// GitHub's base...ref comparison status ("ahead" = ref has unique commits,
+// "behind"/"identical" = nothing unique, "diverged" = both moved), or null if
+// the ref/compare isn't available. "ahead"|"diverged" ⇒ real draft/pending work.
+async function compareStatus(
+  fetchImpl: typeof fetch,
+  headers: Record<string, string>,
+  repo: string,
+  base: string,
+  ref: string,
+): Promise<string | null> {
+  const res = await fetchImpl(
+    `${API}/repos/${repo}/compare/${encodeURIComponent(base)}...${encodeURIComponent(ref)}`,
+    { headers },
+  );
+  if (!res.ok) return null;
+  return ((await res.json()) as { status?: string }).status ?? null;
+}
+const hasUniqueCommits = (status: string | null) => status === "ahead" || status === "diverged";
 
 /** UTF-8-safe base64 (btoa alone corrupts multibyte chars). Exported for tests. */
 export function toBase64Utf8(s: string): string {
@@ -64,18 +85,15 @@ export async function readDraft(
   fetchImpl: typeof fetch = fetch,
 ): Promise<ParsedPage | null> {
   const { token, repo } = config;
-  const base = config.branch || "main";
   if (!token || !repo) return null;
+  const base = await resolveBase(config, fetchImpl);
   const headers = githubHeaders(token);
   const editBranch = `${EDIT_BRANCH_PREFIX}${slug}`;
   try {
-    const cmp = await fetchImpl(
-      `${API}/repos/${repo}/compare/${encodeURIComponent(base)}...${encodeURIComponent(editBranch)}`,
-      { headers },
-    );
-    if (!cmp.ok) return null; // 404 = no edit branch at all
-    const { status } = (await cmp.json()) as { status?: string };
-    if (status !== "ahead" && status !== "diverged") return null; // nothing unique
+    // Only resume when the branch has unique commits (a real draft/pending
+    // review); a merged-leftover or missing branch → fall back to published.
+    if (!hasUniqueCommits(await compareStatus(fetchImpl, headers, repo, base, editBranch)))
+      return null;
 
     const res = await fetchImpl(
       `${API}/repos/${repo}/contents/${CONTENT_DIR}/${encodeURIComponent(slug)}.md?ref=${encodeURIComponent(editBranch)}`,
@@ -87,6 +105,33 @@ export async function readDraft(
     return parsePageFile(fromBase64Utf8(content));
   } catch {
     return null;
+  }
+}
+
+/**
+ * Which branch content work should target. Normally `main` — but during the
+ * POC period staging sets GITHUB_BRANCH to the POC branch so editor
+ * submissions demo against the code that's actually deployed. The rule is
+ * self-retiring: use the configured branch WHILE IT EXISTS; once it's deleted
+ * (which happens when its PR merges), everything automatically targets `main`
+ * — no config change needed at merge time.
+ */
+export async function resolveBase(
+  config: GithubConfig,
+  fetchImpl: typeof fetch = fetch,
+): Promise<string> {
+  const configured = config.branch;
+  if (!configured || configured === "main") return "main";
+  if (!config.token || !config.repo) return configured;
+  try {
+    const res = await fetchImpl(
+      `${API}/repos/${config.repo}/git/ref/${encodeURIComponent(`heads/${configured}`)}`,
+      { headers: githubHeaders(config.token) },
+    );
+    if (res.status === 404) return "main"; // branch merged+deleted → auto-switch
+    return configured; // exists (or API trouble — honor the config; ops fail loudly anyway)
+  } catch {
+    return configured;
   }
 }
 
@@ -102,8 +147,8 @@ export async function listEditStates(
   fetchImpl: typeof fetch = fetch,
 ): Promise<Record<string, EditState>> {
   const { token, repo } = config;
-  const base = config.branch || "main";
   if (!token || !repo) return {};
+  const base = await resolveBase(config, fetchImpl);
   const headers = githubHeaders(token);
   const states: Record<string, EditState> = {};
   try {
@@ -137,13 +182,14 @@ export async function listEditStates(
     await Promise.all(
       candidates.map(async (slug) => {
         try {
-          const cmp = await fetchImpl(
-            `${API}/repos/${repo}/compare/${encodeURIComponent(base)}...${encodeURIComponent(`${EDIT_BRANCH_PREFIX}${slug}`)}`,
-            { headers },
+          const status = await compareStatus(
+            fetchImpl,
+            headers,
+            repo,
+            base,
+            `${EDIT_BRANCH_PREFIX}${slug}`,
           );
-          if (!cmp.ok) return;
-          const { status } = (await cmp.json()) as { status?: string };
-          if (status === "ahead" || status === "diverged") states[slug] = "draft";
+          if (hasUniqueCommits(status)) states[slug] = "draft";
         } catch {
           // best-effort
         }
@@ -160,8 +206,14 @@ export function createGithubStore(
   fetchImpl: typeof fetch = fetch,
 ): ContentStore {
   const { token, repo } = config;
-  const base = config.branch || "main";
   const mode = config.mode ?? "pr";
+  // Resolved once per store instance (= per request): the configured branch
+  // while it exists, else main — see resolveBase.
+  let basePromise: Promise<string> | undefined;
+  const baseRef = () => {
+    basePromise ??= resolveBase(config, fetchImpl);
+    return basePromise;
+  };
   if (!token || !repo) {
     // No user token in the session (dev-shim login, or a dropped/expired
     // refresh). save.ts turns this into a friendly 503.
@@ -183,11 +235,26 @@ export function createGithubStore(
     });
   }
 
+  // GitHub answers 401/403 — and 404 on a public repo — when a token may not
+  // WRITE. Surface that as the human situation ("you can't save here yet"),
+  // not API trivia like "branch create failed (404)".
+  function writeFailed(what: string, status: number): Error {
+    if (status === 401 || status === 403 || status === 404) {
+      return new Error(
+        "Your GitHub sign-in doesn't have permission to save handbook changes in this environment yet (editing needs the GitHub App set up). Nothing was changed.",
+      );
+    }
+    return new Error(
+      `GitHub refused the ${what} (HTTP ${status}). Nothing was changed — try again.`,
+    );
+  }
+
   /** Current blob sha of the file on `ref`, or undefined if it doesn't exist. */
   async function getSha(slug: string, ref: string): Promise<string | undefined> {
     const res = await api("GET", `${fileUrl(slug)}?ref=${encodeURIComponent(ref)}`);
     if (res.status === 404) return undefined;
-    if (!res.ok) throw new Error(`github read failed (${res.status})`);
+    if (!res.ok)
+      throw new Error(`Couldn’t read the page from GitHub (HTTP ${res.status}). Try again.`);
     const json = (await res.json()) as { sha?: string };
     return json.sha;
   }
@@ -205,23 +272,24 @@ export function createGithubStore(
         "Edit conflict: this page changed on GitHub since you loaded it. Reload and re-apply your change.",
       );
     }
-    if (!res.ok) throw new Error(`github write failed (${res.status})`);
+    if (!res.ok) throw writeFailed("save", res.status);
   }
 
   async function del(slug: string, message: string, onBranch: string) {
     const sha = await getSha(slug, onBranch);
     if (!sha) return; // already gone — idempotent, matches the local agent
     const res = await api("DELETE", fileUrl(slug), { message, sha, branch: onBranch });
-    if (!res.ok) throw new Error(`github delete failed (${res.status})`);
+    if (!res.ok) throw writeFailed("delete", res.status);
   }
 
   /** The one open review PR for this page's edit branch, if any. */
   async function findOpenPr(
     editBranch: string,
   ): Promise<{ number: number; html_url: string } | undefined> {
-    const q = `state=open&base=${encodeURIComponent(base)}&head=${encodeURIComponent(`${owner}:${editBranch}`)}`;
+    const q = `state=open&base=${encodeURIComponent(await baseRef())}&head=${encodeURIComponent(`${owner}:${editBranch}`)}`;
     const res = await api("GET", `${API}/repos/${repo}/pulls?${q}`);
-    if (!res.ok) throw new Error(`github pr lookup failed (${res.status})`);
+    if (!res.ok)
+      throw new Error(`Couldn’t check for a pending review (HTTP ${res.status}). Try again.`);
     const prs = (await res.json()) as Array<{ number: number; html_url: string }>;
     return prs[0];
   }
@@ -232,11 +300,13 @@ export function createGithubStore(
    * (no open PR). With an open PR, leave it alone — saves stack onto the review.
    */
   async function ensureEditBranch(editBranch: string, hasOpenPr: boolean): Promise<void> {
+    const base = await baseRef();
     const headRes = await api(
       "GET",
       `${API}/repos/${repo}/git/ref/${encodeURIComponent(`heads/${base}`)}`,
     );
-    if (!headRes.ok) throw new Error(`github base ref failed (${headRes.status})`);
+    if (!headRes.ok)
+      throw new Error(`Couldn’t reach the content branch (HTTP ${headRes.status}). Try again.`);
     const baseSha = ((await headRes.json()) as { object: { sha: string } }).object.sha;
 
     const refUrl = `${API}/repos/${repo}/git/ref/${encodeURIComponent(`heads/${editBranch}`)}`;
@@ -246,10 +316,11 @@ export function createGithubStore(
         ref: `refs/heads/${editBranch}`,
         sha: baseSha,
       });
-      if (!res.ok) throw new Error(`github branch create failed (${res.status})`);
+      if (!res.ok) throw writeFailed("save", res.status);
       return;
     }
-    if (!existing.ok) throw new Error(`github branch lookup failed (${existing.status})`);
+    if (!existing.ok)
+      throw new Error(`Couldn’t check your edit branch (HTTP ${existing.status}). Try again.`);
     if (!hasOpenPr) {
       // Reset ONLY when the branch has no unique commits ("identical"/"behind"
       // = its work was merged or it's empty). A branch that is ahead/diverged
@@ -260,7 +331,8 @@ export function createGithubStore(
         "GET",
         `${API}/repos/${repo}/compare/${encodeURIComponent(base)}...${encodeURIComponent(editBranch)}`,
       );
-      if (!cmp.ok) throw new Error(`github compare failed (${cmp.status})`);
+      if (!cmp.ok)
+        throw new Error(`Couldn’t compare your edit branch (HTTP ${cmp.status}). Try again.`);
       const { status } = (await cmp.json()) as { status?: string };
       if (status !== "identical" && status !== "behind") return; // unique commits — preserve
       const res = await api(
@@ -268,7 +340,7 @@ export function createGithubStore(
         `${API}/repos/${repo}/git/refs/${encodeURIComponent(`heads/${editBranch}`)}`,
         { sha: baseSha, force: true },
       );
-      if (!res.ok) throw new Error(`github branch reset failed (${res.status})`);
+      if (!res.ok) throw writeFailed("save", res.status);
     }
   }
 
@@ -283,13 +355,13 @@ export function createGithubStore(
     const res = await api("POST", `${API}/repos/${repo}/pulls`, {
       title,
       head: editBranch,
-      base,
+      base: await baseRef(),
       body: `Handbook editor submission by @${opts.editor}.\n\nPage: \`${slug}\` — approve & publish from the handbook review dashboard or merge here.`,
     });
     // 422 "no commits between base and head" = the operation was a no-op
     // (e.g. deleting an already-absent page). Nothing to review.
     if (res.status === 422) return {};
-    if (!res.ok) throw new Error(`github pr create failed (${res.status})`);
+    if (!res.ok) throw writeFailed("review request", res.status);
     const pr = (await res.json()) as { number: number; html_url: string };
     return { reviewNumber: pr.number, reviewUrl: pr.html_url };
   }
@@ -306,7 +378,7 @@ export function createGithubStore(
     mutate: (onBranch: string) => Promise<void>,
   ): Promise<WriteResult | undefined> {
     if (mode === "direct") {
-      await mutate(base);
+      await mutate(await baseRef());
       return undefined;
     }
     const editBranch = `${EDIT_BRANCH_PREFIX}${slug}`;

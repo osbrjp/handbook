@@ -40,14 +40,30 @@ export interface ContentStoreConfig {
   kind: "local" | "github";
   localAgentUrl?: string; // dev: the Node content agent (file write + git commit)
   localAgentToken?: string;
-  // token = the USER's session token; mode "pr" = submit-for-review (default)
-  github?: { token?: string; repo?: string; branch?: string; mode?: "pr" | "direct" };
+  // token = the USER's session token; mode "pr" = submit-for-review (default).
+  // writeEnabled = this environment can ACTUALLY persist writes: the login
+  // token carries write scope (a GitHub App is installed). Our plain OAuth App
+  // grants NO scopes, so until the App is set up this is false and the editor
+  // is preview-only — the write buttons short-circuit client-side instead of
+  // attempting a doomed round-trip.
+  github?: {
+    token?: string;
+    repo?: string;
+    branch?: string;
+    mode?: "pr" | "direct";
+    writeEnabled?: boolean;
+  };
 }
 
-/** Whether a real write path exists for this request (drives the editor UI). */
+/**
+ * Whether a real write path exists for this request (drives the editor UI AND
+ * the client-side "check the environment first" short-circuit). This is the
+ * SINGLE source of truth for "can we save here" — the buttons, the banners and
+ * save.ts all read it, so a doomed environment never gets past the first check.
+ */
 export function isWritable(config: ContentStoreConfig): boolean {
   if (config.kind === "local") return !!config.localAgentUrl;
-  return !!(config.github?.token && config.github?.repo);
+  return !!(config.github?.token && config.github?.repo && config.github?.writeEnabled);
 }
 
 /** Whether saves become submit-for-review PRs (drives editor banners/labels). */

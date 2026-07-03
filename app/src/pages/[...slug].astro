@@ -15,8 +15,8 @@ const { visitor } = Astro.locals;
 let page: PageRow | null;
 let navPages: PageRow[] = [];
 try {
-  page = await getPageBySlug(slug, visitor);
-  navPages = await getNavPages(visitor);
+  // independent reads — run concurrently (the page body + the sidebar list)
+  [page, navPages] = await Promise.all([getPageBySlug(slug, visitor), getNavPages(visitor)]);
 } catch {
   // FAIL CLOSED: never render content on a backend error.
   return new Response("Service unavailable", { status: 503 });

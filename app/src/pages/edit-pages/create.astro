@@ -1,6 +1,7 @@
 ---
 import Base from "../../layouts/Base.astro";
 import EditorForm from "../../components/EditorForm.astro";
+import ReadonlyNotice from "../../components/ReadonlyNotice.astro";
 import { requireEditor } from "../../lib/auth/requireEditor";
 import { issueCsrf } from "../../lib/csrf";
 import { listAllPages } from "../../lib/content/pages";
@@ -19,11 +20,7 @@ const sections = [...new Set((await listAllPages()).map((p) => p.section))];
 <Base title="Create page" visitor={Astro.locals.visitor}>
   <div class="container editor-page">
     <h1>Create page</h1>
-    {
-      Astro.url.searchParams.get("error") === "readonly" && (
-        <div class="notice notice-warn">⚠ That change can’t be saved in this environment (preview only).</div>
-      )
-    }
+    <ReadonlyNotice />
     <EditorForm
       csrf={csrf}
       sections={sections}

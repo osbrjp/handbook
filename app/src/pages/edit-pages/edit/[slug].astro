@@ -1,6 +1,7 @@
 ---
 import Base from "../../../layouts/Base.astro";
 import EditorForm from "../../../components/EditorForm.astro";
+import ReadonlyNotice from "../../../components/ReadonlyNotice.astro";
 import { requireEditor } from "../../../lib/auth/requireEditor";
 import { issueCsrf } from "../../../lib/csrf";
 import { getEditablePageBySlug, listAllPages, type PageRow } from "../../../lib/content/pages";
@@ -38,17 +39,12 @@ const sections = [...new Set((await listAllPages()).map((p) => p.section))];
 
 // Confirmation after a local-dev save (set by /edit-pages/save).
 const saved = Astro.url.searchParams.get("saved");
-const readonly = Astro.url.searchParams.get("error") === "readonly";
 ---
 
 <Base title={`Edit: ${page.title}`} visitor={Astro.locals.visitor}>
   <div class="container editor-page">
     <h1>Edit: {page.title}</h1>
-    {
-      readonly && (
-        <div class="notice notice-warn">⚠ That change can’t be saved in this environment (preview only).</div>
-      )
-    }
+    <ReadonlyNotice />
     {
       draft && (
         <div class="notice">

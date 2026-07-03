@@ -12,13 +12,11 @@ import { getOrigin } from "../../../lib/auth/origin";
 //
 //   /api/auth/dev-login?user=alice&role=editor
 //   /api/auth/dev-login?user=bob&role=reader
-//   /api/auth/dev-login?user=carol&role=admin
 export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
   if (env.DEV_LOGIN !== "1") return new Response(null, { status: 404 });
 
   const login = url.searchParams.get("user") ?? "dev-editor";
-  const param = url.searchParams.get("role");
-  const role = param === "reader" || param === "admin" ? param : "editor";
+  const role = url.searchParams.get("role") === "reader" ? "reader" : "editor";
 
   const origin = getOrigin(request, env);
   const now = Date.now();

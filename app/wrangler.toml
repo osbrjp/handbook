@@ -23,3 +23,8 @@ name = "osbr-handbook-staging"
 [env.staging.vars]
 DEV_LOGIN = "0"
 GITHUB_REPO = "osbrjp/handbook"
+# POC period: editor submissions target the POC branch (the code staging is
+# built from) so the whole draft→approve→merge loop can be demoed pre-merge.
+# SELF-RETIRING: once this branch is deleted (its PR merged), resolveBase()
+# automatically falls back to main — no config change needed at merge time.
+GITHUB_BRANCH = "i68-handbook-poc"

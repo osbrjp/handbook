@@ -1,12 +1,14 @@
 ---
 import Base from "../../../layouts/Base.astro";
-import { requireAdmin } from "../../../lib/auth/requireEditor";
+import { requireEditor } from "../../../lib/auth/requireEditor";
 import { issueCsrf } from "../../../lib/csrf";
 import { listReviews, type ReviewItem } from "../../../lib/content/reviews";
+import { resolveBase } from "../../../lib/content/store.github";
 
-// Admin-only review dashboard: pending handbook edits (submit-for-review PRs),
-// with approve & publish / reject actions performed as the signed-in admin.
-const denied = requireAdmin(Astro.locals);
+// Review dashboard (editors): pending handbook edits (submit-for-approval PRs),
+// with approve & publish / reject performed as the signed-in editor. GitHub
+// still blocks approving your own PR, so publishing needs a second editor.
+const denied = requireEditor(Astro.locals);
 if (denied) return denied;
 
 Astro.response.headers.set("Cache-Control", "private, no-store");
@@ -19,7 +21,7 @@ let reviews: ReviewItem[] = [];
 let loadError: string | null = null;
 if (gh?.token && gh?.repo) {
   try {
-    reviews = await listReviews({ token: gh.token, repo: gh.repo, base: gh.branch || "main" });
+    reviews = await listReviews({ token: gh.token, repo: gh.repo, base: await resolveBase(gh) });
   } catch {
     loadError = "Could not load pending reviews from GitHub. Refresh to retry.";
   }

@@ -1,16 +1,15 @@
 // Review-dashboard API layer: the pending handbook edits are OPEN PULL REQUESTS
 // from `handbook/<slug>` branches, and "approve & publish" is a real GitHub
-// review + merge — performed AS THE SIGNED-IN ADMIN (their session token), so
-// the branch ruleset (1 approval, code-owner, run-tests) is fully honored.
-// GitHub also enforces you can't approve your own submission.
+// review + merge — performed AS THE SIGNED-IN EDITOR (their session token), so
+// the branch ruleset (1 approval, run-tests) is fully honored. GitHub also
+// enforces you can't approve your own submission (→ a 2-person review).
 
-// .ts extension: imported by node --test too (no extensionless resolution).
+// .ts extensions: imported by node --test too (no extensionless resolution).
 import { GITHUB_API as API, githubHeaders } from "../githubApi.ts";
-
-const EDIT_BRANCH_PREFIX = "handbook/";
+import { EDIT_BRANCH_PREFIX } from "./store.github.ts";
 
 export interface ReviewsConfig {
-  token: string; // the ADMIN's session token
+  token: string; // the signed-in editor's session token
   repo: string; // "owner/name"
   base: string; // base branch the reviews target
 }
@@ -43,7 +42,7 @@ export function rollupChecks(
 /**
  * Open handbook-edit PRs, newest first.
  *
- * KNOWN N+1: one check-runs call per open review (parallelized, admin-only
+ * KNOWN N+1: one check-runs call per open review (parallelized, editor-only
  * page, ≤50 PRs) — fine at this scale. If it ever matters, replace with a
  * single GraphQL query using `statusCheckRollup` across all PRs.
  */
@@ -51,9 +50,10 @@ export async function listReviews(
   cfg: ReviewsConfig,
   fetchImpl: typeof fetch = fetch,
 ): Promise<ReviewItem[]> {
+  const h = headers(cfg.token); // reused across the list + per-PR check calls
   const res = await fetchImpl(
     `${API}/repos/${cfg.repo}/pulls?state=open&base=${encodeURIComponent(cfg.base)}&per_page=50&sort=updated&direction=desc`,
-    { headers: headers(cfg.token) },
+    { headers: h },
   );
   if (!res.ok) throw new Error(`review list failed (${res.status})`);
   const prs = (await res.json()) as Array<{
@@ -72,7 +72,7 @@ export async function listReviews(
       try {
         const cr = await fetchImpl(
           `${API}/repos/${cfg.repo}/commits/${p.head.sha}/check-runs?per_page=50`,
-          { headers: headers(cfg.token) },
+          { headers: h },
         );
         if (cr.ok) {
           const json = (await cr.json()) as {
@@ -114,7 +114,7 @@ async function deleteBranch(cfg: ReviewsConfig, ref: string, fetchImpl: typeof f
 }
 
 /**
- * Approve + merge as the signed-in admin, then tidy up the edit branch.
+ * Approve + merge as the signed-in editor, then tidy up the edit branch.
  * Throws user-presentable messages for the two expected refusals.
  */
 export async function approveAndPublish(
@@ -129,7 +129,7 @@ export async function approveAndPublish(
   });
   if (approve.status === 422) {
     // GitHub forbids approving your own PR.
-    throw new Error("You submitted this change yourself — a different admin has to approve it.");
+    throw new Error("You submitted this change yourself — a different editor has to approve it.");
   }
   if (!approve.ok) throw new Error(`approve failed (${approve.status})`);
 

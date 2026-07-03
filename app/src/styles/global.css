@@ -428,20 +428,6 @@ a:hover {
   color: var(--brand);
   font-weight: 600;
 }
-.sb-noaccess {
-  color: var(--muted);
-  opacity: 0.65;
-  cursor: not-allowed;
-}
-.sb-badge {
-  font-size: 0.62rem;
-  padding: 0.02rem 0.35rem;
-  border-radius: 999px;
-  margin-left: 0.35rem;
-  color: var(--text);
-  background: var(--soft);
-  vertical-align: middle;
-}
 .doc-main {
   min-width: 0;
   padding: 2.5rem 3.5rem 5rem;
@@ -715,6 +701,12 @@ a:hover {
   gap: 1rem;
   margin: 0 0 1.5rem;
 }
+/* Button group on the right of the heading (Reviews · + New page). */
+.admin-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
 .admin-back {
   display: inline-block;
   margin-bottom: 1.25rem;
@@ -778,23 +770,31 @@ a:hover {
 .admin-list .col-right {
   text-align: right;
 }
-/* Shared column widths across all section tables. */
+/* Shared column widths across all section tables (table-layout is FIXED, so
+   these MUST match the markup: 3 columns — Title | Visibility | Actions.
+   The Status column was removed; when these said 4 columns, Actions inherited
+   Status's 7rem and "Edit View Delete" got ellipsized to "Edit Vie…". */
 .admin-list th:nth-child(2),
 .admin-list td:nth-child(2) {
-  width: 9rem;
+  width: 8rem;
 }
 .admin-list th:nth-child(3),
 .admin-list td:nth-child(3) {
-  width: 7rem;
+  width: 13rem;
 }
-.admin-list th:nth-child(4),
-.admin-list td:nth-child(4) {
-  width: 12rem;
+/* The 2-column drafts table ("New pages in progress") sizes its own columns. */
+.admin-list-2col th:nth-child(2),
+.admin-list-2col td:nth-child(2) {
+  width: 13rem;
 }
-.row-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
+.admin-list-2col th:nth-child(3),
+.admin-list-2col td:nth-child(3) {
+  width: auto;
+}
+/* Actions cell: a real table-cell (display:flex on a <td> breaks the table's
+   width negotiation); plain inline links spaced by margins. */
+.row-actions > * + * {
+  margin-left: 0.75rem;
 }
 .admin-section .admin-list tr:last-child td {
   border-bottom: none;
@@ -893,14 +893,6 @@ a:hover {
 .editor fieldset input {
   width: auto;
   margin: 0;
-}
-.editor .groups {
-  margin: 0.6rem 0 0 1.6rem;
-  color: var(--text-2);
-}
-.editor .groups small {
-  display: block;
-  margin-top: 0.4rem;
 }
 /* near-full-width editor with comfortable side gutters */
 .editor-page {
