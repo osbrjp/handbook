@@ -68,19 +68,21 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  — NO DATABASE (statele
     now it's pending. Further saves join the pending review.
   Every commit is **authored by the signed-in person** (their own GitHub App
   token, carried encrypted in the session, auto-refreshed — no bot identity).
-- **Review dashboard** (`/edit-pages/reviews`, admins only): pending edits with
+- **Review dashboard** (`/edit-pages/reviews`, editors): pending edits with
   author + checks state; **Approve & publish** performs a real GitHub review +
-  merge *as the signed-in admin* (ruleset fully honored — GitHub blocks
+  merge *as the signed-in editor* (ruleset fully honored — GitHub blocks
   self-approval, failing checks, stale branches; a blocked merge auto-triggers
   update-branch). **Reject** closes the review and discards the edits.
-- **Roles come from GitHub repo permission and are pure CAPABILITY**:
-  `admin`/`maintain` → handbook **admin** (review dashboard), `write` →
-  **editor** (draft + submit), collaborator → **reader**. Roles never change
-  what published content someone can read. Locally (agent mode) saves are
-  direct file writes (one "Save" button); `GITHUB_WRITE_MODE=direct` restores
-  direct API commits for unprotected setups. A merged change appears on the
-  live site after the next rebuild/redeploy — deploy-on-push is the remaining
-  deferred piece.
+- **Two roles from GitHub repo permission, pure CAPABILITY**: any push-capable
+  level (`write`/`maintain`/`admin`) → **editor**, read collaborator →
+  **reader**. Editors both edit AND approve/merge reviews — GitHub write already
+  allows merging — so there is no separate "approver" tier; GitHub still blocks
+  approving your OWN PR, so publishing needs a **second editor** (a 2-person
+  review). Roles never change what published content someone can read. Locally
+  (agent mode) saves are direct file writes (one "Save" button);
+  `GITHUB_WRITE_MODE=direct` restores direct API commits for unprotected setups.
+  A merged change appears on the live site after the next rebuild/redeploy —
+  deploy-on-push is the remaining deferred piece.
 - **Public repo caveat:** while the content repo is public, `internal` page *source* is readable in git even though the deployed site gates the rendered page. Move the content repo private to make gated content actually private (no code change needed).
 
 ## What's verified
@@ -209,6 +211,15 @@ index the staging copy).
    `GITHUB_TOKEN` (bot PAT, role checks), `OAUTH_ORIGIN` (= the staging URL).
 5. Sign in on the staging URL and verify the ACL matrix with real accounts.
 
+**POC-period editing on staging:** `[env.staging]` sets
+`GITHUB_BRANCH=i68-handbook-poc`, so once editing is enabled
+(`GITHUB_WRITE_ENABLED=1`, needs the GitHub App) the whole
+draft→submit→approve→merge loop can be demoed against the POC branch — merged
+pages land on the branch staging is actually built from. The targeting is
+**self-retiring**: when the POC branch is deleted (its PR merged), everything
+automatically targets `main`; the only follow-up is a cleanup task (delete the
+staging var for tidiness, prune any demo pages/branches).
+
 **Deferred (tracked, non-blocking):** deploy-on-push CI (needs a
 `CLOUDFLARE_API_TOKEN` repo secret), rate limiting on `/api/auth/*` (do as a
 Cloudflare dashboard rule), observability beyond `wrangler tail`, CSP/HSTS at
@@ -222,10 +233,39 @@ to the `release` branch; `handbook.osbrjp.com` is a CNAME to `osbrjp.github.io`
 (GitHub Pages anycast IPs `185.199.108–111.153`). Everything is public — Pages
 serves static files and can't gate per user.
 
-**Why the host must change:** this app is Astro **SSR on Cloudflare Workers** —
-it checks GitHub identity and per-page access on every request, which a static
-host (GitHub Pages) fundamentally can't do. So the cutover is a host swap, not a
-redeploy of the same thing.
+**DNS reality (checked 2026-07-03):** the `osbrjp.com` zone is hosted on
+**AWS Route 53** (`awsdns-*` nameservers); the apex site rides CloudFront;
+`handbook.osbrjp.com` is a CNAME to `osbrjp.github.io` with a **3600s TTL**.
+This matters because **Cloudflare Workers custom domains require the domain's
+DNS zone to live in the Cloudflare account** — an external (Route 53) CNAME
+pointing at a Worker cannot terminate TLS for the hostname. So the cutover has
+a prerequisite nobody pays for but someone must do: **move the `osbrjp.com`
+DNS zone to the company Cloudflare account** (free plan is fine).
+
+**Phase 0 — move DNS to Cloudflare (do anytime, zero user impact):**
+1. Identify who holds **registrar access** for `osbrjp.com` (where its
+   nameservers are set) and **Route 53 access** (to export records). This is
+   the one new dependency.
+2. In the company Cloudflare account: *Add a site* → `osbrjp.com` (Free plan).
+   Cloudflare imports the records — **verify against a Route 53 export**
+   (`aws route53 list-resource-record-sets`) so nothing is missed.
+3. Set every imported record to **DNS only (grey cloud)** — especially the
+   CloudFront apex — so the move changes *where DNS answers come from* and
+   nothing about how any site behaves.
+4. At the registrar, switch the nameservers to the pair Cloudflare assigns.
+   Keep the Route 53 zone running unchanged during propagation (both providers
+   give identical answers → zero downtime; NS changes take up to ~48h).
+5. After the zone is active on Cloudflare, decommission the Route 53 zone.
+
+The main osbrjp.com site stays on AWS/CloudFront exactly as-is — only its DNS
+hosting moves. (Alternative if the zone must stay on Route 53: Cloudflare's
+custom-hostname/SaaS setup — disproportionate complexity for one subdomain;
+moving the zone is the standard path.)
+
+**Why the site host must change:** this app is Astro **SSR on Cloudflare
+Workers** — it checks GitHub identity and per-page access on every request,
+which a static host (GitHub Pages) fundamentally can't do. So the cutover is a
+host swap, not a redeploy of the same thing.
 
 **Cutover steps (when ready to go live):**
 1. **Deploy the Worker.** `wrangler deploy` (or a CI job) publishes the Astro
@@ -248,10 +288,17 @@ redeploy of the same thing.
    and the Workers live in the company Cloudflare account. If any of these sat
    on a personal account, that person leaving/losing access would break sign-in
    or force a mass logout.
-4. **DNS cutover.** Point `handbook.osbrjp.com` at the Cloudflare Worker (add it
-   as a custom domain / route on the Worker) instead of `osbrjp.github.io`.
-5. **Retire GitHub Pages.** Remove the Pages custom domain (frees the CNAME) and
-   disable/delete `.github/workflows/release.yml` so it stops publishing to Pages.
+4. **DNS cutover (requires Phase 0 done).** In Cloudflare: delete the
+   `handbook → osbrjp.github.io` CNAME and add `handbook.osbrjp.com` as a
+   **custom domain on the prod Worker** (Cloudflare creates the record and the
+   certificate automatically). Effectively instant at the edge. **Both sites
+   stay up throughout** — GitHub Pages keeps serving anyone with a stale DNS
+   answer, the Worker serves everyone else; visitors see old or new, never an
+   outage. **Rollback = recreate the CNAME to `osbrjp.github.io`** (keep Pages
+   alive until step 7 precisely so rollback stays one click).
+5. **Retire GitHub Pages — only after days of confidence.** Remove the Pages
+   custom domain and disable/delete `.github/workflows/release.yml`; the
+   `release` branch retires with it (publishing is merge-to-main + deploy now).
 6. **Privacy (if internal content must be private).** The content repo is public,
    so `internal`/`restricted` markdown is readable in git even though the site
    gates the rendered page. Make the content repo **private** (no code change) —
