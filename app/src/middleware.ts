@@ -138,10 +138,14 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
       // "pr" (default): saves become submit-for-review pull requests — main is
       // PR-protected, so direct pushes would be refused anyway.
       mode: env.GITHUB_WRITE_MODE === "direct" ? "direct" : "pr",
-      // Editing is only actually possible once the GitHub App is installed (it
-      // issues write-scoped user tokens). Set GITHUB_WRITE_ENABLED=1 then; until
-      // then the editor is preview-only and write buttons stop at the first check.
-      writeEnabled: env.GITHUB_WRITE_ENABLED === "1",
+      // Editing AUTO-ENABLES when the admin swaps the OAuth secrets to the
+      // GitHub App: App-issued user tokens are expiring (they carry a refresh
+      // token), classic OAuth tokens aren't — so a refresh token in the
+      // session means write-capable sign-in. GITHUB_WRITE_ENABLED overrides:
+      // "1" forces on, "0" is the kill switch, unset = auto-detect.
+      writeEnabled:
+        env.GITHUB_WRITE_ENABLED === "1" ||
+        (env.GITHUB_WRITE_ENABLED !== "0" && !!ghToken?.refresh),
     },
   };
 

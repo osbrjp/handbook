@@ -12,7 +12,7 @@ GITHUB_OAUTH_CLIENT_SECRET=
 # PAT scoped to the handbook repo is enough. Unused by the dev-login shim.
 GITHUB_TOKEN=
 GITHUB_REPO=osbrjp/handbook
-# Editing (save/submit/delete) is only possible once the GitHub App issues
-# write-scoped user tokens. Leave unset until then — the editor stays
-# preview-only and write buttons show "not enabled here" without a round-trip.
+# Editing AUTO-ENABLES when sign-in uses the GitHub App (its tokens carry a
+# refresh token; classic OAuth tokens don't). Unset = auto-detect; "1" forces
+# on; "0" = kill switch (instantly disables editing, readers unaffected).
 GITHUB_WRITE_ENABLED=
