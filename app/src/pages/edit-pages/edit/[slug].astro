@@ -18,15 +18,18 @@ Astro.response.headers.set("Vary", "Cookie");
 const slug = Astro.params.slug;
 if (!slug || !isSafeSlug(slug)) return new Response(null, { status: 404 });
 
-// The published version (from the built collection) …
-const published = await getEditablePageBySlug(slug);
-
-// … and the visitor's unmerged work, if any (draft/pending commits on
-// handbook/<slug>). When it exists, the FORM MUST show it — otherwise a second
-// editing session would silently start from the published text and clobber
-// the draft. Covers brand-new pages too (draft exists, nothing published yet).
+// Three independent reads — the published version, the visitor's unmerged work
+// (draft/pending commits on handbook/<slug>), and the section list — fetched
+// CONCURRENTLY (readDraft alone is 2-3 GitHub round-trips). When a draft
+// exists the FORM MUST show it, else a second editing session would silently
+// start from the published text and clobber the draft; covers brand-new pages
+// too (draft exists, nothing published yet).
 const cfg = Astro.locals.contentStore;
-const draft = cfg.kind === "github" && cfg.github?.token ? await readDraft(cfg.github, slug) : null;
+const [published, draft, allPages] = await Promise.all([
+  getEditablePageBySlug(slug),
+  cfg.kind === "github" && cfg.github?.token ? readDraft(cfg.github, slug) : Promise.resolve(null),
+  listAllPages(),
+]);
 
 if (!published && !draft) return new Response(null, { status: 404 });
 
@@ -35,7 +38,7 @@ const page: PageRow = draft
   : (published as PageRow);
 
 const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
-const sections = [...new Set((await listAllPages()).map((p) => p.section))];
+const sections = [...new Set(allPages.map((p) => p.section))];
 
 // Confirmation after a local-dev save (set by /edit-pages/save).
 const saved = Astro.url.searchParams.get("saved");
