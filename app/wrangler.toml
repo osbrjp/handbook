@@ -32,3 +32,12 @@ GITHUB_BRANCH = "i68-handbook-poc"
 # `wrangler deploy --env staging` would deploy this same worker. The single
 # `osbr-handbook` worker IS staging until the production cutover (POC.md
 # "Deploy to staging" has the full story, incl. GITHUB_BRANCH POC targeting).
+
+# SESSION KV namespace (Astro Sessions). The adapter emits this binding WITHOUT
+# an id, so every deploy would otherwise show a config diff and risk rebinding
+# SESSION to a fresh namespace — logging everyone out. Pinning the existing id
+# keeps the same store across deploys. The id is an opaque namespace handle,
+# not a secret (it grants nothing without account credentials).
+[[kv_namespaces]]
+binding = "SESSION"
+id = "1e666ee51498443e8ef93d976bf1c678"
