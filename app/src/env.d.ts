@@ -9,12 +9,13 @@ declare namespace Cloudflare {
     COOKIE_ENCRYPTION_KEY: string;
     DEV_LOGIN?: string;
     OAUTH_ORIGIN?: string;
-    // GitHub OAuth App (login) — identity only, no scopes
+    // GitHub App or classic OAuth App (login) — identity only, no scopes
     GITHUB_OAUTH_CLIENT_ID?: string;
     GITHUB_OAUTH_CLIENT_SECRET?: string;
-    // Bot token: reads collaborator permissions (ROLE CHECKS ONLY — content
-    // writes use the signed-in user's own token, never this one).
-    // Worker secret / .dev.vars — never committed.
+    // FALLBACK bot token for role checks — only needed while sign-in uses a
+    // classic OAuth App (App-issued user tokens self-check their repo access,
+    // so with a GitHub App this secret can stay unset). Never used for content
+    // writes. Worker secret / .dev.vars — never committed.
     GITHUB_TOKEN?: string;
     GITHUB_REPO?: string; // owner/name, default osbrjp/handbook
     GITHUB_BRANCH?: string; // base branch for content (default "main")

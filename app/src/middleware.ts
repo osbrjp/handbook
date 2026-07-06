@@ -1,6 +1,11 @@
 import { defineMiddleware } from "astro:middleware";
 import { env } from "cloudflare:workers";
-import { GithubApiError, refreshGithubToken, resolveRole } from "./lib/auth/github";
+import {
+  GithubApiError,
+  refreshGithubToken,
+  resolveRole,
+  resolveRoleSelf,
+} from "./lib/auth/github";
 import { SESSION_COOKIE, sessionCookieOptions } from "./lib/auth/cookies";
 import { getOrigin } from "./lib/auth/origin";
 import { decryptSession, encryptSession, type GhTokenSet } from "./lib/auth/session";
@@ -42,50 +47,13 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
       let revoked = false;
       let credentialFailure = false;
 
-      // Re-verify a stale role against GitHub. Skipped in dev (DEV_LOGIN=1),
-      // where sessions come from the dev-login shim and aren't real GitHub users.
-      if (env.DEV_LOGIN !== "1" && Date.now() - checkedAt > ROLE_TTL_MS) {
-        try {
-          const fresh = await resolveRole({
-            token: env.GITHUB_TOKEN ?? "",
-            repo: env.GITHUB_REPO || "osbrjp/handbook",
-            login: session.login,
-          });
-          if (fresh) {
-            role = fresh;
-            checkedAt = Date.now();
-            changed = true;
-          } else {
-            // Definitive 404: no longer a collaborator — revoked on GitHub.
-            revoked = true;
-            ctx.cookies.delete(SESSION_COOKIE, { path: "/" });
-          }
-        } catch (e) {
-          const msg = e instanceof Error ? e.message : String(e);
-          if (e instanceof GithubApiError && /_40[13]$/.test(msg)) {
-            // 401/403 = OUR bot credential is bad (GITHUB_TOKEN missing,
-            // rotated, or revoked) — NOT a GitHub outage. Fail closed for this
-            // request (visitor stays anonymous; cookie kept so sessions resume
-            // once the secret is fixed). Without this, a lost bot token would
-            // silently disable role revocation for every live session.
-            credentialFailure = true;
-            console.error(
-              `role check failed — bot credential rejected (${msg}); check GITHUB_TOKEN`,
-            );
-          } else {
-            // GitHub API trouble (outage/rate limit): keep the previously
-            // VERIFIED role until the next successful check rather than locking
-            // the whole company out. New logins still fail closed in callback.ts.
-            console.error(`role revalidation skipped (${msg}); keeping previously verified role`);
-          }
-        }
-      }
-
-      // Refresh an expiring GitHub App user token (the editor's commit
-      // credential). A failed refresh just drops the token — the visitor stays
-      // signed in, and the editor asks them to sign in again when they save.
+      // Refresh an expiring GitHub App user token FIRST — it's both the
+      // editor's commit credential and (App sign-ins) the role-check
+      // credential below, so an 8h-expired token must be renewed before it's
+      // used to re-verify. A failed refresh just drops the token — the
+      // visitor stays signed in (role re-check falls back to the bot token if
+      // configured), and the editor asks them to sign in again when they save.
       if (
-        !revoked &&
         ghToken?.refresh &&
         ghToken.expiresAt &&
         ghToken.expiresAt < Date.now() + TOKEN_HEADROOM_MS &&
@@ -102,6 +70,51 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
             ? { access: fresh.accessToken, refresh: fresh.refreshToken, expiresAt: fresh.expiresAt }
             : undefined;
         changed = true;
+      }
+
+      // Re-verify a stale role against GitHub. Skipped in dev (DEV_LOGIN=1),
+      // where sessions come from the dev-login shim and aren't real GitHub
+      // users. App sign-ins self-check with the user's own token (no bot
+      // credential); classic sign-ins use the bot token. Same fallback rule
+      // as the callback: self-check trouble uses the bot token when present.
+      if (env.DEV_LOGIN !== "1" && Date.now() - checkedAt > ROLE_TTL_MS) {
+        const repo = env.GITHUB_REPO || "osbrjp/handbook";
+        const botCheck = () =>
+          resolveRole({ token: env.GITHUB_TOKEN ?? "", repo, login: session.login });
+        try {
+          const fresh = ghToken?.refresh
+            ? await resolveRoleSelf({ userToken: ghToken.access, repo }).catch((e) => {
+                if (!env.GITHUB_TOKEN) throw e;
+                return botCheck();
+              })
+            : await botCheck();
+          if (fresh) {
+            role = fresh;
+            checkedAt = Date.now();
+            changed = true;
+          } else {
+            // Definitive: no longer has the repo — revoked on GitHub.
+            revoked = true;
+            ctx.cookies.delete(SESSION_COOKIE, { path: "/" });
+          }
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          if (e instanceof GithubApiError && /_40[13]$/.test(msg)) {
+            // 401/403 = the CREDENTIAL is bad (bot token missing/rotated, or a
+            // user token GitHub no longer honors) — NOT a GitHub outage. Fail
+            // closed for this request (visitor stays anonymous; cookie kept so
+            // sessions resume once the credential is fixed/re-minted). Without
+            // this, a lost credential would silently disable role revocation
+            // for every live session.
+            credentialFailure = true;
+            console.error(`role check failed — credential rejected (${msg})`);
+          } else {
+            // GitHub API trouble (outage/rate limit): keep the previously
+            // VERIFIED role until the next successful check rather than locking
+            // the whole company out. New logins still fail closed in callback.ts.
+            console.error(`role revalidation skipped (${msg}); keeping previously verified role`);
+          }
+        }
       }
 
       if (!revoked && !credentialFailure) {

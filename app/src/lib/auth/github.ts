@@ -14,9 +14,14 @@
 // explicit-collaborator check (204 vs 404) is the real gate — it behaves the
 // same for public and private repos, so making the repo private changes nothing.
 //
-// The checks run with a server-side bot token (Worker secret GITHUB_TOKEN),
-// NOT the user's OAuth token — the user grants no scopes at all (public
-// profile only), and a reader's own token couldn't query the collaborator API.
+// Two role-check paths, chosen by what kind of token the sign-in produced:
+//   - GitHub App sign-in (token carries a refresh token): the user's OWN token
+//     self-checks via /user/installations/{id}/repositories, which lists only
+//     repos the user has EXPLICIT permission on — same gate semantics as the
+//     collaborator check, no bot credential needed (resolveRoleSelf).
+//   - Classic OAuth App sign-in (no refresh token): the user grants no scopes,
+//     and the collaborator API requires push access — so a server-side bot
+//     token (Worker secret GITHUB_TOKEN) does the check (resolveRole).
 
 // .ts extension: imported by node --test too (no extensionless resolution).
 import { GITHUB_API as API, GITHUB_UA as UA, githubHeaders } from "../githubApi.ts";
@@ -116,6 +121,17 @@ export function roleFromPermission(roleName: string | undefined): Role {
     : "reader";
 }
 
+/** Pure mapping: a repo object's `permissions` booleans -> handbook role.
+ * Same rule as roleFromPermission, for the self-check path (the installation
+ * repo list reports permissions as booleans, not a role_name). */
+export function roleFromRepoPermissions(p?: {
+  admin?: boolean;
+  maintain?: boolean;
+  push?: boolean;
+}): Role {
+  return p?.admin || p?.maintain || p?.push ? "editor" : "reader";
+}
+
 export class GithubApiError extends Error {}
 
 /**
@@ -146,4 +162,64 @@ export async function resolveRole(
   if (!perm.ok) throw new GithubApiError(`permission_check_${perm.status}`);
   const json = (await perm.json()) as { role_name?: string };
   return roleFromPermission(json.role_name);
+}
+
+// Defensive cap for the self-check repo listing (per_page=100 each). The App
+// is installed on one repo, so page 2 should never exist — the cap only
+// bounds the walk if the App is ever installed org-wide.
+const SELF_CHECK_MAX_PAGES = 10;
+
+/**
+ * Resolve the visitor's role from THEIR OWN GitHub-App-issued user token — no
+ * bot credential involved. Classic OAuth tokens are rejected by GitHub with a
+ * 403 (verified live), so callers branch on the token kind first (an App
+ * token is the one that carries a refresh token).
+ *
+ * Gate semantics deliberately mirror resolveRole's explicit-collaborator
+ * check: /user/installations/{id}/repositories lists ONLY repos the user has
+ * EXPLICIT permission on, so a public repo does NOT appear for a random
+ * GitHub user. Absent from the list = no access (null, fail closed); present
+ * = reader/editor by the repo's `permissions` booleans.
+ *
+ * Throws GithubApiError on API trouble (same contract as resolveRole: callers
+ * tell "no access" apart from "GitHub is down").
+ */
+export async function resolveRoleSelf(
+  o: { userToken: string; repo: string },
+  fetchImpl: typeof fetch = fetch,
+): Promise<Role | null> {
+  const headers = githubHeaders(o.userToken);
+  const [owner] = o.repo.toLowerCase().split("/");
+  const fullName = o.repo.toLowerCase();
+
+  // Installations of the App visible to this user (normally exactly one).
+  const instRes = await fetchImpl(`${API}/user/installations?per_page=100`, { headers });
+  if (!instRes.ok) throw new GithubApiError(`installations_check_${instRes.status}`);
+  const instJson = (await instRes.json()) as {
+    installations?: { id: number; account?: { login?: string } }[];
+  };
+  const installations = (instJson.installations ?? []).filter(
+    (i) => i.account?.login?.toLowerCase() === owner,
+  );
+
+  for (const inst of installations) {
+    for (let page = 1; page <= SELF_CHECK_MAX_PAGES; page++) {
+      const repoRes = await fetchImpl(
+        `${API}/user/installations/${inst.id}/repositories?per_page=100&page=${page}`,
+        { headers },
+      );
+      if (!repoRes.ok) throw new GithubApiError(`installation_repos_${repoRes.status}`);
+      const repoJson = (await repoRes.json()) as {
+        repositories?: {
+          full_name?: string;
+          permissions?: { admin?: boolean; maintain?: boolean; push?: boolean };
+        }[];
+      };
+      const repos = repoJson.repositories ?? [];
+      const match = repos.find((r) => r.full_name?.toLowerCase() === fullName);
+      if (match) return roleFromRepoPermissions(match.permissions);
+      if (repos.length < 100) break; // last page
+    }
+  }
+  return null; // repo not visible to this user -> no access (fail closed)
 }

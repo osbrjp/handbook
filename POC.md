@@ -51,11 +51,15 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  — NO DATABASE (statele
 - Auth = **hand-written GitHub OAuth** (session crypto ported from
   `osbrjp/coop-csnet-poc`, AES-GCM encrypted cookie), hardened with a
   state-nonce CSRF check the original lacked. The user grants **no scopes**
-  (public identity only); authorization runs server-side with a bot token
-  (`GITHUB_TOKEN` secret) against the repo's collaborator permissions.
-  Note: the permission API reports `read` for *any* GitHub user while the repo
-  is public, so the gate is the **explicit-collaborator check** (204/404) —
-  which behaves identically once the repo goes private.
+  (public identity only). Authorization has two paths, picked by the token
+  kind: **GitHub App sign-in → the user's own token self-checks** its
+  explicit repo access (`/user/installations/{id}/repositories` — no bot
+  credential at all); classic OAuth App sign-in → a bot token (`GITHUB_TOKEN`
+  secret, fallback only) checks the repo's collaborator permissions.
+  Note: a *public* repo is readable by any GitHub user, so both gates key on
+  **explicit** access (collaborator 204/404; presence in the explicit-permission
+  listing) — never `permission === "read"` — and behave identically once the
+  repo goes private.
 - **Publishing is git-native — there is no `status` field.** Published means
   MERGED to the content branch; everything in the build is live. The editor's
   two verbs map onto git states:
@@ -128,7 +132,8 @@ not the only proof.
 
 - Node 20+ and pnpm
 - `wrangler` (installed as a dev dependency)
-- (Optional, for the real login) a GitHub **OAuth App** under the org + a bot token
+- (Optional, for the real login) a **GitHub App** — or a classic OAuth App plus
+  a bot token (`GITHUB_TOKEN`, needed for the classic path only)
 
 ## Quickstart (local, no GitHub OAuth needed)
 
@@ -160,12 +165,14 @@ http://localhost:4321/api/auth/dev-login?user=bob&role=reader
    callback URL to `<origin>/api/auth/callback` (one app per origin — make a
    separate one for localhost testing). No special permissions; it only proves
    identity.
-2. **Bot token** for the role checks: a **fine-grained PAT** scoped to the
-   handbook repo (read access to metadata/collaborators is enough), or an org
-   GitHub App token later. This token also becomes the prod content-write
-   credential when editor writes land.
-3. Put `GITHUB_OAUTH_CLIENT_ID` / `GITHUB_OAUTH_CLIENT_SECRET` / `GITHUB_TOKEN`
-   in `app/.dev.vars`, set `DEV_LOGIN=0`, restart `pnpm dev`, hit "Sign in".
+2. **Bot token** (classic OAuth App only) for the role checks: a
+   **fine-grained PAT** scoped to the handbook repo (read access to
+   metadata/collaborators is enough; the PAT's owner must have push access).
+   Skip this entirely when sign-in uses a **GitHub App** — App-issued user
+   tokens self-check their own repo access, no bot credential.
+3. Put `GITHUB_OAUTH_CLIENT_ID` / `GITHUB_OAUTH_CLIENT_SECRET` (+ `GITHUB_TOKEN`
+   if classic) in `app/.dev.vars`, set `DEV_LOGIN=0`, restart `pnpm dev`, hit
+   "Sign in".
 
 **Provisioning people = GitHub, not code.** Anyone with access to the handbook
 repo (org member via team, or outside collaborator) can sign in: repo access →
@@ -208,7 +215,9 @@ index the staging copy).
 3. Create a **staging** GitHub OAuth App (callback `<staging-url>/api/auth/callback`).
 4. Set the staging secrets (each: `npx wrangler secret put <NAME> --env staging`):
    `COOKIE_ENCRYPTION_KEY`, `GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET`,
-   `GITHUB_TOKEN` (bot PAT, role checks), `OAUTH_ORIGIN` (= the staging URL).
+   `OAUTH_ORIGIN` (= the staging URL) — plus `GITHUB_TOKEN` (bot PAT for role
+   checks) **only if the login app is a classic OAuth App**; a GitHub App
+   needs no bot token.
 5. Sign in on the staging URL and verify the ACL matrix with real accounts.
 
 **POC-period editing on staging:** `[env.staging]` sets
@@ -270,11 +279,13 @@ host swap, not a redeploy of the same thing.
 **Cutover steps (when ready to go live):**
 1. **Deploy the Worker.** `wrangler deploy` (or a CI job) publishes the Astro
    build. Verify on the `*.workers.dev` URL first.
-2. **Real GitHub OAuth.** Create the org OAuth App (callback
-   `https://handbook.osbrjp.com/api/auth/callback`); set
-   `GITHUB_OAUTH_CLIENT_ID` / `GITHUB_OAUTH_CLIENT_SECRET` / `GITHUB_TOKEN`
-   (bot PAT for role checks) + `COOKIE_ENCRYPTION_KEY` as **Worker secrets**
-   (`wrangler secret put …`), `DEV_LOGIN=0`.
+2. **Real GitHub sign-in.** The org **GitHub App** from step 3 is the login app
+   (callback `https://handbook.osbrjp.com/api/auth/callback`); set
+   `GITHUB_OAUTH_CLIENT_ID` / `GITHUB_OAUTH_CLIENT_SECRET` +
+   `COOKIE_ENCRYPTION_KEY` as **Worker secrets** (`wrangler secret put …`),
+   `DEV_LOGIN=0`. No `GITHUB_TOKEN` in prod: App sign-ins self-check roles
+   with the user's own token (the secret exists only as a classic-OAuth
+   fallback).
 3. **Enable editor writes in prod.** Create a **GitHub App** (org-owned): callback
    `https://handbook.osbrjp.com/api/auth/callback`, permission `contents: write`,
    "expire user tokens" on. Install it **on this repo** (org admin approves).
@@ -283,11 +294,12 @@ host swap, not a redeploy of the same thing.
    the write driver is already implemented). Add a **deploy-on-push** action so
    a content commit rebuilds + redeploys the Worker.
    **Ownership rule: NO production credential may belong to an individual.**
-   The GitHub App must be org-owned (it also supersedes the personal staging
-   OAuth App and the personal bot PAT — an app token can do the role checks),
-   and the Workers live in the company Cloudflare account. If any of these sat
-   on a personal account, that person leaving/losing access would break sign-in
-   or force a mass logout.
+   The GitHub App must be org-owned (it supersedes the personal staging OAuth
+   App, and retires the personal bot PAT outright — App sign-ins self-check
+   roles with the user's own token, implemented in `resolveRoleSelf`), and the
+   Workers live in the company Cloudflare account. If any of these sat on a
+   personal account, that person leaving/losing access would break sign-in or
+   force a mass logout.
 4. **DNS cutover (requires Phase 0 done).** In Cloudflare: delete the
    `handbook → osbrjp.github.io` CNAME and add `handbook.osbrjp.com` as a
    **custom domain on the prod Worker** (Cloudflare creates the record and the

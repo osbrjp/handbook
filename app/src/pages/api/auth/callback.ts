@@ -1,6 +1,11 @@
 import type { APIRoute } from "astro";
 import { env } from "cloudflare:workers";
-import { fetchGithubAuthToken, fetchGithubUser, resolveRole } from "../../../lib/auth/github";
+import {
+  fetchGithubAuthToken,
+  fetchGithubUser,
+  resolveRole,
+  resolveRoleSelf,
+} from "../../../lib/auth/github";
 import { getOrigin, safeReturnUrl } from "../../../lib/auth/origin";
 import { encryptSession } from "../../../lib/auth/session";
 import {
@@ -26,11 +31,12 @@ export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
     return fail("invalid_state");
   }
 
-  // 2. Authorization code.
+  // 2. Authorization code. (GITHUB_TOKEN is deliberately NOT required here —
+  //    it's only the fallback credential for classic-OAuth sign-ins, checked
+  //    below once the token kind is known.)
   const code = url.searchParams.get("code");
   if (!code) return fail("missing_code");
-  if (!env.GITHUB_OAUTH_CLIENT_ID || !env.GITHUB_OAUTH_CLIENT_SECRET || !env.GITHUB_TOKEN)
-    return fail("not_configured");
+  if (!env.GITHUB_OAUTH_CLIENT_ID || !env.GITHUB_OAUTH_CLIENT_SECRET) return fail("not_configured");
 
   // 3. Code -> token (identity only; no scopes were requested).
   const token = await fetchGithubAuthToken({
@@ -45,16 +51,26 @@ export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
   const user = await fetchGithubUser(token.accessToken);
   if (!user) return fail("userinfo_failed");
 
-  // 5. Authorization = their access to the handbook repo, checked with the bot
-  //    token (fail closed — includes GitHub API trouble: no role, no session).
-  //    There is no allow-list; GitHub collaborators/org membership IS the gate.
+  // 5. Authorization = their access to the handbook repo (fail closed —
+  //    includes GitHub API trouble: no role, no session). There is no
+  //    allow-list; GitHub collaborators/org membership IS the gate.
+  //    GitHub App sign-in (refresh token present): the user's own token
+  //    self-checks — no bot credential. Classic OAuth sign-in: the bot token
+  //    does the collaborator check (and self-check trouble falls back to it
+  //    when it's configured, so setting GITHUB_TOKEN always keeps login up).
+  const repo = env.GITHUB_REPO || "osbrjp/handbook";
   let role: Awaited<ReturnType<typeof resolveRole>>;
   try {
-    role = await resolveRole({
-      token: env.GITHUB_TOKEN,
-      repo: env.GITHUB_REPO || "osbrjp/handbook",
-      login: user.login,
-    });
+    if (token.refreshToken) {
+      role = await resolveRoleSelf({ userToken: token.accessToken, repo }).catch((e) => {
+        if (!env.GITHUB_TOKEN) throw e;
+        return resolveRole({ token: env.GITHUB_TOKEN, repo, login: user.login });
+      });
+    } else if (env.GITHUB_TOKEN) {
+      role = await resolveRole({ token: env.GITHUB_TOKEN, repo, login: user.login });
+    } else {
+      return fail("not_configured");
+    }
   } catch {
     return fail("access_check_failed");
   }
