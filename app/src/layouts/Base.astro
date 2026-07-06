@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import Icon from "../components/Icon.astro";
 import { isEditorRole, type Visitor } from "../lib/auth/visitor";
 import { environmentName } from "../lib/env";
 
@@ -47,50 +48,112 @@ const env = environmentName(Astro.url.host);
     <header class="site-header">
       <a class="brand" href="/">
         <img class="brand-logo" src="/logo1.svg" alt="OSBR" width="32" height="32" />
-        <span>The OSBR Handbook</span>
+        <span class="brand-text">The OSBR Handbook</span>
       </a>
+      {/* Own header slot (not part of nav-right): auto margins float it in
+          the middle on desktop; on mobile it flexes to fill the row. */}
+      <div class="search" id="search">
+        <input
+          type="search"
+          id="search-input"
+          class="search-input"
+          placeholder="Search…"
+          autocomplete="off"
+          spellcheck="false"
+          role="combobox"
+          aria-expanded="false"
+          aria-controls="search-results"
+          aria-label="Search the handbook"
+        />
+        <div id="search-results" class="search-results" role="listbox" hidden></div>
+      </div>
       <div class="nav-right">
-        <div class="search" id="search">
-          <input
-            type="search"
-            id="search-input"
-            class="search-input"
-            placeholder="Search…"
-            autocomplete="off"
-            spellcheck="false"
-            role="combobox"
-            aria-expanded="false"
-            aria-controls="search-results"
-            aria-label="Search the handbook"
-          />
-          <div id="search-results" class="search-results" role="listbox" hidden></div>
-        </div>
-        <span class="nav-sep"></span>
         <nav class="nav-links">
           <a href="https://www.osbrjp.com" target="_blank" rel="noopener">OSBR ↗</a>
         </nav>
-        <span class="nav-sep"></span>
-        <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle light/dark">🌙</button>
+        {
+          /* Signed out: standalone theme toggle. Signed in: it lives in the
+             profile dropdown instead (same id either way — one renders). */
+          !visitor && (
+            <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle light/dark">
+              🌙
+            </button>
+          )
+        }
         <a
-          class="icon-btn"
+          class="icon-btn gh-btn"
           href="https://github.com/osbrjp/handbook"
           target="_blank"
           rel="noopener"
           aria-label="GitHub"
         >
-          <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path>
-          </svg>
+          <Icon name="github" size={18} />
         </a>
         <span class="nav-sep"></span>
         {
           visitor ? (
             <>
-              {isEditorRole(visitor.role) && <a class="nav-edit" href="/edit-pages">Editor</a>}
-              <span class="who">{visitor.login}</span>
-              <form method="POST" action="/api/auth/logout" class="logout-form">
-                <button type="submit" class="btn-link">Sign out</button>
-              </form>
+              {isEditorRole(visitor.role) && <a class="nav-edit" href="/edit-pages">Manage pages</a>}
+              <div class="profile">
+                <button
+                  type="button"
+                  class="avatar-btn"
+                  id="profile-btn"
+                  aria-expanded="false"
+                  aria-controls="profile-dropdown"
+                  aria-label={`Account menu — ${visitor.login}`}
+                >
+                  {/* GitHub serves any user's avatar at github.com/<login>.png —
+                      no API/token. Fallback initial sits behind it if it 404s
+                      (e.g. dev-shim fake logins). */}
+                  <span class="avatar-fallback" aria-hidden="true">
+                    {visitor.login.charAt(0).toUpperCase()}
+                  </span>
+                  <img
+                    class="avatar"
+                    src={`https://github.com/${visitor.login}.png?size=64`}
+                    alt=""
+                    width="28"
+                    height="28"
+                    referrerpolicy="no-referrer"
+                    onerror="this.remove()"
+                  />
+                </button>
+                <div class="profile-dropdown" id="profile-dropdown" hidden>
+                  <div class="profile-who">
+                    <strong>{visitor.login}</strong>
+                    <span class="profile-role">{visitor.role}</span>
+                  </div>
+                  {isEditorRole(visitor.role) && (
+                    <a class="profile-item" href="/edit-pages">
+                      <span class="item-icon" aria-hidden="true">✏️</span>
+                      <span>Manage pages</span>
+                    </a>
+                  )}
+                  {/* role=switch: on = dark. The knob slides + spins via CSS
+                      keyed off aria-checked; JS only flips the attribute. */}
+                  <button
+                    id="theme-toggle"
+                    class="profile-item theme-item"
+                    type="button"
+                    role="switch"
+                    aria-checked="true"
+                    data-menu-item="1"
+                  >
+                    <span class="item-icon" aria-hidden="true">🌗</span>
+                    <span>Dark mode</span>
+                    <span class="theme-switch" aria-hidden="true">
+                      <span class="theme-knob"></span>
+                    </span>
+                  </button>
+                  <form method="POST" action="/api/auth/logout">
+                    <button type="submit" class="profile-item">
+                      <span class="item-icon" aria-hidden="true">↪</span>
+                      <span>Sign out</span>
+                    </button>
+                  </form>
+                </div>
+              </div>
             </>
           ) : (
             <a href="/api/auth/login">Sign in</a>
@@ -102,11 +165,20 @@ const env = environmentName(Astro.url.host);
     <slot />
 
     <script is:inline>
-      // Light/dark toggle — persisted.
+      // Light/dark toggle — persisted. Renders as a bare icon in the navbar
+      // (signed out) or a "Dark mode" switch row in the profile dropdown
+      // (signed in, data-menu-item): there the CSS animates the knob off
+      // aria-checked, so JS only flips the attribute.
       (function () {
         const btn = document.getElementById("theme-toggle");
         const icon = () => {
-          if (btn) btn.textContent = document.documentElement.dataset.theme === "light" ? "🌙" : "☀️";
+          if (!btn) return;
+          const light = document.documentElement.dataset.theme === "light";
+          if (btn.dataset.menuItem) {
+            btn.setAttribute("aria-checked", String(!light));
+          } else {
+            btn.textContent = light ? "🌙" : "☀️";
+          }
         };
         icon();
         btn?.addEventListener("click", () => {
@@ -116,6 +188,29 @@ const env = environmentName(Astro.url.host);
             localStorage.setItem("theme", next);
           } catch (_) {}
           icon();
+        });
+      })();
+    </script>
+    <script is:inline>
+      // Profile dropdown: avatar button toggles; click-outside / Escape close.
+      (function () {
+        const btn = document.getElementById("profile-btn");
+        const menu = document.getElementById("profile-dropdown");
+        if (!btn || !menu) return;
+        const close = () => {
+          menu.hidden = true;
+          btn.setAttribute("aria-expanded", "false");
+        };
+        btn.addEventListener("click", () => {
+          const open = !menu.hidden;
+          menu.hidden = open;
+          btn.setAttribute("aria-expanded", String(!open));
+        });
+        document.addEventListener("click", (e) => {
+          if (!btn.contains(e.target) && !menu.contains(e.target)) close();
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") close();
         });
       })();
     </script>

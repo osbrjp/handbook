@@ -1,6 +1,7 @@
 ---
 import Base from "../../layouts/Base.astro";
 import AlertDialog from "../../components/AlertDialog.astro";
+import Icon from "../../components/Icon.astro";
 import ReadonlyNotice from "../../components/ReadonlyNotice.astro";
 import { requireEditor } from "../../lib/auth/requireEditor";
 import { issueCsrf } from "../../lib/csrf";
@@ -47,6 +48,9 @@ const STATE_LABEL: Record<EditState, string> = {
 
 <Base title="Editor" visitor={Astro.locals.visitor}>
   <div class="container admin-page" data-readonly={String(!writable)}>
+  {/* Breadcrumb-style back link ABOVE the title (mobile wraps the action
+      buttons under the h1, so the back link must not sit below them). */}
+  <a class="btn-cancel admin-back" href="/" id="admin-back">← Back to handbook</a>
   <div class="admin-head">
     <h1>Pages</h1>
     <div class="admin-head-actions">
@@ -54,7 +58,6 @@ const STATE_LABEL: Record<EditState, string> = {
       <a class="btn btn-brand" href="/edit-pages/create">+ New page</a>
     </div>
   </div>
-  <a class="btn-cancel admin-back" href="/" id="admin-back">← Back to handbook</a>
   {deleted && <div class="notice">✓ Page deleted.</div>}
   <ReadonlyNotice />
   {
@@ -112,8 +115,14 @@ const STATE_LABEL: Record<EditState, string> = {
                   <span class={`badge badge-state-${editStates[s]}`}>{STATE_LABEL[editStates[s]]}</span>
                 </td>
                 <td class="col-right row-actions">
-                  <a class="btn-link" href={`/edit-pages/edit/${s}`}>
-                    Continue editing
+                  <a
+                    class="btn-link action-link"
+                    href={`/edit-pages/edit/${s}`}
+                    aria-label={`Continue editing ${s}`}
+                    title="Continue editing"
+                  >
+                    <Icon name="pencil" />
+                    <span class="action-label">Continue editing</span>
                   </a>
                 </td>
               </tr>
@@ -127,7 +136,7 @@ const STATE_LABEL: Record<EditState, string> = {
     sections.map((section) => {
       const items = pages.filter((p) => p.section === section);
       return (
-        <details class="admin-section" open>
+        <details class="admin-section" data-collapse-mobile open>
           <summary class="admin-section-title">
             {section} <span class="admin-count">{items.length}</span>
           </summary>
@@ -154,15 +163,34 @@ const STATE_LABEL: Record<EditState, string> = {
                     <span class={`badge badge-${p.visibility}`}>{p.visibility}</span>
                   </td>
                   <td class="col-right row-actions">
-                    <a class="btn-link" href={`/edit-pages/edit/${p.slug}`}>Edit</a>
-                    <a class="btn-link" href={`/${p.slug}`}>View</a>
+                    <a
+                      class="btn-link action-link"
+                      href={`/edit-pages/edit/${p.slug}`}
+                      aria-label={`Edit ${p.title}`}
+                      title="Edit"
+                    >
+                      <Icon name="pencil" />
+                      <span class="action-label">Edit</span>
+                    </a>
+                    <a
+                      class="btn-link action-link"
+                      href={`/${p.slug}`}
+                      aria-label={`View ${p.title}`}
+                      title="View"
+                    >
+                      <Icon name="eye" />
+                      <span class="action-label">View</span>
+                    </a>
                     <button
                       type="button"
-                      class="btn-link-danger row-delete"
+                      class="btn-link-danger row-delete action-link"
                       data-slug={p.slug}
                       data-title={p.title}
+                      aria-label={`Delete ${p.title}`}
+                      title="Delete"
                     >
-                      Delete
+                      <Icon name="trash" />
+                      <span class="action-label">Delete</span>
                     </button>
                   </td>
                 </tr>
@@ -195,6 +223,18 @@ const STATE_LABEL: Record<EditState, string> = {
   </dialog>
   <AlertDialog />
 </Base>
+
+<script is:inline>
+  // Mobile: section lists start COLLAPSED (fully expanded, the listing runs
+  // several screens tall). Desktop keeps them open for scanning. "New pages
+  // in progress" (no data-collapse-mobile) stays open — it's active work.
+  (function () {
+    if (!window.matchMedia("(max-width: 760px)").matches) return;
+    document.querySelectorAll(".admin-section[data-collapse-mobile]").forEach(function (d) {
+      d.removeAttribute("open");
+    });
+  })();
+</script>
 
 <script>
   import { wireBackLink } from "../../lib/ui/backLink";

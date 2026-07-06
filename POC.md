@@ -165,11 +165,15 @@ http://localhost:4321/api/auth/dev-login?user=bob&role=reader
    callback URL to `<origin>/api/auth/callback` (one app per origin — make a
    separate one for localhost testing). No special permissions; it only proves
    identity.
-2. **Bot token** (classic OAuth App only) for the role checks: a
-   **fine-grained PAT** scoped to the handbook repo (read access to
-   metadata/collaborators is enough; the PAT's owner must have push access).
-   Skip this entirely when sign-in uses a **GitHub App** — App-issued user
-   tokens self-check their own repo access, no bot credential.
+2. **Bot token** (classic OAuth App only) for the role checks — verified live
+   (July 2026): a **classic PAT with `public_repo` + `read:org`** is the
+   minimal scope set that works. Rejected by testing: `public_repo` alone
+   (masked 404 on the collaborator gate), fine-grained "public repos
+   read-only" (403 — the collaborator API needs push-level access; the PAT's
+   owner must have push on the repo), fine-grained org-scoped (works on paper
+   but osbrjp queues those for owner approval). Skip this entirely when
+   sign-in uses a **GitHub App** — App-issued user tokens self-check their own
+   repo access, no bot credential.
 3. Put `GITHUB_OAUTH_CLIENT_ID` / `GITHUB_OAUTH_CLIENT_SECRET` (+ `GITHUB_TOKEN`
    if classic) in `app/.dev.vars`, set `DEV_LOGIN=0`, restart `pnpm dev`, hit
    "Sign in".
@@ -203,31 +207,55 @@ app/
 
 ## Deploy to staging
 
-A separate Worker (`osbr-handbook-staging`, `[env.staging]` in `wrangler.toml`)
-so staging can never touch production. Any host other than
-`handbook.osbrjp.com` serves `X-Robots-Tag: noindex` (search engines won't
-index the staging copy).
+Staging is DEPLOYED: the `osbr-handbook` Worker's `*.workers.dev` URL (in the
+Cloudflare dashboard → the Worker's overview; not written out here — this repo
+is public and the temporary auth setup below is best not advertised alongside
+a clickable link). Any host other than `handbook.osbrjp.com` serves
+`X-Robots-Tag: noindex` (search engines won't index the staging copy).
 
-1. Free Cloudflare account → `npx wrangler login` (in `app/`).
-2. First deploy: `pnpm build && npx wrangler deploy --env staging` → note the
-   `https://osbr-handbook-staging.<account>.workers.dev` URL. Public pages work
-   immediately; login 503s until configured.
-3. Create a **staging** GitHub OAuth App (callback `<staging-url>/api/auth/callback`).
-4. Set the staging secrets (each: `npx wrangler secret put <NAME> --env staging`):
-   `COOKIE_ENCRYPTION_KEY`, `GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET`,
-   `OAUTH_ORIGIN` (= the staging URL) — plus `GITHUB_TOKEN` (bot PAT for role
-   checks) **only if the login app is a classic OAuth App**; a GitHub App
-   needs no bot token.
-5. Sign in on the staging URL and verify the ACL matrix with real accounts.
+Deploy-mechanics facts, learned the hard way — read before deploying:
 
-**POC-period editing on staging:** `[env.staging]` sets
-`GITHUB_BRANCH=i68-handbook-poc`, so once editing is enabled
-(`GITHUB_WRITE_ENABLED=1`, needs the GitHub App) the whole
-draft→submit→approve→merge loop can be demoed against the POC branch — merged
-pages land on the branch staging is actually built from. The targeting is
-**self-retiring**: when the POC branch is deleted (its PR merged), everything
-automatically targets `main`; the only follow-up is a cleanup task (delete the
-staging var for tidiness, prune any demo pages/branches).
+- **`[env.staging]` is INERT.** The Cloudflare adapter regenerates the deploy
+  config (`dist/server/wrangler.json`) at build time and flattens everything
+  to the base environment — `wrangler deploy --env staging` deploys the SAME
+  `osbr-handbook` worker. One worker is fine for the POC; don't chase the
+  `-staging` name.
+- **Config lives in the DASHBOARD, not the repo.** `keep_vars = true` in
+  `wrangler.toml` makes deploys leave dashboard-managed vars alone. (Without
+  it, every deploy replaces remote plain-text vars with the file's `[vars]`
+  block — which once silently wiped `GITHUB_OAUTH_CLIENT_ID`/`OAUTH_ORIGIN`/
+  `GITHUB_BRANCH` mid-demo. Encrypted **Secrets** always survive deploys.)
+- Deploying: `pnpm build && npx wrangler deploy` (in `app/`), with a
+  `CLOUDFLARE_API_TOKEN` that has **Workers Scripts: Edit** AND **Workers KV
+  Storage: Edit** (the adapter provisions a SESSION KV namespace).
+
+Worker configuration (dashboard → Settings → Variables and Secrets):
+vars `GITHUB_OAUTH_CLIENT_ID`, `OAUTH_ORIGIN` (dashboard-managed), and
+`GITHUB_BRANCH` (pinned in `wrangler.toml` `[vars]` — losing it silently
+retargets editor PRs to `main`); Secrets `COOKIE_ENCRYPTION_KEY`,
+`GITHUB_OAUTH_CLIENT_SECRET` (+ `GITHUB_TOKEN`, see below).
+
+**⚠ TEMPORARY (demo period, July 2026): staging login runs on a personal
+classic OAuth App + a 7-day PAT**, because the org GitHub App can't be
+installed yet (see the owner checklist in the cutover section). Classic
+sign-ins can't self-check roles, so `GITHUB_TOKEN` (Secret) holds a classic
+PAT with **`public_repo` + `read:org`** — verified LIVE as the minimal working
+scope set. (Tested and rejected: fine-grained PAT org-scoped = stuck in owner
+approval; fine-grained "public repos read-only" = 403 — the collaborator API
+needs push-level access; classic `public_repo` alone = masked 404.) Editing is
+auto-disabled in this mode (classic tokens carry no write scope) — the editor
+UI is preview-only and every save bounces read-only. **Swap-back checklist**
+once the org App is fixed: restore the App's client id/secret in the two OAuth
+values → delete `GITHUB_TOKEN` → revoke the demo PAT and demo OAuth app on
+GitHub. Zero code changes.
+
+**POC-period editing on staging:** `GITHUB_BRANCH=i68-handbook-poc` (pinned
+in `wrangler.toml` `[vars]`), so once editing is enabled (needs the org
+GitHub App installed) the whole draft→submit→approve→merge loop can be demoed
+against the POC branch — merged pages land on the branch staging is actually
+built from. The targeting is **self-retiring**: when the POC branch is deleted
+(its PR merged), everything automatically targets `main`; the only follow-up
+is a cleanup task (delete the var for tidiness, prune any demo pages/branches).
 
 **Deferred (tracked, non-blocking):** deploy-on-push CI (needs a
 `CLOUDFLARE_API_TOKEN` repo secret), rate limiting on `/api/auth/*` (do as a
@@ -286,13 +314,33 @@ host swap, not a redeploy of the same thing.
    `DEV_LOGIN=0`. No `GITHUB_TOKEN` in prod: App sign-ins self-check roles
    with the user's own token (the secret exists only as a classic-OAuth
    fallback).
-3. **Enable editor writes in prod.** Create a **GitHub App** (org-owned): callback
-   `https://handbook.osbrjp.com/api/auth/callback`, permission `contents: write`,
-   "expire user tokens" on. Install it **on this repo** (org admin approves).
-   Its client id/secret replace the OAuth App's in the same env vars — sign-in
-   then yields each user's own commit credential (per-person commits, no bot;
-   the write driver is already implemented). Add a **deploy-on-push** action so
-   a content commit rebuilds + redeploys the Worker.
+3. **Enable editor writes.** The org GitHub App ("OSBR Handbook", org-owned —
+   correct ownership ✓) EXISTS but was created with **no permissions and is
+   not installed** on the repo, which is exactly why staging sign-in returned
+   `access_denied` and why the install page offers only "No repositories".
+   **Owner checklist to fix it** (org Settings → Developer settings →
+   GitHub Apps → OSBR Handbook):
+   1. *Permissions & events* → Repository permissions → **Contents: Read &
+      write** AND **Pull requests: Read & write** (the submit-for-review flow
+      opens PRs; `contents` alone is not enough) → Save.
+   2. *General* → **Callback URLs** must include the STAGING one —
+      `<staging workers.dev URL>/api/auth/callback` — as well as
+      `https://handbook.osbrjp.com/api/auth/callback` (GitHub Apps accept
+      multiple; a prod-only callback kills staging sign-in at GitHub's door).
+   3. *General* → **"Expire user authorization tokens" ON.** Load-bearing: the
+      code detects write-capable sign-in by the refresh token that only
+      expiring tokens carry — with this off, editing never auto-enables.
+   4. *Install App* → install on **osbrjp** → Only select repositories →
+      `handbook`.
+   5. Regenerate the client secret; put the App's client id + new secret into
+      the Worker's `GITHUB_OAUTH_CLIENT_ID` / `GITHUB_OAUTH_CLIENT_SECRET`,
+      then **delete `GITHUB_TOKEN`** (and the demo PAT/OAuth app it belonged
+      to). Also approve-or-deny the pending fine-grained-PAT request (moot
+      once the App works).
+   Sign-in then yields each user's own commit credential (per-person commits,
+   no bot; the write driver is already implemented) — editing auto-enables,
+   zero code changes. Add a **deploy-on-push** action so a content commit
+   rebuilds + redeploys the Worker.
    **Ownership rule: NO production credential may belong to an individual.**
    The GitHub App must be org-owned (it supersedes the personal staging OAuth
    App, and retires the personal bot PAT outright — App sign-ins self-check
@@ -307,13 +355,20 @@ host swap, not a redeploy of the same thing.
    stay up throughout** — GitHub Pages keeps serving anyone with a stale DNS
    answer, the Worker serves everyone else; visitors see old or new, never an
    outage. **Rollback = recreate the CNAME to `osbrjp.github.io`** (keep Pages
-   alive until step 7 precisely so rollback stays one click).
-5. **Retire GitHub Pages — only after days of confidence.** Remove the Pages
+   alive until step 8 precisely so rollback stays one click).
+5. **Re-establish staging isolation — BEFORE routine post-cutover deploys.**
+   Once `osbr-handbook` serves the live domain, `pnpm build && npx wrangler
+   deploy` deploys straight to PRODUCTION (the POC's single-worker setup has
+   no second target). Create a separate staging worker first (e.g. a
+   `wrangler.staging.toml` with its own `name =` passed via `--config`, or a
+   CI-only prod deploy with local deploys pointed at the staging name) so a
+   local experiment can never overwrite the live handbook.
+6. **Retire GitHub Pages — only after days of confidence.** Remove the Pages
    custom domain and disable/delete `.github/workflows/release.yml`; the
    `release` branch retires with it (publishing is merge-to-main + deploy now).
-6. **Privacy (if internal content must be private).** The content repo is public,
+7. **Privacy (if internal content must be private).** The content repo is public,
    so `internal`/`restricted` markdown is readable in git even though the site
    gates the rendered page. Make the content repo **private** (no code change) —
    or split gated content into a private repo — before relying on those tiers.
-7. **Verify** the reader ACL matrix + editor flow on the live domain, then
+8. **Verify** the reader ACL matrix + editor flow on the live domain, then
    decommission the old VitePress site.

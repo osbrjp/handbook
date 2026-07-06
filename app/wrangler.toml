@@ -1,6 +1,14 @@
 name = "osbr-handbook"
 compatibility_date = "2026-06-01"
 compatibility_flags = ["nodejs_compat"]
+# The DASHBOARD is the source of truth for deploy config set only there
+# (GITHUB_OAUTH_CLIENT_ID, OAUTH_ORIGIN, ...): without this flag `wrangler
+# deploy` REPLACES all remote plain-text vars with this file's [vars] block,
+# silently wiping anything set only in the dashboard (encrypted Secrets are
+# never affected). keep_vars lets those dashboard-managed values survive
+# deploys — so credential swaps (e.g. demo OAuth app <-> org GitHub App) never
+# require a commit. (Vars that must NOT drift are pinned in [vars] below.)
+keep_vars = true
 
 # No datastore: content is git-backed markdown, and access control lives in
 # GitHub itself (repo collaborators / org membership — no allow-list in this
@@ -12,19 +20,15 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 DEV_LOGIN = "0"
 GITHUB_REPO = "osbrjp/handbook"
-
-# Staging: a separate Worker so a staging deploy can never touch production.
-#   pnpm build && npx wrangler deploy --env staging
-# Secrets are per-environment: `npx wrangler secret put <NAME> --env staging`
-# (COOKIE_ENCRYPTION_KEY, GITHUB_OAUTH_CLIENT_ID/SECRET, GITHUB_TOKEN,
-# OAUTH_ORIGIN = the workers.dev URL). NOTE: envs do NOT inherit [vars].
-[env.staging]
-name = "osbr-handbook-staging"
-[env.staging.vars]
-DEV_LOGIN = "0"
-GITHUB_REPO = "osbrjp/handbook"
-# POC period: editor submissions target the POC branch (the code staging is
-# built from) so the whole draft→approve→merge loop can be demoed pre-merge.
-# SELF-RETIRING: once this branch is deleted (its PR merged), resolveBase()
-# automatically falls back to main — no config change needed at merge time.
+# Pinned in the repo (not dashboard-only) because losing it is SILENT and bad:
+# resolveBase() falls back to main, so POC-period editor submissions would
+# open PRs against the production source branch instead of the POC branch.
+# Identical in demo and end states; self-retiring — once the POC branch is
+# merged+deleted, resolveBase() falls back to main by design. Remove at cutover.
 GITHUB_BRANCH = "i68-handbook-poc"
+
+# NOTE: no [env.staging] here on purpose. The Cloudflare adapter flattens the
+# generated deploy config to the base environment, so named envs are inert —
+# `wrangler deploy --env staging` would deploy this same worker. The single
+# `osbr-handbook` worker IS staging until the production cutover (POC.md
+# "Deploy to staging" has the full story, incl. GITHUB_BRANCH POC targeting).

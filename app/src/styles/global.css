@@ -68,6 +68,8 @@ a:hover {
   gap: 0.6rem;
   font-weight: 700;
   color: var(--text);
+  /* Never let a crowded nav-right crush the logo to zero width. */
+  flex-shrink: 0;
 }
 .brand:hover {
   text-decoration: none;
@@ -117,9 +119,174 @@ a:hover {
   color: var(--text);
   background: var(--soft);
 }
-.who {
+/* Profile: avatar button + dropdown (theme toggle, editor link, sign out). */
+.profile {
+  position: relative;
+  display: inline-flex;
+}
+.avatar-btn {
+  position: relative;
+  display: inline-flex;
+  /* Fixed box: the fallback initial is absolutely positioned, so the button
+     must keep its size even if the <img> 404s and removes itself. */
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 50%;
+}
+.avatar-btn:hover .avatar,
+.avatar-btn[aria-expanded="true"] .avatar {
+  border-color: var(--brand-solid);
+}
+.avatar {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--divider);
+}
+/* Sits behind the avatar; visible only if the image 404s and removes itself. */
+.avatar-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--soft);
+  border: 1px solid var(--divider);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  min-width: 12rem;
+  padding: 0.35rem;
+  background: var(--header-bg);
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+  z-index: 30;
+}
+.profile-who {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  /* Left padding = item padding (0.65) + icon slot (1.25) + gap (0.5), so the
+     name shares ONE text edge with the menu labels below it. */
+  padding: 0.5rem 0.65rem 0.6rem 2.4rem;
+  border-bottom: 1px solid var(--divider);
+  margin-bottom: 0.35rem;
+}
+.profile-role {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+.profile-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+/* Fixed-width leading icon slot — every row's LABEL starts at the same x. */
+.item-icon {
+  display: inline-flex;
+  justify-content: center;
+  width: 1.25rem;
+  flex-shrink: 0;
+}
+.profile-item:hover {
+  background: var(--soft);
+  text-decoration: none;
+  color: var(--text);
+}
+.profile-dropdown form {
+  margin: 0;
+}
+/* Dark-mode switch row: label left, animated track+knob right. State drives
+   off aria-checked ("on" = dark) — the knob slides across with a full spin
+   and the emoji crossfades sun <-> moon. */
+.theme-switch {
+  position: relative;
+  margin-left: auto;
+  flex-shrink: 0;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--soft);
+  border: 1px solid var(--divider);
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+.theme-item[aria-checked="true"] .theme-switch {
+  background: var(--brand-solid);
+  border-color: var(--brand-solid);
+}
+.theme-knob {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.theme-item[aria-checked="true"] .theme-knob {
+  transform: translateX(16px) rotate(360deg);
+}
+/* Sun and moon stacked in the knob; opacity crossfade picks one. */
+.theme-knob::before,
+.theme-knob::after {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
+  transition: opacity 0.25s ease;
+}
+.theme-knob::before {
+  content: "☀️";
+  opacity: 1;
+}
+.theme-knob::after {
+  content: "🌙";
+  opacity: 0;
+}
+.theme-item[aria-checked="true"] .theme-knob::before {
+  opacity: 0;
+}
+.theme-item[aria-checked="true"] .theme-knob::after {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-switch,
+  .theme-knob,
+  .theme-knob::before,
+  .theme-knob::after {
+    transition: none;
+  }
 }
 .nav-edit {
   color: var(--text);
@@ -132,12 +299,17 @@ a:hover {
 }
 
 /* ===== navbar search ===== */
+/* Its own header slot between brand and nav-right: auto margins float it in
+   the middle of the free space (desktop); mobile overrides make it fill. */
 .search {
   position: relative;
+  flex: 1 1 auto;
+  max-width: 22rem;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 .search-input {
-  width: 12rem;
-  max-width: 38vw;
+  width: 100%;
   height: 2rem;
   padding: 0 0.7rem;
   font: inherit;
@@ -157,7 +329,8 @@ a:hover {
 .search-results {
   position: absolute;
   top: calc(100% + 0.5rem);
-  right: 0;
+  /* Align with the pill's edge (the .search box carries 1rem side padding). */
+  right: 1rem;
   width: 22rem;
   max-width: 90vw;
   max-height: 60vh;
@@ -207,8 +380,9 @@ a:hover {
   color: var(--muted);
 }
 @media (max-width: 560px) {
-  .search-input {
-    width: 7rem;
+  /* The repo link is a nicety; on the narrowest screens the row needs the room. */
+  .gh-btn {
+    display: none;
   }
 }
 
@@ -387,6 +561,10 @@ a:hover {
   padding: 2rem 1.25rem 2rem 1.5rem;
   border-right: 1px solid var(--divider);
 }
+/* Mobile sidebar disclosure button (Sidebar.astro); desktop never shows it. */
+.sb-menu-btn {
+  display: none;
+}
 .sb-group {
   margin-bottom: 1rem;
 }
@@ -502,18 +680,123 @@ a:hover {
   }
 }
 @media (max-width: 760px) {
+  /* Header: logo + search + icon buttons + session actions only — the brand
+     text, external link and separators don't fit a phone-width row. The
+     username stays (truncated): it's the only sign of WHICH account is signed
+     in, and commits are attributed to it. */
+  /* 1.25rem matches the menu bar and page content below — logo, ☰ Menu and
+     headings all share one left edge (1rem left the header hanging offset). */
+  .site-header {
+    padding: 0 1.25rem;
+  }
+  .nav-right {
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  /* The Editor link lives in the profile dropdown on mobile; identity is one
+     tap away behind the avatar (which IS the signed-in indicator now). */
+  .brand-text,
+  .nav-links,
+  .nav-sep,
+  .nav-edit {
+    display: none;
+  }
+  /* Session actions must not wrap inside the fixed-height header row. */
+  .site-header .btn-link,
+  .nav-right > a {
+    white-space: nowrap;
+  }
+  /* Bigger anchors so the search bar doesn't dwarf them — logo and avatar
+     the SAME size so the row's bookends match. */
+  .brand-logo {
+    height: 2.4rem;
+  }
+  .avatar-btn,
+  .avatar {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+  .search {
+    /* static: the results panel anchors to the sticky header (the nearest
+       positioned ancestor) instead of this tiny box, so it can span the
+       viewport instead of hanging off-screen. */
+    position: static;
+    /* Deterministic alignment: the pill fills the middle FLUSH, exactly
+       0.75rem from the logo and the icons on either side — no auto-margin
+       drift, no desktop cap/padding. */
+    flex: 1 1 auto;
+    min-width: 3rem;
+    max-width: none;
+    margin: 0 0.75rem;
+    padding: 0;
+  }
+  .search-input {
+    width: 100%;
+    min-width: 0;
+    /* Taller + larger text: search is the header's primary tool on mobile. */
+    height: 2.25rem;
+    font-size: 0.95rem;
+    /* Placeholder ellipsizes instead of clipping mid-glyph at min width. */
+    text-overflow: ellipsis;
+  }
+  .search-results {
+    left: 0.75rem;
+    right: 0.75rem;
+    width: auto;
+    max-width: none;
+    top: calc(100% + 0.5rem);
+  }
+
   .doc {
     grid-template-columns: 1fr;
   }
+  /* Sidebar collapses behind a closed-by-default "Menu" bar so the page
+     content is immediately visible; tapping it reveals the section tree. */
   .doc-sidebar {
     position: static;
     height: auto;
     border-right: none;
     border-bottom: 1px solid var(--divider);
+    padding: 0;
+  }
+  .sb-menu-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.7rem 1.25rem;
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    user-select: none;
+    color: var(--text);
+  }
+  .sb-groups {
+    display: none;
+    padding: 0.25rem 1.25rem 1rem;
+    /* Cap the open menu so a long nav scrolls inside itself instead of
+       pushing the page content off-screen. */
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  .sb-menu-btn[aria-expanded="true"] + .sb-groups {
+    display: block;
   }
   .doc-main {
     padding: 1.5rem 1.25rem 4rem;
   }
+  .admin-head {
+    flex-wrap: wrap;
+  }
+  /* Editor save bar: four buttons can't share one phone-width row. */
+  .actions {
+    flex-wrap: wrap;
+  }
+  /* NOTE: the admin-list column overrides live AFTER the base table rules
+     (search "admin-list mobile") — same-specificity rules here would lose to
+     the later base block by source order and silently do nothing. */
 }
 
 /* on-page edit button (editors only) */
@@ -593,6 +876,15 @@ a:hover {
 .prose pre code {
   background: none;
   padding: 0;
+}
+/* Emitted by rehypeTableWrap (markdown.ts): wide tables scroll inside this
+   wrapper on small screens while the <table> keeps its a11y semantics. */
+.prose .table-wrap {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+.prose .table-wrap table {
+  margin: 0;
 }
 .prose table {
   border-collapse: collapse;
@@ -691,9 +983,6 @@ a:hover {
   border-radius: 4px;
   font-size: 0.9em;
 }
-.logout-form {
-  display: inline;
-}
 .admin-head {
   display: flex;
   align-items: center;
@@ -707,9 +996,18 @@ a:hover {
   align-items: center;
   gap: 0.6rem;
 }
+/* Breadcrumb: small, muted, flush with the title's left edge, sitting close
+   above it — context, not a competing action (overrides .btn-cancel's
+   button-ish padding/size). */
 .admin-back {
   display: inline-block;
-  margin-bottom: 1.25rem;
+  padding: 0;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.admin-back:hover {
+  color: var(--text-2);
 }
 .admin-head > h1 {
   font-size: 2rem;
@@ -780,7 +1078,8 @@ a:hover {
 }
 .admin-list th:nth-child(3),
 .admin-list td:nth-child(3) {
-  width: 13rem;
+  /* Fits "Edit View Delete" WITH their icons (icons add ~60px vs text-only). */
+  width: 15.5rem;
 }
 /* The 2-column drafts table ("New pages in progress") sizes its own columns. */
 .admin-list-2col th:nth-child(2),
@@ -796,8 +1095,47 @@ a:hover {
 .row-actions > * + * {
   margin-left: 0.75rem;
 }
+/* Row action links: icon + label on desktop, icon-only under 760px (labels
+   hidden there; aria-label/title keep the name for AT and tooltips). */
+.action-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  vertical-align: middle;
+}
 .admin-section .admin-list tr:last-child td {
   border-bottom: none;
+}
+/* admin-list mobile. MUST come after the base rules above: the widths/padding
+   are same-specificity overrides, so source order is what makes them win.
+   Strategy: drop the Visibility column entirely (secondary info) so Title
+   keeps readable width even at 320px, instead of shrinking every column. */
+@media (max-width: 760px) {
+  .admin-list th,
+  .admin-list td {
+    padding: 0.4rem 0.5rem;
+  }
+  .admin-list:not(.admin-list-2col) th:nth-child(2),
+  .admin-list:not(.admin-list-2col) td:nth-child(2) {
+    display: none;
+  }
+  /* Icon-only actions: hide the labels (aria-label/title carry the names),
+     so all three actions fit one narrow line and Title gets the width. */
+  .row-actions .action-label {
+    display: none;
+  }
+  .admin-list:not(.admin-list-2col) th:nth-child(3),
+  .admin-list:not(.admin-list-2col) td:nth-child(3) {
+    width: 5rem;
+  }
+  /* Drafts table (2col): column 2 is the actions cell — never hide it. */
+  .admin-list-2col th:nth-child(2),
+  .admin-list-2col td:nth-child(2) {
+    width: 5rem;
+  }
+  .row-actions > * + * {
+    margin-left: 0.5rem;
+  }
 }
 /* metadata fields sit in a tidy column; the body/preview grid spans full width */
 .editor-meta {
@@ -1042,7 +1380,9 @@ a:hover {
   border: 1px solid var(--divider);
   border-radius: 12px;
   padding: 1.5rem;
-  max-width: 26rem;
+  /* min(): our fixed cap replaces the UA's viewport-aware max-width, so
+     restore the "never wider than the phone" guarantee ourselves */
+  max-width: min(26rem, calc(100vw - 2rem));
   background: var(--bg);
   color: var(--text);
 }

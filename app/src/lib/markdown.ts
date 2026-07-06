@@ -129,6 +129,27 @@ function rehypeMermaid() {
   };
 }
 
+// <table> -> <div class="table-wrap"><table>…</table></div>: wide GFM tables
+// scroll inside their own container on small screens. A wrapper (not
+// `table { display: block }`) keeps the table's implicit table/row/cell roles
+// in the accessibility tree — display:block would strip them.
+function rehypeTableWrap() {
+  return (tree: any) => {
+    visit(tree, "element", (node: any, index: number | undefined, parent: any) => {
+      if (node.tagName !== "table" || !parent || index === undefined) return;
+      // Already wrapped (visit re-enters the replaced subtree).
+      if (parent.tagName === "div" && parent.properties?.className?.includes("table-wrap"))
+        return;
+      parent.children[index] = {
+        type: "element",
+        tagName: "div",
+        properties: { className: ["table-wrap"] },
+        children: [node],
+      };
+    });
+  };
+}
+
 // VitePress writes admonitions in several shapes that remark-directive does not
 // accept directly:
 //   `:::info Custom Title`   `::: info Custom Title`   `::: info`   `:::info`
@@ -180,6 +201,7 @@ const processor = unified()
   .use(remarkRehype) // no allowDangerousHtml — raw HTML in bodies is dropped, not parsed
   .use(rehypeSlug)
   .use(rehypeMermaid)
+  .use(rehypeTableWrap)
   .use(rehypeSanitize, sanitizeSchema)
   .use(rehypeStringify);
 
