@@ -116,6 +116,29 @@ export async function readDraft(
  * (which happens when its PR merges), everything automatically targets `main`
  * — no config change needed at merge time.
  */
+/**
+ * Discard a DRAFT-ONLY page (never merged/published): delete its edit branch.
+ * GitHub auto-closes any open PR whose head branch is deleted, so this is the
+ * whole "discard" in one call. No review step — nothing was ever public.
+ * Returns true if a branch existed and was removed; false when there was
+ * nothing to discard (404/422 = no such ref). Throws on real API trouble.
+ */
+export async function discardDraft(
+  config: Pick<GithubConfig, "token" | "repo">,
+  slug: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<boolean> {
+  const { token, repo } = config;
+  if (!token || !repo) return false;
+  const res = await fetchImpl(
+    `${API}/repos/${repo}/git/refs/${encodeURIComponent(`heads/${EDIT_BRANCH_PREFIX}${slug}`)}`,
+    { method: "DELETE", headers: githubHeaders(token, true) },
+  );
+  if (res.status === 404 || res.status === 422) return false;
+  if (!res.ok) throw new Error(`Couldn’t discard the draft (HTTP ${res.status}). Try again.`);
+  return true;
+}
+
 export async function resolveBase(
   config: GithubConfig,
   fetchImpl: typeof fetch = fetch,

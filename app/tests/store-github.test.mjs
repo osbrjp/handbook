@@ -252,3 +252,38 @@ test("pr: no-op change (PR create 422: no commits) resolves without a review", a
   const result = await createGithubStore(PR, fn).remove("gone", OPTS);
   assert.deepEqual(result, {});
 });
+
+// ---- discardDraft: delete-branch semantics for never-published pages ----
+
+const { discardDraft } = await import("../src/lib/content/store.github.ts");
+const DISCARD_CFG = { token: "user-token", repo: "osbrjp/handbook" };
+
+test("discardDraft: deletes the edit branch ref and reports true", async () => {
+  let seen;
+  const fetchImpl = async (url, init) => {
+    seen = { url: String(url), method: init?.method };
+    return new Response(null, { status: 204 });
+  };
+  assert.equal(await discardDraft(DISCARD_CFG, "testing-page", fetchImpl), true);
+  assert.equal(seen.method, "DELETE");
+  assert.ok(seen.url.includes(encodeURIComponent("heads/handbook/testing-page")));
+});
+
+test("discardDraft: no branch to discard (404/422) -> false, no throw", async () => {
+  for (const status of [404, 422]) {
+    const fetchImpl = async () => new Response(null, { status });
+    assert.equal(await discardDraft(DISCARD_CFG, "testing-page", fetchImpl), false);
+  }
+});
+
+test("discardDraft: API trouble throws (surfaced as a friendly 503 upstream)", async () => {
+  const fetchImpl = async () => new Response(null, { status: 500 });
+  await assert.rejects(() => discardDraft(DISCARD_CFG, "testing-page", fetchImpl));
+});
+
+test("discardDraft: missing token/repo -> false without any API call", async () => {
+  const fetchImpl = async () => {
+    throw new Error("should not be called");
+  };
+  assert.equal(await discardDraft({ token: "", repo: "" }, "x", fetchImpl), false);
+});

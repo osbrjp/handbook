@@ -26,7 +26,7 @@ async function failureMessage(res: Response): Promise<string> {
   }
   if (res.status === 403) return "Your session needs a refresh — reload the page and try again.";
   if (res.status === 404)
-    return "Save failed: the server couldn't find your editor session (it may have expired) — reload the page and try again.";
+    return "That didn't go through — the page/draft may already be deleted, or your session expired. Reload the page and try again.";
   return READONLY_MSG;
 }
 

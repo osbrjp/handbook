@@ -18,6 +18,7 @@ Astro.response.headers.set("Vary", "Cookie");
 const pages = await listAllPages();
 const sections = [...new Set(pages.map((p) => p.section))];
 const deleted = Astro.url.searchParams.get("deleted");
+const discarded = Astro.url.searchParams.get("discarded");
 const writable = isWritable(Astro.locals.contentStore);
 // Always issue CSRF: the New page / Delete controls are live even in
 // preview-only (so they hover/look real), and a preview-only delete must reach
@@ -59,6 +60,7 @@ const STATE_LABEL: Record<EditState, string> = {
     </div>
   </div>
   {deleted && <div class="notice">✓ Page deleted.</div>}
+  {discarded && <div class="notice">✓ Draft discarded — the page was never published, so nothing else changes.</div>}
   <ReadonlyNotice />
   {
     submitted && prNumber && (
