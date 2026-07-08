@@ -46,13 +46,13 @@ const STATE_LABEL: Record<EditState, string> = {
 };
 ---
 
-<Base title="Editor" visitor={Astro.locals.visitor}>
+<Base title="Manage pages" visitor={Astro.locals.visitor}>
   <div class="container admin-page" data-readonly={String(!writable)}>
   {/* Breadcrumb-style back link ABOVE the title (mobile wraps the action
       buttons under the h1, so the back link must not sit below them). */}
   <a class="btn-cancel admin-back" href="/" id="admin-back">← Back to handbook</a>
   <div class="admin-head">
-    <h1>Pages</h1>
+    <h1>Manage pages</h1>
     <div class="admin-head-actions">
       {reviewMode && <a class="btn btn-alt" href="/edit-pages/reviews">Reviews</a>}
       <a class="btn btn-brand" href="/edit-pages/create">+ New page</a>
@@ -135,8 +135,10 @@ const STATE_LABEL: Record<EditState, string> = {
   {
     sections.map((section) => {
       const items = pages.filter((p) => p.section === section);
+      // Collapsed by default (all viewports): the section name + count is the
+      // overview; expand what you need. Drafts above stay open.
       return (
-        <details class="admin-section" data-collapse-mobile open>
+        <details class="admin-section">
           <summary class="admin-section-title">
             {section} <span class="admin-count">{items.length}</span>
           </summary>
@@ -223,18 +225,6 @@ const STATE_LABEL: Record<EditState, string> = {
   </dialog>
   <AlertDialog />
 </Base>
-
-<script is:inline>
-  // Mobile: section lists start COLLAPSED (fully expanded, the listing runs
-  // several screens tall). Desktop keeps them open for scanning. "New pages
-  // in progress" (no data-collapse-mobile) stays open — it's active work.
-  (function () {
-    if (!window.matchMedia("(max-width: 760px)").matches) return;
-    document.querySelectorAll(".admin-section[data-collapse-mobile]").forEach(function (d) {
-      d.removeAttribute("open");
-    });
-  })();
-</script>
 
 <script>
   import { wireBackLink } from "../../lib/ui/backLink";
