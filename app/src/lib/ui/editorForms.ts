@@ -25,7 +25,9 @@ async function failureMessage(res: Response): Promise<string> {
     if (t && t.length <= 400) return t;
   }
   if (res.status === 403) return "Your session needs a refresh — reload the page and try again.";
-  return READONLY_MSG; // incl. an empty 404: the write path isn't wired here
+  if (res.status === 404)
+    return "Save failed: the server couldn't find your editor session (it may have expired) — reload the page and try again.";
+  return READONLY_MSG;
 }
 
 /**
@@ -42,8 +44,13 @@ export async function submitForm(
   const fd = new FormData(form, submitter ?? undefined);
   const btn = submitter as HTMLButtonElement | null;
   if (btn?.name && !fd.has(btn.name)) fd.append(btn.name, btn.value);
+  // getAttribute, NOT form.action: the draft/submit buttons are name="action",
+  // and named fields SHADOW the property — form.action then returns a
+  // RadioNodeList that stringifies into the URL ("/edit-pages/[object
+  // RadioNodeList]" → 404). The attribute is immune to that clobbering.
+  const url = form.getAttribute("action") || window.location.pathname;
   try {
-    const res = await fetch(form.action, {
+    const res = await fetch(url, {
       method: "POST",
       body: fd,
       headers: { "X-Requested-With": "fetch" },
