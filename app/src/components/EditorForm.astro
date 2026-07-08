@@ -8,9 +8,17 @@ interface Props {
   csrf: string;
   sections: string[];
   writable?: boolean; // true when a content-store write path is available (dev)
+  draftResume?: boolean; // editing an existing unpublished draft (merges the two banners into one)
   reviewMode?: boolean; // true when saves become draft-branch commits / review PRs
 }
-const { page = null, csrf, sections, writable = false, reviewMode = false } = Astro.props;
+const {
+  page = null,
+  csrf,
+  sections,
+  writable = false,
+  reviewMode = false,
+  draftResume = false,
+} = Astro.props;
 const visibility = page?.visibility ?? "internal";
 ---
 
@@ -26,7 +34,13 @@ const visibility = page?.visibility ?? "internal";
 </div>
 
 {
-  writable && reviewMode ? (
+  writable && reviewMode && draftResume ? (
+    <div class="notice">
+      ✎ <strong>Continuing your unpublished draft.</strong> Readers don't see this version yet —
+      “Save draft” keeps it private, “Submit for approval” sends it to an admin and it goes live
+      once approved.
+    </div>
+  ) : writable && reviewMode ? (
     <div class="notice">
       ✎ <strong>Draft &amp; review.</strong> “Save draft” keeps your work-in-progress private (it
       isn't reviewed or published). “Submit for approval” sends it to an admin — it goes live once
@@ -80,7 +94,6 @@ const visibility = page?.visibility ?? "internal";
   <details class="meta-details" data-section="settings">
   <summary class="meta-summary">Page settings</summary>
   <div class="editor-meta">
-  <p class="req-note"><span class="req">*</span> required</p>
   <label>Title <span class="req" title="required">*</span><input name="title" id="title" value={page?.title ?? ""} required /></label>
   <label>Page URL
     <input name="slug" id="slug" value={page?.slug ?? ""} placeholder="auto-generated from title" />

@@ -48,14 +48,8 @@ const saved = Astro.url.searchParams.get("saved");
   <div class="container editor-page">
     <h1>Edit: {page.title}</h1>
     <ReadonlyNotice />
-    {
-      draft && (
-        <div class="notice">
-          ✎ <strong>Continuing your unpublished work.</strong> This is the draft/pending version of
-          the page{published ? ", not what readers currently see" : " — it isn't published yet"}.
-        </div>
-      )
-    }
+    {/* Draft-resume messaging lives INSIDE EditorForm (draftResume prop) so
+        the page shows ONE banner below Back/Delete, not two around it. */}
     {
       saved && (
         <div class="notice">
@@ -69,6 +63,7 @@ const saved = Astro.url.searchParams.get("saved");
       sections={sections}
       writable={isWritable(Astro.locals.contentStore)}
       reviewMode={isReviewMode(Astro.locals.contentStore)}
+      draftResume={!!draft}
     />
   </div>
 </Base>

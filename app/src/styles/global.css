@@ -1022,6 +1022,15 @@ a:hover {
   border-radius: 8px;
   margin-bottom: 0.75rem;
 }
+/* Work-in-progress drafts: brand-tinted (same hue as the "draft in progress"
+   badge) so active work reads differently from the plain content sections. */
+.admin-drafts {
+  border-color: rgba(99, 102, 241, 0.45);
+  background: rgba(71, 73, 199, 0.07);
+}
+.admin-drafts > .admin-section-title {
+  color: #8b8dff;
+}
 .admin-section-title {
   cursor: pointer;
   padding: 0.6rem 0.9rem;
@@ -1151,12 +1160,8 @@ a:hover {
   color: #d9534f;
   font-weight: 700;
 }
-.editor .req-note {
-  margin: 0 0 1rem;
-  font-size: 0.8rem;
-  font-weight: 400;
-  color: var(--muted);
-}
+/* No "* required" legend: the asterisk is a universal convention (each marked
+   label also carries title="required" and the input the required attribute). */
 .editor label small {
   display: block;
   font-weight: 400;
@@ -1303,6 +1308,8 @@ a:hover {
   margin-bottom: 1.25rem;
 }
 .meta-summary {
+  display: flex;
+  align-items: center;
   cursor: pointer;
   padding: 0.6rem 0.9rem;
   font-weight: 600;
