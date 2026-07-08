@@ -37,6 +37,37 @@ async function failureMessage(res: Response): Promise<string> {
  * fallback for browsers that ignore FormData's second arg (else a Submit would
  * silently save as a draft).
  */
+/**
+ * Wire a <dialog>-based delete confirmation (Pages listing + editor share the
+ * exact shape). Rules kept in ONE place: environment check FIRST on open AND
+ * on confirm (readonly → friendly popup, never a doomed round-trip); confirm
+ * submits via fetch so failures pop up too. `onOpen` lets the listing stuff
+ * per-row data (slug/title) into the dialog before it shows.
+ */
+export function wireConfirmDelete(o: {
+  dialog: HTMLDialogElement | null;
+  form: HTMLFormElement | null;
+  openButtons: Iterable<HTMLElement>;
+  cancel: HTMLElement | null;
+  readonly: boolean;
+  onOpen?: (btn: HTMLElement) => void;
+}): void {
+  for (const btn of o.openButtons) {
+    btn.addEventListener("click", () => {
+      if (o.readonly) return showAlert(READONLY_MSG);
+      o.onOpen?.(btn);
+      o.dialog?.showModal();
+    });
+  }
+  o.cancel?.addEventListener("click", () => o.dialog?.close());
+  o.form?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    o.dialog?.close();
+    if (o.readonly) return showAlert(READONLY_MSG);
+    if (o.form) submitForm(o.form, (e as SubmitEvent).submitter);
+  });
+}
+
 export async function submitForm(
   form: HTMLFormElement,
   submitter?: HTMLElement | null,

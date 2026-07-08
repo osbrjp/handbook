@@ -968,9 +968,6 @@ a:hover {
 .notice a {
   font-weight: 600;
 }
-.notice-muted {
-  color: var(--muted);
-}
 /* Warning/info variant (e.g. deferred in-browser editing). */
 .notice-warn {
   background: rgba(234, 179, 8, 0.12);
@@ -1282,13 +1279,6 @@ a:hover {
   padding: 1rem 1.5rem;
   min-height: 70vh;
   overflow: auto;
-}
-.preview-title {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-  margin-bottom: 0.5rem;
 }
 /* Top bar: Back on the left, Delete on the right. */
 .editor-topbar {

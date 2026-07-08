@@ -228,29 +228,21 @@ const STATE_LABEL: Record<EditState, string> = {
 
 <script>
   import { wireBackLink } from "../../lib/ui/backLink";
-  import { READONLY_MSG, showAlert, submitForm } from "../../lib/ui/editorForms";
+  import { wireConfirmDelete } from "../../lib/ui/editorForms";
   wireBackLink("admin-back");
 
-  // Delete: confirmation dialog when editing is enabled; in preview-only, the
-  // readonly notice instead of confirming a delete that can't happen.
-  const readonly = document.querySelector(".admin-page")?.getAttribute("data-readonly") === "true";
-  const dialog = document.getElementById("del-dialog") as HTMLDialogElement | null;
-  const delForm = document.getElementById("del-form") as HTMLFormElement | null;
+  // Row Delete → shared confirm dialog; onOpen injects the row's slug/title.
   const slugInput = document.getElementById("del-slug") as HTMLInputElement | null;
   const titleEl = document.getElementById("del-title");
-  for (const btn of document.querySelectorAll<HTMLButtonElement>(".row-delete")) {
-    btn.addEventListener("click", () => {
-      if (readonly) return showAlert(READONLY_MSG);
+  wireConfirmDelete({
+    dialog: document.getElementById("del-dialog") as HTMLDialogElement | null,
+    form: document.getElementById("del-form") as HTMLFormElement | null,
+    openButtons: document.querySelectorAll<HTMLButtonElement>(".row-delete"),
+    cancel: document.getElementById("del-cancel"),
+    readonly: document.querySelector(".admin-page")?.getAttribute("data-readonly") === "true",
+    onOpen: (btn) => {
       if (slugInput) slugInput.value = btn.dataset.slug ?? "";
       if (titleEl) titleEl.textContent = btn.dataset.title ?? "this page";
-      dialog?.showModal();
-    });
-  }
-  document.getElementById("del-cancel")?.addEventListener("click", () => dialog?.close());
-  delForm?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    dialog?.close();
-    if (readonly) return showAlert(READONLY_MSG); // environment check FIRST — no doomed round-trip
-    submitForm(delForm);
+    },
   });
 </script>
