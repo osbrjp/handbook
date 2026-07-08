@@ -97,14 +97,14 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
     return new Response(`Could not save. ${detail}`, { status: 503 });
   }
 
-  // Review mode: the change lives on the edit branch / its PR, NOT in the
-  // built content — the edit route for a brand-new page would 404, so land on
-  // the listing with the appropriate banner.
+  // Stay on the edit page (works for brand-new pages too — the edit route
+  // serves the draft) with the outcome as a banner; teleporting to the
+  // listing loses the author's context.
   if (result?.reviewNumber) {
-    return redirect(`/edit-pages?submitted=${slug}&pr=${result.reviewNumber}`, 303);
+    return redirect(`/edit-pages/edit/${slug}?submitted=${result.reviewNumber}`, 303);
   }
   if (result?.draftSaved) {
-    return redirect(`/edit-pages?drafted=${slug}`, 303);
+    return redirect(`/edit-pages/edit/${slug}?drafted=1`, 303);
   }
   // Local dev: the file was written directly; back to the editor.
   return redirect(`/edit-pages/edit/${slug}?saved=1`, 303);

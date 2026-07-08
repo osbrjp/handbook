@@ -40,8 +40,14 @@ const page: PageRow = draft
 const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
 const sections = [...new Set(allPages.map((p) => p.section))];
 
-// Confirmation after a local-dev save (set by /edit-pages/save).
+// Outcome banners (set by /edit-pages/save redirects): local-dev save,
+// review-mode draft save, review-mode submit (numeric-validated PR number —
+// the link is built from the server-known repo, never user input).
 const saved = Astro.url.searchParams.get("saved");
+const drafted = Astro.url.searchParams.get("drafted");
+const submittedParam = Astro.url.searchParams.get("submitted") ?? "";
+const submittedPr = /^[0-9]{1,8}$/.test(submittedParam) ? submittedParam : null;
+const repo = Astro.locals.contentStore.github?.repo;
 ---
 
 <Base title={`Edit: ${page.title}`} visitor={Astro.locals.visitor}>
@@ -57,13 +63,23 @@ const saved = Astro.url.searchParams.get("saved");
         </div>
       )
     }
+    {drafted && <div class="notice">✓ Draft saved — private until you submit it for approval.</div>}
+    {
+      submittedPr && (
+        <div class="notice">
+          ✓ <strong>Submitted for approval</strong> (
+          {repo ? <a href={`https://github.com/${repo}/pull/${submittedPr}`}>review #{submittedPr}</a> : `review #${submittedPr}`}
+          ). It goes live once an admin approves it — further edits here join the same review.
+        </div>
+      )
+    }
     <EditorForm
       page={page}
       csrf={csrf}
       sections={sections}
       writable={isWritable(Astro.locals.contentStore)}
       reviewMode={isReviewMode(Astro.locals.contentStore)}
-      draftResume={!!draft}
+      draftResume={!!draft && !drafted && !submittedPr}
     />
   </div>
 </Base>

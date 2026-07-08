@@ -28,7 +28,6 @@ const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
 // "Submitted for review" banner (PR mode). pr is numeric-validated; the link is
 // built from the server-known repo, never from user input.
 const submitted = Astro.url.searchParams.get("submitted");
-const drafted = Astro.url.searchParams.get("drafted");
 const prParam = Astro.url.searchParams.get("pr") ?? "";
 const prNumber = /^[0-9]{1,8}$/.test(prParam) ? prParam : null;
 const cfg = Astro.locals.contentStore;
@@ -68,15 +67,6 @@ const STATE_LABEL: Record<EditState, string> = {
         ✓ <strong>Submitted for approval.</strong> Your change to <code>{submitted}</code> is
         pending (<a href={prUrl} target="_blank" rel="noopener">review #{prNumber}</a>). It goes
         live once an admin approves &amp; publishes it.
-      </div>
-    )
-  }
-  {
-    drafted && (
-      <div class="notice">
-        ✓ <strong>Draft saved.</strong> Your work on <code>{drafted}</code> is kept privately (not
-        submitted, not visible in the handbook). Open the page again to keep editing, and use
-        “Submit for approval” when it's ready.
       </div>
     )
   }
@@ -219,7 +209,7 @@ const STATE_LABEL: Record<EditState, string> = {
         <button type="button" class="btn btn-alt" id="del-cancel">
           Cancel
         </button>
-        <button type="submit" class="btn btn-danger">
+        <button type="submit" class="btn btn-danger" data-busy="Deleting…">
           Delete page
         </button>
       </div>

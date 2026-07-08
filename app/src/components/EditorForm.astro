@@ -77,7 +77,7 @@ const visibility = page?.visibility ?? "internal";
           <button type="button" class="btn btn-alt" id="delete-cancel">
             Cancel
           </button>
-          <button type="submit" form="delete-form" class="btn btn-danger">
+          <button type="submit" form="delete-form" class="btn btn-danger" data-busy="Deleting…">
             Delete page
           </button>
         </div>
@@ -147,15 +147,21 @@ const visibility = page?.visibility ?? "internal";
     {
       reviewMode ? (
         <>
-          <button type="submit" name="action" value="draft" class="btn btn-alt">
+          <button type="submit" name="action" value="draft" class="btn btn-alt" data-busy="Saving…">
             Save draft
           </button>
-          <button type="submit" name="action" value="submit" class="btn btn-brand">
+          <button
+            type="submit"
+            name="action"
+            value="submit"
+            class="btn btn-brand"
+            data-busy="Submitting…"
+          >
             Submit for approval
           </button>
         </>
       ) : (
-        <button type="submit" name="action" value="draft" class="btn btn-brand">
+        <button type="submit" name="action" value="draft" class="btn btn-brand" data-busy="Saving…">
           Save
         </button>
       )

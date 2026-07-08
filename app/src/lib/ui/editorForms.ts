@@ -72,9 +72,26 @@ export async function submitForm(
   form: HTMLFormElement,
   submitter?: HTMLElement | null,
 ): Promise<void> {
+  // Re-entry guard + busy state: a submit fans out into several GitHub API
+  // round-trips (seconds) — without feedback the click feels dead and invites
+  // double-submits. Button shows its data-busy label until we navigate away.
+  if (form.dataset.busy) return;
+  form.dataset.busy = "1";
   const fd = new FormData(form, submitter ?? undefined);
   const btn = submitter as HTMLButtonElement | null;
   if (btn?.name && !fd.has(btn.name)) fd.append(btn.name, btn.value);
+  const originalLabel = btn?.textContent;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = btn.dataset.busy ?? "Working…";
+  }
+  const done = () => {
+    delete form.dataset.busy;
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = originalLabel ?? "";
+    }
+  };
   // getAttribute, NOT form.action: the draft/submit buttons are name="action",
   // and named fields SHADOW the property — form.action then returns a
   // RadioNodeList that stringifies into the URL ("/edit-pages/[object
@@ -88,10 +105,12 @@ export async function submitForm(
     });
     if (res.ok) {
       window.location.href = res.url; // the saved/submitted landing page
-      return;
+      return; // keep the busy state — we're navigating
     }
+    done();
     showAlert(await failureMessage(res));
   } catch {
+    done();
     showAlert("Couldn't reach the server — check your connection and try again.");
   }
 }
