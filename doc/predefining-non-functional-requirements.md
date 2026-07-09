@@ -1,6 +1,6 @@
 # Non-functional Requirements
 
-In the development process, it is necessary to define non-functional and functional requirements. Functional requirements are deep rooted in the specific things that a system needs to be able to do. What about non-functional requirements? (NFRs)
+In the development process, it is necessary to define non-functional and functional requirements. Functional requirements are deep-rooted in the specific things that a system needs to be able to do. What about non-functional requirements? (NFRs)
 
 [[TOC]]
 
@@ -81,7 +81,7 @@ Focuses on how well the system can handle growth.
 
 ### 2-7. Compliance
 
-The system should adheres to laws, regulations, and industry standards.
+The system should adhere to laws, regulations, and industry standards.
 
 #### Examples:
 
