@@ -7,6 +7,7 @@ import { requireEditor } from "../../lib/auth/requireEditor";
 import { issueCsrf } from "../../lib/csrf";
 import { listAllPages } from "../../lib/content/pages";
 import { isReviewMode, isWritable } from "../../lib/content/store";
+import { prLinkFromParam } from "../../lib/content/reviews";
 import { type EditState, listEditStates } from "../../lib/content/store.github";
 
 const denied = requireEditor(Astro.locals);
@@ -25,13 +26,11 @@ const writable = isWritable(Astro.locals.contentStore);
 // the endpoint's friendly readonly redirect — not a bare 403 for a blank token.
 const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
 
-// "Submitted for review" banner (PR mode). pr is numeric-validated; the link is
-// built from the server-known repo, never from user input.
+// "Submitted for review" banner (delete PRs land here; saves land on the
+// edit page). prLinkFromParam validates the number and builds the link.
 const submitted = Astro.url.searchParams.get("submitted");
-const prParam = Astro.url.searchParams.get("pr") ?? "";
-const prNumber = /^[0-9]{1,8}$/.test(prParam) ? prParam : null;
 const cfg = Astro.locals.contentStore;
-const prUrl = prNumber ? `https://github.com/${cfg.github?.repo}/pull/${prNumber}` : null;
+const pr = prLinkFromParam(cfg.github?.repo, Astro.url.searchParams.get("pr"));
 const reviewMode = isReviewMode(cfg);
 
 // Per-page edit state (draft / pending approval) — best-effort chips, plus a
@@ -62,10 +61,10 @@ const STATE_LABEL: Record<EditState, string> = {
   {discarded && <div class="notice">✓ Draft discarded — the page was never published, so nothing else changes.</div>}
   <ReadonlyNotice />
   {
-    submitted && prNumber && (
+    submitted && pr && (
       <div class="notice">
         ✓ <strong>Submitted for approval.</strong> Your change to <code>{submitted}</code> is
-        pending (<a href={prUrl} target="_blank" rel="noopener">review #{prNumber}</a>). It goes
+        pending (<a href={pr.url} target="_blank" rel="noopener">review #{pr.number}</a>). It goes
         live once an admin approves &amp; publishes it.
       </div>
     )

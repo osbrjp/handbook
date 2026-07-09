@@ -14,6 +14,20 @@ export interface ReviewsConfig {
   base: string; // base branch the reviews target
 }
 
+/**
+ * Validate a ?pr/?submitted-style query param (numeric PR number) and build
+ * its GitHub link. The number comes from a redirect WE issued, but it's still
+ * a URL param — validate before echoing; the URL is built from the
+ * server-known repo, never from user input.
+ */
+export function prLinkFromParam(
+  repo: string | undefined,
+  raw: string | null,
+): { number: string; url: string | null } | null {
+  if (!raw || !/^[0-9]{1,8}$/.test(raw)) return null;
+  return { number: raw, url: repo ? `https://github.com/${repo}/pull/${raw}` : null };
+}
+
 export type ChecksState = "passing" | "failing" | "pending" | "none";
 
 export interface ReviewItem {

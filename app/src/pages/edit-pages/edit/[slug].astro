@@ -6,6 +6,7 @@ import { requireEditor } from "../../../lib/auth/requireEditor";
 import { issueCsrf } from "../../../lib/csrf";
 import { getEditablePageBySlug, listAllPages, type PageRow } from "../../../lib/content/pages";
 import { isReviewMode, isWritable } from "../../../lib/content/store";
+import { prLinkFromParam } from "../../../lib/content/reviews";
 import { readDraft } from "../../../lib/content/store.github";
 import { isSafeSlug } from "../../../lib/content/serialize";
 
@@ -41,13 +42,13 @@ const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
 const sections = [...new Set(allPages.map((p) => p.section))];
 
 // Outcome banners (set by /edit-pages/save redirects): local-dev save,
-// review-mode draft save, review-mode submit (numeric-validated PR number —
-// the link is built from the server-known repo, never user input).
+// review-mode draft save, review-mode submit (validated PR link).
 const saved = Astro.url.searchParams.get("saved");
 const drafted = Astro.url.searchParams.get("drafted");
-const submittedParam = Astro.url.searchParams.get("submitted") ?? "";
-const submittedPr = /^[0-9]{1,8}$/.test(submittedParam) ? submittedParam : null;
-const repo = Astro.locals.contentStore.github?.repo;
+const submittedPr = prLinkFromParam(
+  Astro.locals.contentStore.github?.repo,
+  Astro.url.searchParams.get("submitted"),
+);
 ---
 
 <Base title={`Edit: ${page.title}`} visitor={Astro.locals.visitor}>
@@ -68,7 +69,13 @@ const repo = Astro.locals.contentStore.github?.repo;
       submittedPr && (
         <div class="notice">
           ✓ <strong>Submitted for approval</strong> (
-          {repo ? <a href={`https://github.com/${repo}/pull/${submittedPr}`}>review #{submittedPr}</a> : `review #${submittedPr}`}
+          {submittedPr.url ? (
+            <a href={submittedPr.url} target="_blank" rel="noopener">
+              review #{submittedPr.number}
+            </a>
+          ) : (
+            `review #${submittedPr.number}`
+          )}
           ). It goes live once an admin approves it — further edits here join the same review.
         </div>
       )

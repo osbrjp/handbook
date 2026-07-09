@@ -8,6 +8,15 @@ export function showAlert(msg: string): void {
   document.dispatchEvent(new CustomEvent("app:alert", { detail: msg }));
 }
 
+// bfcache: pressing Back can restore a page frozen mid-submit — busy flag set,
+// button disabled and reading "Submitting…". Reload to reset that state (only
+// when it exists; normal Back navigations are untouched).
+window.addEventListener("pageshow", (e) => {
+  if ((e as PageTransitionEvent).persisted && document.querySelector("form[data-busy]")) {
+    window.location.reload();
+  }
+});
+
 /** Shown when a write is attempted in a preview-only environment (no write path). */
 export const READONLY_MSG =
   "Saving isn't enabled in this environment (preview only). Editing needs the production setup (a GitHub App on the repo); otherwise commit the markdown to the repository directly.";

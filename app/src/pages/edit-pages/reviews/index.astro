@@ -89,7 +89,9 @@ const CHECK_LABEL = {
                   <form method="POST" action="/edit-pages/reviews/approve" class="inline-form">
                     <input type="hidden" name="csrf" value={csrf} />
                     <input type="hidden" name="pr" value={r.number} />
-                    <button type="submit" class="btn btn-brand btn-sm">Approve &amp; publish</button>
+                    <button type="submit" class="btn btn-brand btn-sm" data-busy="Approving…">
+                      Approve &amp; publish
+                    </button>
                   </form>
                   <form
                     method="POST"
@@ -98,7 +100,9 @@ const CHECK_LABEL = {
                   >
                     <input type="hidden" name="csrf" value={csrf} />
                     <input type="hidden" name="pr" value={r.number} />
-                    <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                    <button type="submit" class="btn btn-danger btn-sm" data-busy="Rejecting…">
+                      Reject
+                    </button>
                   </form>
                 </td>
               </tr>
@@ -117,6 +121,20 @@ const CHECK_LABEL = {
       if (!confirm("Reject this change? The submitted edits will be discarded.")) {
         e.preventDefault();
       }
+    });
+  }
+  // Busy state for the native posts: approve/reject fan out into GitHub API
+  // calls (seconds). Disable the clicked button (blocks double-merges) and
+  // show its data-busy label. Runs after the confirm handler — skips when the
+  // reject was cancelled. Safe to disable post-dispatch: these buttons carry
+  // no name/value, so the form payload is unaffected.
+  for (const form of document.querySelectorAll<HTMLFormElement>("form.inline-form")) {
+    form.addEventListener("submit", (e) => {
+      if (e.defaultPrevented) return;
+      const btn = (e as SubmitEvent).submitter as HTMLButtonElement | null;
+      if (!btn) return;
+      btn.disabled = true;
+      btn.textContent = btn.dataset.busy ?? "Working…";
     });
   }
 </script>
