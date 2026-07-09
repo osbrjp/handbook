@@ -5,7 +5,7 @@ nav_label: "Testing"
 sort: 0
 visibility: internal
 updated_by: "VibratingKoala"
-updated_at: "2026-07-08T09:26:18.463Z"
+updated_at: "2026-07-09T06:35:08.260Z"
 ---
 
 [[TOC]]
@@ -38,4 +38,4 @@ At OSBR, we're actively shaping our **organizational culture** from the ground u
 
 By referring to the [GitLab model](https://www.hbs.edu/faculty/Pages/item.aspx?num=57917), we have committed to develop the OSBR Handbook, a comprehensive guide publicly accessible as you can read this now. While our primary goal is to cultivate a strong internal culture, our open-access policy may also help refine OSBR’s identity by incorporating feedback from clients, partners, and potential collaborators.
 
-In the **AI-Agent era**, maintaining **context-aware knowledge** is crucial. That’s why we write for both humans and AI—ensuring accuracy, accessibility, and seamless collaboration at every level of our projects, be it repository, pull requests or launched products.
+In the **AI-Agent era**, maintaining **context-aware knowledge** is crucial. That’s why we write for both humans and AI—ensuring accuracy, accessibility, and seamless collaboration at every level of our projects, be it repository, pull requests or launched products
