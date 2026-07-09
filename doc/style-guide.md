@@ -173,6 +173,11 @@ Google's guides and PEP 8 use exceptions; the `Result` policy is an OSBR choice.
 * Editors MUST format on save.
 * Formatting MUST be enforced by tooling (gofmt, Prettier / gts, Black / Ruff);
   see each language page.
+* Repositories MUST use the shared config templates
+  ([`templates/`](https://github.com/osbrjp/handbook/tree/main/templates)):
+  the language-agnostic `.editorconfig` plus the per-language formatter config.
+  The same files ship in `osbrjp/standard-repository`, so a repo scaffolded from
+  that template already carries them.
 * [**TDD**](/technical-glossary#tdd-test-driven-development) SHOULD be used; the
   pure core (§3-5) is testable without mocks.
 
