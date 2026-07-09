@@ -59,7 +59,23 @@ export default defineConfig({
         text: "Guideline",
         items: [
           { text: "On-boarding Guide", link: "/on-boarding" },
-          { text: "Development Guide", link: "/development-guide" },
+          {
+            text: "Development Guide",
+            link: "/development-guide",
+            collapsed: false,
+            items: [
+              {
+                text: "Style Guide",
+                link: "/style-guide",
+                collapsed: true,
+                items: [
+                  { text: "TypeScript", link: "/style-guide-typescript" },
+                  { text: "Golang", link: "/style-guide-golang" },
+                  { text: "Python", link: "/style-guide-python" },
+                ],
+              },
+            ],
+          },
           {
             text: "Non-functional Requirements",
             link: "/predefining-non-functional-requirements",
