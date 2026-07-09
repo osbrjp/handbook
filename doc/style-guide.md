@@ -6,18 +6,27 @@ Language-agnostic coding policy for OSBR repositories. Per-language policy:
 * [Golang Style Guide](/style-guide-golang)
 * [Python Style Guide](/style-guide-python)
 
-Requirement levels follow RFC 2119 (MUST / MUST NOT / SHOULD / MAY). Terms in
-**bold links** are defined in the [Technical Glossary](/technical-glossary).
+## How to read this guide
 
-Each rule is tagged 🌎 (**Industry standard** — backed by an official or widely
-adopted source) or 🏠 (**OSBR house rule** — deliberately stricter than, or
-divergent from, mainstream practice). Sources are listed under References.
+* **Requirement levels** follow RFC 2119. **MUST** / **MUST NOT** are absolute.
+  **SHOULD** / **SHOULD NOT** state a strong default that MAY be overridden only
+  with a documented reason. **MAY** marks a choice left to the author.
+* **Rule tags.** Every rule carries exactly one tag. 🌎 (**Industry standard**)
+  is backed by an official or widely adopted source. 🏠 (**OSBR house rule**) is
+  deliberately stricter than, or divergent from, mainstream practice; every 🏠
+  section ends with a *Rationale:* line naming the baseline it diverges from.
+  Sources are listed under References.
+* **Worked examples.** The per-language pages state a rule, then show it with a
+  ❌ counter-example followed by the ✅ form to write instead.
+* **Defined terms.** Words in **bold links** are defined in the
+  [Technical Glossary](/technical-glossary).
 
 [[TOC]]
 
 ## 1. Correctness by Construction — Zero Runtime Errors 🏠
 
-Eliminating runtime errors is the goal every rule below serves.
+Every rule below serves one goal: eliminate avoidable runtime errors and make
+the unavoidable ones explicit.
 
 * Avoidable errors MUST be moved to compile time. Illegal states MUST be made
   unrepresentable through the type system (strict types, total types,
@@ -25,14 +34,14 @@ Eliminating runtime errors is the goal every rule below serves.
   than guarded at runtime.
 * Code MUST NOT fail at runtime for a condition the types could have rejected:
   no `any` escape hatch, no unchecked `null` / `undefined`, no unvalidated
-  external input reaching the core.
+  external input reaching the pure core.
 * Unavoidable failures (IO, network, DB, external input) MUST be handled
   explicitly as values ([**Result (Either)**](/technical-glossary#result-either) /
   [**Option (Maybe)**](/technical-glossary#option-maybe), §5) and MUST NOT be
   left to throw uncaught.
 
 *Rationale: literal zero runtime errors is impossible — external systems fail.
-The policy is to make every avoidable error a compile error and every
+The target is to make every avoidable error a compile error and every
 unavoidable one an explicit, handled value. The strict-typing, total-type, and
 error-handling rules below are the mechanism.*
 
@@ -43,7 +52,7 @@ error-handling rules below are the mechanism.*
 * Project code MUST NOT mutate data in place.
 * Functions MUST be free of [**Side Effect**](/technical-glossary#side-effect)s;
   IO MUST be pushed to the boundary (§3-5, §5).
-* Dependencies SHOULD be inverted by passing behaviour as a
+* Dependencies SHOULD be inverted by passing behavior as a
   [**Higher Order Function**](/technical-glossary#higher-order-function), not by
   hard-wiring a concretion.
 * Classes and mutation MAY be used inside external libraries, or at framework
@@ -112,8 +121,8 @@ mandate.*
 
 ### 3-5. Ports & Adapters 🌎
 
-* The core MUST define *ports*; technology-specific IO MUST live in *adapters* at
-  the edge. Inside code MUST NOT leak to the outside.
+* The pure core MUST define *ports*; technology-specific IO MUST live in
+  *adapters* at the boundary. Inner code MUST NOT leak to the outside.
 
 *Rationale: Hexagonal Architecture (Cockburn); the structural form of §5's
 boundary rule — Bernhardt's "functional core, imperative shell."*
@@ -150,10 +159,10 @@ default is [**Over Engineering**](/technical-glossary#over-engineering) (§4).*
   crash, log, no recovery.
 * Expected failures (bad input, not-found, IO failure) MUST return a `Result`.
   Test: *"would retrying succeed?"* — yes → `Result`; no → throw.
-* `try`/`catch` MUST be confined to the external boundary (IO / network / DB) and
-  convert throws into a `Result` there. The pure core MUST stay free of
-  `try`/`catch`. One top-level catch-all SHOULD remain as a safety net.
-* The error channel MUST be an array (`E[]`); a single error is length 1.
+* `try`/`catch` MUST be confined to the boundary (IO / network / DB) and convert
+  throws into a `Result` there. The pure core MUST stay free of `try`/`catch`.
+  One top-level catch-all SHOULD remain as a safety net.
+* Errors MUST be collected in an array (`E[]`); a single error is length 1.
 * Context MUST be appended to the flat error array (chain), not nested.
 
 *Rationale: Go 🌎 — errors-as-values is mandated by Go. TypeScript & Python 🏠 —

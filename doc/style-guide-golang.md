@@ -29,6 +29,30 @@ RFC 2119; tags 🌎 / 🏠 are defined there.
 * `panic` MAY be used for unrecoverable bugs or program init, but MUST NOT cross
   a package boundary — convert it to an `error` first.
 
+❌ `panic` used for an expected failure crashes the caller:
+
+```go
+func mustLoad(id string) User {
+    u, err := db.Load(id)
+    if err != nil {
+        panic(err)
+    }
+    return u
+}
+```
+
+✅ The failure is returned as an `error` the caller must handle:
+
+```go
+func load(id string) (User, error) {
+    u, err := db.Load(id)
+    if err != nil {
+        return User{}, fmt.Errorf("load %s: %w", id, err)
+    }
+    return u, nil
+}
+```
+
 *Rationale: errors-as-values is mandated by Go (Go Code Review Comments, Uber,
 Effective Go). Go's `error` return is the idiomatic
 [**Result (Either)**](/technical-glossary#result-either).*
@@ -41,10 +65,13 @@ Effective Go). Go's `error` return is the idiomatic
 *Note: Go idiom permits local mutation; the constraint is on globals and
 boundary aliasing.*
 
-## 4. Interfaces
+## 4. Interfaces 🌎
 
 * Interfaces SHOULD be small and defined by the consumer. An interface with a
   single implementation MUST NOT be exported.
+
+*Note: Go idiom is "accept interfaces, return structs" with consumer-defined
+interfaces (Go Code Review Comments, Effective Go).*
 
 ## References
 

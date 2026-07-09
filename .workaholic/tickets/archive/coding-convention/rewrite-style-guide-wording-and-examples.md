@@ -3,7 +3,7 @@ title: Rewrite the Style Guide pages — wording, grammar, consistency, worked e
 layer: Documentation
 mission: null
 depends_on: []
-status: todo
+status: archived
 created: 2026-07-09
 branch: coding-convention
 pr: 73
