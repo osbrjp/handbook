@@ -794,17 +794,6 @@ a:hover {
   .actions {
     flex-wrap: wrap;
   }
-  /* Reviews table: drop the secondary Page/Checks columns; the review page
-     itself shows both. Actions may stack. */
-  .admin-table th:nth-child(2),
-  .admin-table td:nth-child(2),
-  .admin-table th:nth-child(4),
-  .admin-table td:nth-child(4) {
-    display: none;
-  }
-  .admin-table .col-actions {
-    white-space: normal;
-  }
   /* NOTE: the admin-list column overrides live AFTER the base table rules
      (search "admin-list mobile") — same-specificity rules here would lose to
      the later base block by source order and silently do nothing. */
@@ -1363,29 +1352,38 @@ a:hover {
   color: #d9a514;
 }
 
-/* Reviews table (Pending reviews) — flexible columns, unlike the fixed-layout
-   .admin-list; actions hug the right. */
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 0.75rem;
+/* Pending-reviews LIST. flex-wrap is the whole responsive story: actions sit
+   right of the text when they fit, and wrap below it on narrow screens — no
+   table min-widths to force sideways scrolling. */
+.review-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
 }
-.admin-table th,
-.admin-table td {
-  text-align: left;
-  padding: 0.55rem 0.9rem;
+.review-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  padding: 0.85rem 0;
   border-bottom: 1px solid var(--divider);
 }
-.admin-table th {
-  font-size: 0.85rem;
-  color: var(--text-2);
-}
-.admin-table tr:last-child td {
+.review-row:last-child {
   border-bottom: none;
 }
-.admin-table .col-actions {
-  text-align: right;
-  white-space: nowrap;
+.review-what {
+  min-width: 0;
+}
+.review-sub {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.review-do {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 .review-gh {
   margin-left: 0.5rem;

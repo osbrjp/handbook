@@ -60,64 +60,53 @@ const CHECK_LABEL = {
       )
     }
 
+    {/* A LIST, not a table: rows flex-wrap, so actions drop below the text on
+        narrow screens instead of forcing the page to scroll sideways. */}
     {
       reviews.length > 0 && (
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Change</th>
-              <th>Page</th>
-              <th>By</th>
-              <th>Checks</th>
-              <th class="col-actions">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reviews.map((r) => (
-              <tr>
-                <td>
-                  <a href={`/edit-pages/reviews/${r.number}`} title="Review this change here">
-                    {r.title}
-                  </a>
-                  <a
-                    class="review-gh"
-                    href={r.url}
-                    target="_blank"
-                    rel="noopener"
-                    title="Raw diff & history on GitHub"
-                  >
-                    GitHub ↗
-                  </a>
-                </td>
-                <td>
-                  <code>{r.slug}</code>
-                </td>
-                <td>{r.author}</td>
-                <td>{CHECK_LABEL[r.checks]}</td>
-                <td class="col-actions">
-                  <form method="POST" action="/edit-pages/reviews/approve" class="inline-form">
-                    <input type="hidden" name="csrf" value={csrf} />
-                    <input type="hidden" name="pr" value={r.number} />
-                    <button type="submit" class="btn btn-brand btn-sm" data-busy="Approving…">
-                      Approve &amp; publish
-                    </button>
-                  </form>
-                  <form
-                    method="POST"
-                    action="/edit-pages/reviews/reject"
-                    class="inline-form review-reject"
-                  >
-                    <input type="hidden" name="csrf" value={csrf} />
-                    <input type="hidden" name="pr" value={r.number} />
-                    <button type="submit" class="btn btn-danger btn-sm" data-busy="Rejecting…">
-                      Reject
-                    </button>
-                  </form>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <ul class="review-list">
+          {reviews.map((r) => (
+            <li class="review-row">
+              <div class="review-what">
+                <a href={`/edit-pages/reviews/${r.number}`} title="Review this change here">
+                  {r.title}
+                </a>
+                <a
+                  class="review-gh"
+                  href={r.url}
+                  target="_blank"
+                  rel="noopener"
+                  title="Raw diff & history on GitHub"
+                >
+                  GitHub ↗
+                </a>
+                <div class="review-sub">
+                  <code>{r.slug}</code> · by {r.author} · {CHECK_LABEL[r.checks]}
+                </div>
+              </div>
+              <div class="review-do">
+                <form method="POST" action="/edit-pages/reviews/approve" class="inline-form">
+                  <input type="hidden" name="csrf" value={csrf} />
+                  <input type="hidden" name="pr" value={r.number} />
+                  <button type="submit" class="btn btn-brand btn-sm" data-busy="Approving…">
+                    Approve &amp; publish
+                  </button>
+                </form>
+                <form
+                  method="POST"
+                  action="/edit-pages/reviews/reject"
+                  class="inline-form review-reject"
+                >
+                  <input type="hidden" name="csrf" value={csrf} />
+                  <input type="hidden" name="pr" value={r.number} />
+                  <button type="submit" class="btn btn-danger btn-sm" data-busy="Rejecting…">
+                    Reject
+                  </button>
+                </form>
+              </div>
+            </li>
+          ))}
+        </ul>
       )
     }
   </div>
