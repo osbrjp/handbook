@@ -794,6 +794,17 @@ a:hover {
   .actions {
     flex-wrap: wrap;
   }
+  /* Reviews table: drop the secondary Page/Checks columns; the review page
+     itself shows both. Actions may stack. */
+  .admin-table th:nth-child(2),
+  .admin-table td:nth-child(2),
+  .admin-table th:nth-child(4),
+  .admin-table td:nth-child(4) {
+    display: none;
+  }
+  .admin-table .col-actions {
+    white-space: normal;
+  }
   /* NOTE: the admin-list column overrides live AFTER the base table rules
      (search "admin-list mobile") — same-specificity rules here would lose to
      the later base block by source order and silently do nothing. */
@@ -1350,6 +1361,84 @@ a:hover {
 .badge-state-pending {
   background: rgba(185, 137, 0, 0.18);
   color: #d9a514;
+}
+
+/* Reviews table (Pending reviews) — flexible columns, unlike the fixed-layout
+   .admin-list; actions hug the right. */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.75rem;
+}
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid var(--divider);
+}
+.admin-table th {
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
+.admin-table .col-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+.review-gh {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Internal review page (reviews/[number]): meta strip, action row, and the
+   rendered proposed/published panes. */
+.review-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-2);
+  margin: 0 0 1rem;
+}
+.review-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin: 0 0 1.5rem;
+}
+.review-pane {
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+.review-pane-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--divider);
+}
+summary.review-pane-toggle {
+  cursor: pointer;
+  list-style: none;
+  border-bottom: none;
+  user-select: none;
+}
+summary.review-pane-toggle::before {
+  content: "▸ ";
+  color: var(--text-2);
+}
+details[open] > summary.review-pane-toggle {
+  border-bottom: 1px solid var(--divider);
+}
+details[open] > summary.review-pane-toggle::before {
+  content: "▾ ";
+}
+.review-preview {
+  padding: 1rem 1.25rem;
 }
 
 /* Environment ribbon — sits above the header on local/staging (never prod). */

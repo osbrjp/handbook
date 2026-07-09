@@ -110,6 +110,58 @@ export async function listReviews(
   );
 }
 
+/**
+ * One pending review, for the internal review page. Null when the PR doesn't
+ * exist, isn't open, isn't a handbook edit (head not on an edit branch), or
+ * targets a different base — the review UI only ever operates on our own
+ * edit PRs, everything else 404s.
+ */
+export async function getReview(
+  cfg: ReviewsConfig,
+  number: number,
+  fetchImpl: typeof fetch = fetch,
+): Promise<ReviewItem | null> {
+  const h = headers(cfg.token);
+  const res = await fetchImpl(`${API}/repos/${cfg.repo}/pulls/${number}`, { headers: h });
+  if (!res.ok) return null;
+  const p = (await res.json()) as {
+    number: number;
+    html_url: string;
+    title: string;
+    updated_at: string;
+    state: string;
+    user: { login: string };
+    head: { ref: string; sha: string };
+    base: { ref: string };
+  };
+  if (p.state !== "open" || !p.head.ref.startsWith(EDIT_BRANCH_PREFIX) || p.base.ref !== cfg.base)
+    return null;
+  let checks: ChecksState = "none";
+  try {
+    const cr = await fetchImpl(
+      `${API}/repos/${cfg.repo}/commits/${p.head.sha}/check-runs?per_page=50`,
+      { headers: h },
+    );
+    if (cr.ok) {
+      const json = (await cr.json()) as {
+        check_runs: Array<{ status: string; conclusion: string | null }>;
+      };
+      checks = rollupChecks(json.check_runs ?? []);
+    }
+  } catch {
+    // cosmetic — same as listReviews
+  }
+  return {
+    number: p.number,
+    url: p.html_url,
+    slug: p.head.ref.slice(EDIT_BRANCH_PREFIX.length),
+    title: p.title,
+    author: p.user.login,
+    updatedAt: p.updated_at,
+    checks,
+  };
+}
+
 async function headRef(cfg: ReviewsConfig, number: number, fetchImpl: typeof fetch) {
   const res = await fetchImpl(`${API}/repos/${cfg.repo}/pulls/${number}`, {
     headers: headers(cfg.token),

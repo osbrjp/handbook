@@ -94,12 +94,33 @@ export async function readDraft(
     // review); a merged-leftover or missing branch → fall back to published.
     if (!hasUniqueCommits(await compareStatus(fetchImpl, headers, repo, base, editBranch)))
       return null;
+    return await readPageAtRef(config, slug, editBranch, fetchImpl);
+  } catch {
+    return null;
+  }
+}
 
+/**
+ * The page's markdown at an arbitrary ref (edit branch, PR head, base…),
+ * parsed. Null when the file doesn't exist there — e.g. the ref carries a
+ * pending DELETE of this page. No compare gate: callers decide what the ref
+ * means (readDraft gates on unique commits; the review page reads a PR head
+ * that is by definition a real pending change).
+ */
+export async function readPageAtRef(
+  config: Pick<GithubConfig, "token" | "repo">,
+  slug: string,
+  ref: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<ParsedPage | null> {
+  const { token, repo } = config;
+  if (!token || !repo) return null;
+  try {
     const res = await fetchImpl(
-      `${API}/repos/${repo}/contents/${CONTENT_DIR}/${encodeURIComponent(slug)}.md?ref=${encodeURIComponent(editBranch)}`,
-      { headers },
+      `${API}/repos/${repo}/contents/${CONTENT_DIR}/${encodeURIComponent(slug)}.md?ref=${encodeURIComponent(ref)}`,
+      { headers: githubHeaders(token) },
     );
-    if (!res.ok) return null; // e.g. the draft is a pending DELETE of this page
+    if (!res.ok) return null;
     const { content } = (await res.json()) as { content?: string };
     if (!content) return null;
     return parsePageFile(fromBase64Utf8(content));

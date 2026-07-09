@@ -76,8 +76,17 @@ const CHECK_LABEL = {
             {reviews.map((r) => (
               <tr>
                 <td>
-                  <a href={r.url} target="_blank" rel="noopener" title="View the full diff on GitHub">
+                  <a href={`/edit-pages/reviews/${r.number}`} title="Review this change here">
                     {r.title}
+                  </a>
+                  <a
+                    class="review-gh"
+                    href={r.url}
+                    target="_blank"
+                    rel="noopener"
+                    title="Raw diff & history on GitHub"
+                  >
+                    GitHub ↗
                   </a>
                 </td>
                 <td>
