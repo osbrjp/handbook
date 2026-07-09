@@ -72,6 +72,7 @@ export default defineConfig({
                   { text: "TypeScript", link: "/style-guide-typescript" },
                   { text: "Golang", link: "/style-guide-golang" },
                   { text: "Python", link: "/style-guide-python" },
+                  { text: "HTML & CSS", link: "/style-guide-html-css" },
                 ],
               },
             ],

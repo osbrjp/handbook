@@ -5,6 +5,7 @@ Language-agnostic coding policy for OSBR repositories. Per-language policy:
 * [TypeScript Style Guide](/style-guide-typescript)
 * [Golang Style Guide](/style-guide-golang)
 * [Python Style Guide](/style-guide-python)
+* [HTML & CSS Style Guide](/style-guide-html-css)
 
 ## How to read this guide
 

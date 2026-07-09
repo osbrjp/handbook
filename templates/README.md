@@ -9,7 +9,8 @@ Canonical formatting configuration for OSBR repositories, layered like the
   final newline, trailing whitespace, and `max_line_length`. Every editor and
   many formatters read it, so it is the single source for cross-language rules.
 - **Language-specific:**
-  - TypeScript / JavaScript / Markdown — `.prettierrc.json` (Prettier).
+  - TypeScript / JavaScript / Markdown / HTML / CSS — `.prettierrc.json`
+    (Prettier; the same config formats `.html`, `.css`, `.scss`, and `.less`).
   - Python — `ruff.toml` (Ruff formats and lints).
   - Go — none. `gofmt` is mandatory and takes no configuration; it does not
     enforce a line length.
