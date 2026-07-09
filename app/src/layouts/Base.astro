@@ -41,7 +41,7 @@ const env = environmentName(Astro.url.host);
         <div class={`env-ribbon env-ribbon-${env}`}>
           {env === "local"
             ? "LOCAL environment — this is a development copy, not the live handbook"
-            : "STAGING environment — not the live handbook"}
+            : "POC environment — a proof-of-concept demo, not the live handbook"}
         </div>
       )
     }
