@@ -1,6 +1,6 @@
 # Golang Style Guide
 
-Per-language policy for Go. Shared rules: the
+Per-language style guide for Go. Shared rules: the
 [Coding Style Guide](/style-guide). Requirement levels follow
 RFC 2119; tags 🌎 / 🏠 are defined there.
 
