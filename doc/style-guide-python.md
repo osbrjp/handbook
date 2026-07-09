@@ -1,6 +1,6 @@
 # Python Style Guide
 
-Per-language policy for Python. Shared rules: the
+Per-language style guide for Python. Shared rules: the
 [Coding Style Guide](/style-guide). Requirement levels follow
 RFC 2119; tags 🌎 / 🏠 are defined there.
 
