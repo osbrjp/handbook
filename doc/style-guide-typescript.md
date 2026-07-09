@@ -25,7 +25,7 @@ rising 2026 alternative; Prettier remains the default.*
 ## 3. Immutability 🏠
 
 * Variables MUST be declared `const`. `let` MAY be used only where reassignment
-  is required. `var` MUST NOT be used. 🌎
+  is required. `var` MUST NOT be used.
 * Data types MUST be deeply `readonly` (`readonly` members, `ReadonlyArray<T>`,
   `Readonly<T>`, `as const` for literals). A mutable type MUST be used only where
   in-place mutation is intended.
