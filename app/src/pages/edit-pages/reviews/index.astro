@@ -2,7 +2,7 @@
 import Base from "../../../layouts/Base.astro";
 import { requireEditor } from "../../../lib/auth/requireEditor";
 import { issueCsrf } from "../../../lib/csrf";
-import { listReviews, type ReviewItem } from "../../../lib/content/reviews";
+import { listReviews, reviewLabel, type ReviewItem } from "../../../lib/content/reviews";
 import { resolveBase } from "../../../lib/content/store.github";
 
 // Review dashboard (editors): pending handbook edits (submit-for-approval PRs),
@@ -69,7 +69,7 @@ const CHECK_LABEL = {
             <li class="review-row">
               <div class="review-what">
                 <a href={`/edit-pages/reviews/${r.number}`} title="Review this change here">
-                  {r.title}
+                  {reviewLabel(r.title)}
                 </a>
                 <a
                   class="review-gh"

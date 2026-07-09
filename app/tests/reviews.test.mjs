@@ -130,3 +130,18 @@ test("rejectReview: closes the PR and deletes the edit branch", async () => {
   assert.deepEqual(JSON.parse(patch.body), { state: "closed" });
   assert.ok(calls.some((c) => c.method === "DELETE" && c.url.includes("handbook%2Fstrategy")));
 });
+
+// ---- reviewLabel: strip our own PR-title scaffolding for non-tech readers ----
+
+const { reviewLabel } = await import("../src/lib/content/reviews.ts");
+
+test("reviewLabel: our Submit/Draft/Delete titles show just the page title", () => {
+  assert.equal(reviewLabel('Submit "Testing page" (testing-page)'), "Testing page");
+  assert.equal(reviewLabel('Draft "On-boarding" (on-boarding)'), "On-boarding");
+  assert.equal(reviewLabel('Delete "Old policy" (old-policy)'), "Old policy");
+});
+
+test("reviewLabel: foreign titles pass through untouched", () => {
+  assert.equal(reviewLabel("Fix typos across guideline pages"), "Fix typos across guideline pages");
+  assert.equal(reviewLabel('Submit "unclosed (weird'), 'Submit "unclosed (weird');
+});

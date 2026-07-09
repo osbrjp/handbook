@@ -1360,17 +1360,17 @@ a:hover {
   margin: 0.75rem 0 0;
   padding: 0;
 }
+/* Card per review — same visual language as the Manage pages sections. */
 .review-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.6rem 1rem;
-  padding: 0.85rem 0;
-  border-bottom: 1px solid var(--divider);
-}
-.review-row:last-child {
-  border-bottom: none;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
 }
 .review-what {
   min-width: 0;

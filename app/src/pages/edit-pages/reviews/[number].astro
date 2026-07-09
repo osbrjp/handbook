@@ -2,7 +2,7 @@
 import Base from "../../../layouts/Base.astro";
 import { requireEditor } from "../../../lib/auth/requireEditor";
 import { issueCsrf } from "../../../lib/csrf";
-import { getReview } from "../../../lib/content/reviews";
+import { getReview, reviewLabel } from "../../../lib/content/reviews";
 import { EDIT_BRANCH_PREFIX, readPageAtRef, resolveBase } from "../../../lib/content/store.github";
 import { getEditablePageBySlug } from "../../../lib/content/pages";
 import { renderMarkdown } from "../../../lib/markdown";
@@ -47,7 +47,7 @@ const CHECK_LABEL = {
   <div class="container admin-page">
     <a class="btn-cancel admin-back" href="/edit-pages/reviews">← Back to reviews</a>
     <div class="admin-head">
-      <h1>Review: {review.title}</h1>
+      <h1>Review: {reviewLabel(review.title)}</h1>
     </div>
 
     <div class="review-meta">

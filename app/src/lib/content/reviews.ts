@@ -28,6 +28,17 @@ export function prLinkFromParam(
   return { number: raw, url: repo ? `https://github.com/${repo}/pull/${raw}` : null };
 }
 
+/**
+ * Human label for a review: our own save/delete flows title PRs in
+ * commit-speak (`Submit "X" (slug)` / `Delete "X" (slug)`) — show a
+ * non-technical reviewer just X. Titles that don't match (hand-made PRs)
+ * pass through untouched.
+ */
+export function reviewLabel(title: string): string {
+  const m = /^(?:Submit|Draft|Delete) "(.+)" \([a-z0-9-]+\)$/.exec(title);
+  return m ? m[1] : title;
+}
+
 export type ChecksState = "passing" | "failing" | "pending" | "none";
 
 export interface ReviewItem {
