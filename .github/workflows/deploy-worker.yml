@@ -1,0 +1,75 @@
+name: Deploy Worker
+# Deploys the handbook Worker whenever app code or content lands on the
+# deployed branch — this is what makes an approved "Submit for approval" merge
+# actually appear on the site. During the POC that branch is i68-handbook-poc;
+# after the POC merges, pushes to main take over (same worker, same workflow).
+#
+# INERT UNTIL CONFIGURED: requires the CLOUDFLARE_API_TOKEN repo secret
+# (repo admin: Settings → Secrets and variables → Actions; token needs
+# Workers Scripts:Edit + Workers KV Storage:Edit). Until it exists, runs
+# skip with a notice instead of failing every merge.
+#
+# Deploy safety: wrangler.toml sets keep_vars=true and pins the SESSION KV id,
+# so CI deploys never wipe dashboard vars/secrets or rebind the session store.
+on:
+  push:
+    branches:
+      - i68-handbook-poc
+      - main
+    paths:
+      - "app/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy at a time, never cancelled mid-upload; queued runs collapse to
+# the latest.
+concurrency:
+  group: deploy-worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for Cloudflare credentials
+        id: creds
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -n "$TOKEN" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::CLOUDFLARE_API_TOKEN secret not set — skipping deploy (a repo admin must add it; see workflow header)."
+          fi
+      - uses: actions/checkout@v4
+        if: steps.creds.outputs.ok == 'true'
+      - name: Set up pnpm
+        if: steps.creds.outputs.ok == 'true'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Set up Node.js
+        if: steps.creds.outputs.ok == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+      - name: Install dependencies
+        if: steps.creds.outputs.ok == 'true'
+        run: pnpm install --frozen-lockfile
+        working-directory: app
+      - name: Test & build
+        if: steps.creds.outputs.ok == 'true'
+        run: pnpm test && pnpm build
+        working-directory: app
+      - name: Deploy
+        if: steps.creds.outputs.ok == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: app
+          command: deploy
