@@ -257,8 +257,14 @@ built from. The targeting is **self-retiring**: when the POC branch is deleted
 (its PR merged), everything automatically targets `main`; the only follow-up
 is a cleanup task (delete the var for tidiness, prune any demo pages/branches).
 
-**Deferred (tracked, non-blocking):** deploy-on-push CI (needs a
-`CLOUDFLARE_API_TOKEN` repo secret), rate limiting on `/api/auth/*` (do as a
+**Deploy-on-push CI:** `.github/workflows/deploy-worker.yml` deploys the
+Worker on pushes to the deployed branch (POC branch now, `main` post-merge) —
+this is what makes an approved submission actually appear on the site. It is
+INERT until a repo admin adds the `CLOUDFLARE_API_TOKEN` repo secret (Workers
+Scripts:Edit + Workers KV Storage:Edit); until then it skips with a notice and
+deploys stay manual.
+
+**Deferred (tracked, non-blocking):** rate limiting on `/api/auth/*` (do as a
 Cloudflare dashboard rule), observability beyond `wrangler tail`, CSP/HSTS at
 prod cutover.
 
