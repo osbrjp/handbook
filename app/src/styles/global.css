@@ -550,7 +550,11 @@ a:hover {
 .doc {
   display: grid;
   grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--toc-w);
-  /* full width: sidebar flush-left like the original, content gets the middle */
+  /* Cap + center the WHOLE shell on big screens: uncapped, the sidebar pins
+     to the left viewport edge and the TOC to the right, and on ultrawide the
+     three columns drift apart into disconnected islands. */
+  max-width: 1440px;
+  margin: 0 auto;
 }
 .doc-sidebar {
   position: sticky;
