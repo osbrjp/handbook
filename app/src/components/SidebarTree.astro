@@ -1,0 +1,31 @@
+---
+import type { PageRow } from "../lib/content/pages";
+
+// Children of `parent`, rendered recursively (Astro.self). Depth-capped so a
+// parent cycle in frontmatter (a→b→a) can't hang the render — beyond the cap
+// pages simply stop nesting.
+interface Props {
+  items: PageRow[];
+  parent: string;
+  current?: string;
+  depth?: number;
+}
+const { items, parent, current, depth = 1 } = Astro.props;
+const kids =
+  depth > 3 ? [] : items.filter((p) => p.parent === parent).sort((a, b) => a.sort - b.sort);
+---
+
+{
+  kids.length > 0 && (
+    <div class="sb-subs-tree">
+      {kids.map((p) => (
+        <>
+          <a class={`sb-link${p.slug === current ? " active" : ""}`} href={`/${p.slug}`}>
+            {p.nav_label || p.title}
+          </a>
+          <Astro.self items={items} parent={p.slug} current={current} depth={depth + 1} />
+        </>
+      ))}
+    </div>
+  )
+}

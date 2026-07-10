@@ -12,6 +12,7 @@ export function serializePageFile(fm: PageMeta, body: string): string {
   lines.push(`title: ${yamlScalar(fm.title)}`);
   lines.push(`section: ${yamlScalar(fm.section)}`);
   lines.push(`nav_label: ${yamlScalar(fm.nav_label ?? "")}`);
+  if (fm.parent) lines.push(`parent: ${yamlScalar(fm.parent)}`);
   lines.push(`sort: ${Number(fm.sort) || 0}`);
   lines.push(`visibility: ${fm.visibility}`);
   if (fm.updated_by) lines.push(`updated_by: ${yamlScalar(fm.updated_by)}`);

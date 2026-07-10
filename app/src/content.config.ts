@@ -20,6 +20,9 @@ const pages = defineCollection({
     title: z.string(),
     section: z.string(),
     nav_label: z.string().default(""),
+    // Slug of the page this one nests under in the sidebar (e.g. the language
+    // guides under style-guide). Absent/unknown parent = top level.
+    parent: z.string().optional(),
     sort: z.number().default(0),
     visibility: z.enum(["public", "internal"]).default("internal"),
     updated_by: z.string().optional(),

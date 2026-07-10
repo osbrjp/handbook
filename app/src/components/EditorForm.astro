@@ -90,6 +90,8 @@ const visibility = page?.visibility ?? "internal";
   <input type="hidden" name="csrf" value={csrf} />
   <input type="hidden" name="orig_slug" value={page?.slug ?? ""} />
   <input type="hidden" name="sort" value={page?.sort ?? 0} />
+  {/* No UI yet — carried through so a save never strips sidebar nesting. */}
+  <input type="hidden" name="parent" value={page?.parent ?? ""} />
 
   <details class="meta-details" data-section="settings">
   <summary class="meta-summary">Page settings</summary>

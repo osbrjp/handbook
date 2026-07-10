@@ -48,6 +48,9 @@ export function parsePageFile(text: string): ParsedPage | null {
       title,
       section,
       nav_label: str("nav_label") ?? "",
+      // Key omitted entirely when absent (not `parent: undefined`) so parsed
+      // frontmatter deep-equals authored frontmatter.
+      ...(str("parent") !== null ? { parent: str("parent") ?? undefined } : {}),
       sort,
       visibility,
       updated_by: str("updated_by") ?? undefined,

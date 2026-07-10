@@ -10,6 +10,8 @@ export interface PageMeta {
   title: string;
   section: string;
   nav_label: string;
+  /** Slug this page nests under in the sidebar; absent = top level. */
+  parent?: string;
   sort: number;
   visibility: Visibility;
   updated_by?: string;

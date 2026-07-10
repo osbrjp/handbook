@@ -1,6 +1,7 @@
 ---
 title: "Coding Style Guide"
 section: "Guideline"
+parent: "development-guide"
 nav_label: "Style Guide"
 sort: 61
 visibility: internal

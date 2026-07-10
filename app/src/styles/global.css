@@ -598,6 +598,13 @@ a:hover {
   color: var(--text-2);
   font-size: 0.9rem;
 }
+/* Nested pages (parent frontmatter): indent + rule line, VitePress-style.
+   Levels compound naturally because trees nest inside trees. */
+.sb-subs-tree {
+  margin-left: 0.35rem;
+  padding-left: 0.85rem;
+  border-left: 1px solid var(--divider);
+}
 .sb-link:hover {
   color: var(--text);
   text-decoration: none;

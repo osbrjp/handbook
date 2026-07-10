@@ -1,6 +1,7 @@
 ---
 title: "Python Style Guide"
 section: "Guideline"
+parent: "style-guide"
 nav_label: "Python"
 sort: 64
 visibility: internal

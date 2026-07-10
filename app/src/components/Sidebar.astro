@@ -1,6 +1,7 @@
 ---
 import type { PageRow } from "../lib/content/pages";
 import CollapsePersistence from "./CollapsePersistence.astro";
+import SidebarTree from "./SidebarTree.astro";
 
 // The sidebar lists exactly what the visitor may read (getNavPages already
 // applied the ACL) — nothing to grey out: public|internal is the whole model.
@@ -26,13 +27,19 @@ const sections = [...new Set(pages.map((p) => p.section))];
       sections.map((section) => {
         const items = pages.filter((p) => p.section === section);
         const hasCurrent = items.some((p) => p.slug === current);
+        // Top level = no parent, or a parent this VISITOR can't see (ACL may
+        // hide the parent; its readable children must surface, not vanish).
+        const roots = items.filter((p) => !p.parent || !items.some((q) => q.slug === p.parent));
         return (
           <details class="sb-group" data-section={section} open={hasCurrent || undefined}>
             <summary class="sb-title">{section}</summary>
-            {items.map((p) => (
-              <a class={`sb-link${p.slug === current ? " active" : ""}`} href={`/${p.slug}`}>
-                {p.nav_label || p.title}
-              </a>
+            {roots.map((p) => (
+              <>
+                <a class={`sb-link${p.slug === current ? " active" : ""}`} href={`/${p.slug}`}>
+                  {p.nav_label || p.title}
+                </a>
+                <SidebarTree items={items} parent={p.slug} current={current} />
+              </>
             ))}
           </details>
         );

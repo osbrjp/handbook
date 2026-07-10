@@ -45,3 +45,23 @@ test("fails closed (null) on malformed input", () => {
   assert.equal(parsePageFile('---\nsection: "S"\n---\n\nb'), null); // title missing
   assert.equal(parsePageFile('---\ntitle: "T"\nsection: "S"\ngroups:\n  - "x"\n---\nb'), null); // legacy multi-line
 });
+
+test("parent survives the serialize -> parse round-trip (sidebar nesting)", () => {
+  const fm = {
+    title: "TypeScript Style Guide",
+    section: "Guideline",
+    nav_label: "TypeScript",
+    parent: "style-guide",
+    sort: 62,
+    visibility: "internal",
+  };
+  const parsed = parsePageFile(serializePageFile(fm, "body"));
+  assert.equal(parsed.frontmatter.parent, "style-guide");
+});
+
+test("absent parent stays absent (no empty parent: line emitted)", () => {
+  const fm = { title: "T", section: "S", nav_label: "T", sort: 0, visibility: "internal" };
+  const text = serializePageFile(fm, "body");
+  assert.ok(!text.includes("parent:"));
+  assert.equal(parsePageFile(text).frontmatter.parent, undefined);
+});

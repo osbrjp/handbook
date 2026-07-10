@@ -50,6 +50,10 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
   const submit = String(f.get("action") ?? "draft") === "submit";
   const body = String(f.get("body") ?? "");
   const sort = Number(f.get("sort") ?? 0) || 0;
+  // Sidebar nesting, round-tripped via hidden input; a bad value would become
+  // a frontmatter line, so gate it like any slug.
+  const parentRaw = String(f.get("parent") ?? "").trim();
+  const parent = isSafeSlug(parentRaw) ? parentRaw : undefined;
 
   if (!title) return bad("Title is required");
   if (!slug) return bad("Enter a title or a page URL");
@@ -72,6 +76,7 @@ export const POST: APIRoute = async ({ locals, request, cookies, redirect }) => 
       title,
       section,
       nav_label,
+      parent,
       sort,
       visibility,
       updated_by: editor, // GitHub login — no emails in content files
