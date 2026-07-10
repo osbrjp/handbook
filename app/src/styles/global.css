@@ -598,12 +598,56 @@ a:hover {
   color: var(--text-2);
   font-size: 0.9rem;
 }
-/* Nested pages (parent frontmatter): indent + rule line, VitePress-style.
-   Levels compound naturally because trees nest inside trees. */
+/* Collapsible nav nodes (pages with children). The label <a> inside the
+   summary navigates without toggling (it's its own activation target); the
+   chevron / row remainder toggles. */
+.sb-node > .sb-node-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.sb-node-head::-webkit-details-marker {
+  display: none;
+}
+.sb-node-head .sb-link {
+  flex: 1 1 auto;
+}
+.sb-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  color: var(--muted);
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.sb-node-head:hover .sb-chevron {
+  background: var(--soft);
+  color: var(--text);
+}
+.sb-node[open] > .sb-node-head .sb-chevron {
+  transform: rotate(90deg);
+}
+/* Nested level: indent + rule line; the line brightens under the pointer so
+   the branch you're scanning reads as connected. Levels compound naturally
+   because trees nest inside trees. */
 .sb-subs-tree {
   margin-left: 0.35rem;
   padding-left: 0.85rem;
   border-left: 1px solid var(--divider);
+  transition: border-color 0.15s ease;
+}
+.sb-subs-tree:hover {
+  border-left-color: var(--text-2);
 }
 .sb-link:hover {
   color: var(--text);

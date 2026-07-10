@@ -1,31 +1,50 @@
 ---
 import type { PageRow } from "../lib/content/pages";
 
-// Children of `parent`, rendered recursively (Astro.self). Depth-capped so a
-// parent cycle in frontmatter (a→b→a) can't hang the render — beyond the cap
-// pages simply stop nesting.
+// Renders a list of sibling nav nodes; parents-with-children become
+// collapsible <details> (chevron toggles, the label inside <summary> still
+// navigates — an <a> is its own activation target, so clicking it does NOT
+// toggle). Collapsed by default except the active trail. data-section joins
+// the existing CollapsePersistence wiring (n: prefix avoids clashing with
+// section-group keys). Depth-capped so a parent cycle (a→b→a) can't hang the
+// render — beyond the cap pages simply stop nesting.
 interface Props {
   items: PageRow[];
-  parent: string;
+  nodes: PageRow[];
   current?: string;
   depth?: number;
 }
-const { items, parent, current, depth = 1 } = Astro.props;
-const kids =
-  depth > 3 ? [] : items.filter((p) => p.parent === parent).sort((a, b) => a.sort - b.sort);
+const { items, nodes, current, depth = 0 } = Astro.props;
+
+const kidsOf = (slug: string) =>
+  items.filter((p) => p.parent === slug).sort((a, b) => a.sort - b.sort);
+const inTrail = (slug: string): boolean =>
+  slug === current || kidsOf(slug).some((k) => inTrail(k.slug));
 ---
 
 {
-  kids.length > 0 && (
-    <div class="sb-subs-tree">
-      {kids.map((p) => (
-        <>
-          <a class={`sb-link${p.slug === current ? " active" : ""}`} href={`/${p.slug}`}>
-            {p.nav_label || p.title}
-          </a>
-          <Astro.self items={items} parent={p.slug} current={current} depth={depth + 1} />
-        </>
-      ))}
-    </div>
-  )
+  depth <= 3 &&
+    nodes.map((p) => {
+      const kids = kidsOf(p.slug);
+      const link = (
+        <a class={`sb-link${p.slug === current ? " active" : ""}`} href={`/${p.slug}`}>
+          {p.nav_label || p.title}
+        </a>
+      );
+      return kids.length > 0 ? (
+        <details class="sb-node" data-section={`n:${p.slug}`} open={inTrail(p.slug) || undefined}>
+          <summary class="sb-node-head">
+            {link}
+            <span class="sb-chevron" aria-hidden="true">
+              ▸
+            </span>
+          </summary>
+          <div class="sb-subs-tree">
+            <Astro.self items={items} nodes={kids} current={current} depth={depth + 1} />
+          </div>
+        </details>
+      ) : (
+        link
+      );
+    })
 }

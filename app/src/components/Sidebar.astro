@@ -33,14 +33,7 @@ const sections = [...new Set(pages.map((p) => p.section))];
         return (
           <details class="sb-group" data-section={section} open={hasCurrent || undefined}>
             <summary class="sb-title">{section}</summary>
-            {roots.map((p) => (
-              <>
-                <a class={`sb-link${p.slug === current ? " active" : ""}`} href={`/${p.slug}`}>
-                  {p.nav_label || p.title}
-                </a>
-                <SidebarTree items={items} parent={p.slug} current={current} />
-              </>
-            ))}
+            <SidebarTree items={items} nodes={roots} current={current} />
           </details>
         );
       })
