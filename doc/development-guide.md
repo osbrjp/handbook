@@ -39,6 +39,8 @@ While Docker Desktop is the standard reference, you can also use other tools lik
 
 Set up your editor to enable features like auto-completion, navigation, and error checking for the languages used in the project (TypeScript, Go). Also, configure it to automatically format code upon file save. Use Prettier for TypeScript and `go fmt` for Go.
 
+Follow the [Style Guide](/style-guide) for the full per-language formatting and coding policy.
+
 ### 1-5. Setting Up Language Runtime Environments
 
 While container-based development environments are the default, also set up the runtime environment for the languages on your local machine. For Node.js, use tools like `nodebrew` that allow easy version switching.
