@@ -2,7 +2,6 @@
     "name": "osbr-handbook",
     "version": "1.0.0",
     "description": "A transparent guide to OSBR’s culture, values, and workflows.",
-    "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "docs:dev": "vitepress dev doc",
