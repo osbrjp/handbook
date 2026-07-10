@@ -62,7 +62,7 @@ export default defineConfig({
           {
             text: "Development Guide",
             link: "/development-guide",
-            collapsed: false,
+            collapsed: true,
             items: [
               {
                 text: "Style Guide",
