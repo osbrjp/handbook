@@ -1,22 +1,10 @@
 # Formatter & Linter Config Templates
 
-Canonical formatting configuration for OSBR repositories, layered like the
-[Style Guide](https://osbrjp.github.io/handbook/style-guide) itself.
+Canonical formatting config for OSBR repositories, mirrored in
+`osbrjp/standard-repository`. Copy the relevant files to a repo root.
 
-## Layers
+- `.editorconfig` — language-agnostic base (charset, EOL, indent, line length).
+- `.prettierrc.json` — TypeScript / JavaScript / Markdown.
+- `ruff.toml` — Python. Go uses `gofmt` (no config).
 
-- **Language-agnostic base — `.editorconfig`.** Charset, line endings, indent,
-  final newline, trailing whitespace, and `max_line_length`. Every editor and
-  many formatters read it, so it is the single source for cross-language rules.
-- **Language-specific:**
-  - TypeScript / JavaScript / Markdown / HTML / CSS — `.prettierrc.json`
-    (Prettier; the same config formats `.html`, `.css`, `.scss`, and `.less`).
-  - Python — `ruff.toml` (Ruff formats and lints).
-  - Go — none. `gofmt` is mandatory and takes no configuration; it does not
-    enforce a line length.
-
-## Usage
-
-Copy the relevant files to a repository root. These same files are mirrored in
-`osbrjp/standard-repository`, so a repo scaffolded from that template already
-carries them.
+See the [Style Guide](https://osbrjp.github.io/handbook/style-guide).
