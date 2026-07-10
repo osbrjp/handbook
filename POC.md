@@ -17,7 +17,7 @@ written from scratch, no Directus/headless-CMS.
 Browser ──> Astro SSR Worker (@astrojs/cloudflare)  — NO DATABASE (stateless)
             - custom UI, owns the whole frontend
             - CONTENT = git-backed markdown (src/content/pages/*.md, frontmatter
-              carries title/section/sort/visibility), read via an Astro content
+              carries title/section/sort/visibility/parent [sidebar nesting]), read via an Astro content
               collection bundled at build — everything in the build is PUBLISHED
               (drafts/pending edits live on handbook/<slug> branches + their PRs)
             - ACCESS = GitHub itself: sign in with GitHub, then your access to
@@ -73,10 +73,15 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  — NO DATABASE (statele
   Every commit is **authored by the signed-in person** (their own GitHub App
   token, carried encrypted in the session, auto-refreshed — no bot identity).
 - **Review dashboard** (`/edit-pages/reviews`, editors): pending edits with
-  author + checks state; **Approve & publish** performs a real GitHub review +
-  merge *as the signed-in editor* (ruleset fully honored — GitHub blocks
-  self-approval, failing checks, stale branches; a blocked merge auto-triggers
-  update-branch). **Reject** closes the review and discards the edits.
+  author + checks state; each opens an **internal review page**
+  (`/edit-pages/reviews/{n}`) rendering the proposed version like a real page,
+  with the published version collapsible for comparison — reviewing needs no
+  GitHub trip (GitHub stays the audit link). **Approve & publish** performs a
+  real GitHub review + merge *as the signed-in editor* (ruleset fully honored —
+  GitHub blocks self-approval, failing checks, stale branches; a blocked merge
+  auto-triggers update-branch). **Reject** closes the review and discards the
+  edits. **Delete** on a never-published page discards its draft branch
+  outright (nothing was public, no review needed).
 - **Two roles from GitHub repo permission, pure CAPABILITY**: any push-capable
   level (`write`/`maintain`/`admin`) → **editor**, read collaborator →
   **reader**. Editors both edit AND approve/merge reviews — GitHub write already
@@ -235,23 +240,20 @@ vars `GITHUB_OAUTH_CLIENT_ID`, `OAUTH_ORIGIN` (dashboard-managed), and
 retargets editor PRs to `main`); Secrets `COOKIE_ENCRYPTION_KEY`,
 `GITHUB_OAUTH_CLIENT_SECRET` (+ `GITHUB_TOKEN`, see below).
 
-**⚠ TEMPORARY (demo period, July 2026): staging login runs on a personal
-classic OAuth App + a 7-day PAT**, because the org GitHub App can't be
-installed yet (see the owner checklist in the cutover section). Classic
-sign-ins can't self-check roles, so `GITHUB_TOKEN` (Secret) holds a classic
-PAT with **`public_repo` + `read:org`** — verified LIVE as the minimal working
-scope set. (Tested and rejected: fine-grained PAT org-scoped = stuck in owner
-approval; fine-grained "public repos read-only" = 403 — the collaborator API
-needs push-level access; classic `public_repo` alone = masked 404.) Editing is
-auto-disabled in this mode (classic tokens carry no write scope) — the editor
-UI is preview-only and every save bounces read-only. **Swap-back checklist**
-once the org App is fixed: restore the App's client id/secret in the two OAuth
-values → delete `GITHUB_TOKEN` → revoke the demo PAT and demo OAuth app on
-GitHub. Zero code changes.
+**Current auth state (since 2026-07-09): the org GitHub App is live** —
+permissions set, installed on the repo, its client id/secret in the Worker.
+Login, role self-checks and per-person editing all run through it; the whole
+draft→submit→approve→merge loop works on the deployed site. Residual cleanup:
+`GITHUB_WRITE_ENABLED=1` is currently FORCED on the worker — delete the var
+and re-login to confirm refresh-token auto-detect, else keep it and note the
+App's "expire user authorization tokens" is off; delete the `GITHUB_TOKEN`
+secret if still present (App sign-ins never use it); revoke the personal demo
+PAT + demo OAuth app from the pre-App workaround. (For the record, the classic
+fallback's minimal PAT scope was live-verified as `public_repo` + `read:org` —
+lesser scopes fail the collaborator API.)
 
 **POC-period editing on staging:** `GITHUB_BRANCH=i68-handbook-poc` (pinned
-in `wrangler.toml` `[vars]`), so once editing is enabled (needs the org
-GitHub App installed) the whole draft→submit→approve→merge loop can be demoed
+in `wrangler.toml` `[vars]`), so the draft→submit→approve→merge loop demos
 against the POC branch — merged pages land on the branch staging is actually
 built from. The targeting is **self-retiring**: when the POC branch is deleted
 (its PR merged), everything automatically targets `main`; the only follow-up
@@ -320,32 +322,15 @@ host swap, not a redeploy of the same thing.
    `DEV_LOGIN=0`. No `GITHUB_TOKEN` in prod: App sign-ins self-check roles
    with the user's own token (the secret exists only as a classic-OAuth
    fallback).
-3. **Enable editor writes.** The org GitHub App ("OSBR Handbook", org-owned —
-   correct ownership ✓) EXISTS but was created with **no permissions and is
-   not installed** on the repo, which is exactly why staging sign-in returned
-   `access_denied` and why the install page offers only "No repositories".
-   **Owner checklist to fix it** (org Settings → Developer settings →
-   GitHub Apps → OSBR Handbook):
-   1. *Permissions & events* → Repository permissions → **Contents: Read &
-      write** AND **Pull requests: Read & write** (the submit-for-review flow
-      opens PRs; `contents` alone is not enough) → Save.
-   2. *General* → **Callback URLs** must include the STAGING one —
-      `<staging workers.dev URL>/api/auth/callback` — as well as
-      `https://handbook.osbrjp.com/api/auth/callback` (GitHub Apps accept
-      multiple; a prod-only callback kills staging sign-in at GitHub's door).
-   3. *General* → **"Expire user authorization tokens" ON.** Load-bearing: the
-      code detects write-capable sign-in by the refresh token that only
-      expiring tokens carry — with this off, editing never auto-enables.
-   4. *Install App* → install on **osbrjp** → Only select repositories →
-      `handbook`.
-   5. Regenerate the client secret; put the App's client id + new secret into
-      the Worker's `GITHUB_OAUTH_CLIENT_ID` / `GITHUB_OAUTH_CLIENT_SECRET`,
-      then **delete `GITHUB_TOKEN`** (and the demo PAT/OAuth app it belonged
-      to). Also approve-or-deny the pending fine-grained-PAT request (moot
-      once the App works).
-   Sign-in then yields each user's own commit credential (per-person commits,
-   no bot; the write driver is already implemented) — editing auto-enables,
-   zero code changes. Add a **deploy-on-push** action so a content commit
+3. **Enable editor writes — DONE (2026-07-09).** The org GitHub App
+   ("OSBR Handbook", org-owned) is configured and installed on the repo:
+   Contents + Pull requests Read & write, callbacks for both the workers.dev
+   host and `handbook.osbrjp.com`, client id/secret in the Worker. Sign-in
+   yields each user's own commit credential (per-person commits, no bot).
+   Residuals tracked in "Deploy to staging" → *Current auth state*: confirm
+   refresh-token auto-detect (drop `GITHUB_WRITE_ENABLED`), delete
+   `GITHUB_TOKEN` if still present, revoke the pre-App demo PAT/OAuth app.
+   The **deploy-on-push** action exists so a content commit
    rebuilds + redeploys the Worker.
    **Ownership rule: NO production credential may belong to an individual.**
    The GitHub App must be org-owned (it supersedes the personal staging OAuth
