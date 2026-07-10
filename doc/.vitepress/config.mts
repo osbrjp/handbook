@@ -1,7 +1,10 @@
 import { defineConfig } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
+import llmstxt from "vitepress-plugin-llms";
 
-const mermaidPlugin = withMermaid({});
+// llmstxt() generates /llms.txt + /llms-full.txt at build (llmstxt.org). It
+// goes through withMermaid so it's merged with mermaid's own vite plugins.
+const mermaidPlugin = withMermaid({ vite: { plugins: [llmstxt()] } });
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
