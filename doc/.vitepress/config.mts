@@ -76,6 +76,7 @@ export default defineConfig({
                   { text: "Golang", link: "/style-guide-golang" },
                   { text: "Python", link: "/style-guide-python" },
                   { text: "HTML & CSS", link: "/style-guide-html-css" },
+                  { text: "Terraform", link: "/style-guide-terraform" },
                 ],
               },
             ],
@@ -84,12 +85,19 @@ export default defineConfig({
             text: "Non-functional Requirements",
             link: "/predefining-non-functional-requirements",
           },
+          { text: "Database Guidelines", link: "/database-guidelines" },
           { text: "Technical Glossary", link: "/technical-glossary" },
         ],
       },
       {
         text: "Policies",
-        items: [{ text: "SHEQ Policy", link: "/sheq-policy" }],
+        items: [
+          { text: "SHEQ Policy", link: "/sheq-policy" },
+          {
+            text: "Infrastructure Planning Policy",
+            link: "/infra-planning-policy",
+          },
+        ],
       },
     ],
     socialLinks: [
