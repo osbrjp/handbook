@@ -1,0 +1,24 @@
+# OSBR shared EditorConfig — the language-agnostic formatting base.
+# Copy to a repository root. Language-specific formatters (Prettier, Ruff)
+# mirror these values; gofmt controls Go. See the OSBR Style Guide.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+max_line_length = 100
+
+[*.py]
+indent_size = 4
+
+[*.go]
+indent_style = tab
+# gofmt controls Go formatting and does not enforce a line length.
+
+[*.md]
+# Trailing spaces are significant in Markdown (hard line breaks).
+trim_trailing_whitespace = false

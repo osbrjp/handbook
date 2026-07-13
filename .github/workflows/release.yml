@@ -1,7 +1,6 @@
 name: Release
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches:
       - release
 
@@ -26,33 +25,32 @@ concurrency:
 jobs:
   build:
     name: Build VitePress
-    # 'merged == true' to prevent from being triggered when PR is closed
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0 # Not needed if lastUpdated is not enabled
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
-          cache: npm
+          node-version: 24
+          cache: pnpm
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v6
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: Build with VitePress
-        run: npm run docs:build
+        run: pnpm run docs:build
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: doc/.vitepress/dist
 
   deploy:
     name: Deploy to GitHub Pages
-    if: github.event.pull_request.merged == true
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -61,11 +59,10 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   publish-release-note:
     name: Publish release note
-    if: github.event.pull_request.merged == true
     needs: deploy
     permissions:
       contents: write
@@ -74,7 +71,7 @@ jobs:
     steps:
       - name: Generate CalVer version
         id: calver
-        uses: actions/github-script@v6
+        uses: actions/github-script@v9
         with:
           script: |
             const now = new Date();
@@ -104,7 +101,7 @@ jobs:
 
             core.setOutput('version', version);
             core.setOutput('release_note_name', releaseNoteName);
-      - uses: release-drafter/release-drafter@v5
+      - uses: release-drafter/release-drafter@v7
         with:
           config-name: ./release-drafter-config.yml
           tag: ${{ steps.calver.outputs.version }}

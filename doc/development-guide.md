@@ -38,7 +38,6 @@ While Docker Desktop is the standard reference, you can also use other tools lik
 ### 1-4. Editor Configuration
 
 Set up your editor to enable features like auto-completion, navigation, and error checking for the languages used in the project (TypeScript, Go). Also, configure it to automatically format code upon file save. Use Prettier for TypeScript and `go fmt` for Go.
-
 ### 1-5. Setting Up Language Runtime Environments
 
 While container-based development environments are the default, also set up the runtime environment for the languages on your local machine. For Node.js, use tools like `nodebrew` that allow easy version switching.
@@ -57,6 +56,12 @@ For Mac, it is recommended to use **Skitch** for screenshots and **QuickTime Pla
 
 Follow the instructions provided for each project to set up the required execution environment.
 
+
+### 1-8. Coding Style Guide
+
+Follow the [Style Guide](/style-guide) for how we write code: language-agnostic
+principles plus per-language rules (TypeScript, Go, Python, HTML & CSS), each
+tagged 🌎 industry-standard or 🏠 house-rule. Read it before your first pull request.
 
 ## 2. Workflow Overview
 

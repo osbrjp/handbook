@@ -24,11 +24,11 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/github-script@v6
+      - uses: actions/github-script@v9
         name: Set 'ci-testing' label
         if: github.event.action == 'review_requested'
         with:
@@ -40,11 +40,13 @@ jobs:
               labels: ["ci-testing"]
             })
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        # app/ is a standalone pnpm project (not in the root workspace);
+        # pin its pnpm from app/package.json, not the root's.
+        uses: pnpm/action-setup@v6
         with:
-          version: 10
+          package_json_file: app/package.json
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24 # >=22.18 for node --test importing .ts (type stripping)
           cache: pnpm
@@ -55,3 +57,31 @@ jobs:
       - name: Typecheck, test, guard, build
         run: pnpm check && pnpm test && pnpm guard && pnpm build
         working-directory: app
+
+  # The legacy VitePress site still ships from doc/ until the cutover
+  # (POC.md "Migration & production cutover") — keep its build green too.
+  docs-build:
+    if: |
+      (github.event.action == 'review_requested' ||
+      (github.event.action == 'labeled' && github.event.label.name == 'ci-testing') ||
+      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'ci-testing'))) ||
+      (github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'handbook/')) ||
+      (github.event_name == 'push')
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build (no tests)
+        run: pnpm run docs:build

@@ -1,7 +1,10 @@
 import { defineConfig } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
+import llmstxt from "vitepress-plugin-llms";
 
-const mermaidPlugin = withMermaid({});
+// llmstxt() generates /llms.txt + /llms-full.txt at build (llmstxt.org). It
+// goes through withMermaid so it's merged with mermaid's own vite plugins.
+const mermaidPlugin = withMermaid({ vite: { plugins: [llmstxt()] } });
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -15,7 +18,7 @@ export default defineConfig({
       "script",
       {
         async: "",
-        src: `https://www.googletagmanager.com/gtag/js?id=${"G-15N43GQ2Y7"}`,
+        src: "https://www.googletagmanager.com/gtag/js?id=G-15N43GQ2Y7",
       },
     ],
     [
@@ -59,7 +62,24 @@ export default defineConfig({
         text: "Guideline",
         items: [
           { text: "On-boarding Guide", link: "/on-boarding" },
-          { text: "Development Guide", link: "/development-guide" },
+          {
+            text: "Development Guide",
+            link: "/development-guide",
+            collapsed: true,
+            items: [
+              {
+                text: "Style Guide",
+                link: "/style-guide",
+                collapsed: true,
+                items: [
+                  { text: "TypeScript", link: "/style-guide-typescript" },
+                  { text: "Golang", link: "/style-guide-golang" },
+                  { text: "Python", link: "/style-guide-python" },
+                  { text: "HTML & CSS", link: "/style-guide-html-css" },
+                ],
+              },
+            ],
+          },
           {
             text: "Non-functional Requirements",
             link: "/predefining-non-functional-requirements",
