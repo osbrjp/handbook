@@ -20,10 +20,13 @@ const kidsOf = (slug: string) =>
   items.filter((p) => p.parent === slug).sort((a, b) => a.sort - b.sort);
 const inTrail = (slug: string): boolean =>
   slug === current || kidsOf(slug).some((k) => inTrail(k.slug));
+// computed here, not in the template — `<=` in a template expression trips the
+// Astro compiler (astro 1002: parsed as a fragment `<`)
+const withinDepthCap = depth <= 3;
 ---
 
 {
-  depth <= 3 &&
+  withinDepthCap &&
     nodes.map((p) => {
       const kids = kidsOf(p.slug);
       const link = (
