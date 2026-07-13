@@ -1,3 +1,11 @@
+---
+title: "OSBR SHEQ Policy"
+section: "Policies"
+nav_label: "SHEQ Policy"
+sort: 90
+visibility: internal
+---
+
 # OSBR SHEQ Policy
 
 [[TOC]]

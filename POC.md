@@ -16,10 +16,16 @@ written from scratch, no Directus/headless-CMS.
 ```
 Browser ──> Astro SSR Worker (@astrojs/cloudflare)  — NO DATABASE (stateless)
             - custom UI, owns the whole frontend
-            - CONTENT = git-backed markdown (src/content/pages/*.md, frontmatter
-              carries title/section/sort/visibility/parent [sidebar nesting]), read via an Astro content
-              collection bundled at build — everything in the build is PUBLISHED
-              (drafts/pending edits live on handbook/<slug> branches + their PRs)
+            - CONTENT = git-backed markdown (doc/*.md at the repo root — the
+              SAME files the legacy VitePress site builds from; single source,
+              nothing ported, nothing to drift. Frontmatter carries title/
+              section/sort/visibility/parent [sidebar nesting]; VitePress
+              ignores keys it doesn't know. Bodies keep their `# H1` on disk
+              for VitePress — the app strips it on load / re-adds on save,
+              both sides of that boundary in serialize.ts), read via an Astro
+              content collection bundled at build — everything in the build is
+              PUBLISHED (drafts/pending edits live on handbook/<slug> branches
+              + their PRs)
             - ACCESS = GitHub itself: sign in with GitHub, then your access to
               the handbook repo IS your access to the site (collaborator ->
               reader, push permission -> editor). NO allow-list in the codebase.
@@ -146,8 +152,8 @@ not the only proof.
 cd app
 pnpm install
 cp .dev.vars.example .dev.vars          # set COOKIE_ENCRYPTION_KEY (>=32 chars); DEV_LOGIN=1
-pnpm content:seed                       # (re)generate src/content/pages/*.md from doc/*.md (once)
 pnpm dev                                # astro dev on http://localhost:4321  (no database)
+                                        # (content = ../doc/*.md directly; no seed step)
 # or: pnpm dev:edit                     # also runs the local content agent (in-browser editing)
 ```
 
@@ -191,9 +197,10 @@ There is no allow-list, directory, or email anywhere in this codebase.
 ## Layout
 
 ```
+doc/                 git-backed content: one <slug>.md per page (frontmatter) —
+                     shared with the legacy VitePress site (single source)
 app/
-  src/content/pages/ git-backed content: one <slug>.md per page (frontmatter)
-  src/content.config.ts  collection schema (fail-closed defaults)
+  src/content.config.ts  collection schema over ../doc (fail-closed defaults)
   src/lib/content/   acl.ts (canRead + searchRows, pure), pages.ts (collection reads),
                      store.ts + store.local.ts (dev agent) + store.github.ts (prod, deferred),
                      serialize.ts
@@ -204,7 +211,6 @@ app/
   src/middleware.ts  per-request: decrypt session, resolve role + group keys, fail closed
   src/pages/         index, [...slug], sitemap.xml, api/auth/*, api/search, edit-pages/*
   src/lib/markdown.ts  callouts / [[TOC]] / mermaid + rehype-sanitize (reader + preview)
-  scripts/seed-content.mjs   doc/*.md -> src/content/pages/*.md
   scripts/content-agent.mjs  dev-only Node helper: file write + git commit for the editor
   scripts/guard-no-module-client.mjs  CI guard vs identity bleed
   wrangler.toml      vars (no bindings — stateless)

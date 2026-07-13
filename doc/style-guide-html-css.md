@@ -1,3 +1,12 @@
+---
+title: "HTML & CSS Style Guide"
+section: "Guideline"
+parent: "style-guide"
+nav_label: "HTML & CSS"
+sort: 65
+visibility: internal
+---
+
 # HTML & CSS Style Guide
 
 Per-language style guide for HTML and CSS. Shared rules: the
@@ -271,7 +280,7 @@ Centralized tokens make theming and design-system changes a one-line edit.*
 ❌ The new tab can hijack the opener, and a token leaks in a comment:
 
 ```html
-<!-- TODO: rotate before launch — api key sk_live_9f2a… -->
+<!-- TODO: rotate before launch — api key EXAMPLE-API-KEY-DO-NOT-USE -->
 <a href="https://partner.example" target="_blank">Partner portal</a>
 ```
 

@@ -1,3 +1,11 @@
+---
+title: "OSBR Code of Conduct"
+section: "People & Culture"
+nav_label: "Code of Conduct"
+sort: 30
+visibility: public
+---
+
 # OSBR Code of Conduct
 
 Creating a professional, inclusive, and respectful environment is a core value at OSBR. This Code of Conduct ensures that all members can work and collaborate in a welcoming and supportive space.

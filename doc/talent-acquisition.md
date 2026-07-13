@@ -1,3 +1,11 @@
+---
+title: "Talent Acquisition"
+section: "People & Culture"
+nav_label: "Talent Acquisition"
+sort: 40
+visibility: internal
+---
+
 # Talent Acquisition
 
 :::info Überprogrammer

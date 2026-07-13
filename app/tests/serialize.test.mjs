@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-const { serializePageFile, isSafeSlug } = await import("../src/lib/content/serialize.ts");
+const { serializePageFile, isSafeSlug, stripLeadingH1 } = await import(
+  "../src/lib/content/serialize.ts"
+);
 
 test("serializePageFile emits frontmatter + body (no status/groups — published means merged)", () => {
   const out = serializePageFile(
@@ -21,7 +23,27 @@ test("serializePageFile emits frontmatter + body (no status/groups — published
   assert.ok(out.includes(`updated_by: ${JSON.stringify("octocat")}`));
   assert.ok(!out.includes("status:"));
   assert.ok(!out.includes("groups:"));
-  assert.ok(out.includes("\n---\n\nBody text.\n"));
+  // On-disk shape: `# H1` from the title between frontmatter and body (VitePress
+  // renders it; the app strips it back out on load).
+  assert.ok(out.includes("\n---\n\n# Hello\n\nBody text.\n"));
+});
+
+test("stripLeadingH1 undoes serializePageFile's H1 (load/save round-trip)", () => {
+  const body = "[[TOC]]\n\n## Section\n\ntext";
+  const fm = { title: "T", section: "S", nav_label: "", sort: 0, visibility: "internal" };
+  const onDisk = serializePageFile(fm, body);
+  const afterFm = onDisk.slice(onDisk.indexOf("\n---\n") + "\n---\n".length);
+  assert.equal(stripLeadingH1(afterFm).trim(), body);
+});
+
+test("stripLeadingH1 leaves bodies without an H1 untouched (e.g. security-policy)", () => {
+  const body = "no heading\n\ntext";
+  assert.equal(stripLeadingH1(body), body);
+});
+
+test("stripLeadingH1 removes only the first H1, not one the author wrote in the body", () => {
+  const out = stripLeadingH1("# Title\n\n# Author H1\n\ntext");
+  assert.equal(out, "# Author H1\n\ntext");
 });
 
 test("scalars with colons/quotes are safely escaped", () => {

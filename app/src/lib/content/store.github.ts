@@ -26,7 +26,7 @@ import { serializePageFile } from "./serialize.ts";
 // deferred piece.
 
 // Repo-relative home of the content files (mirrors scripts/content-agent.mjs).
-const CONTENT_DIR = "app/src/content/pages";
+const CONTENT_DIR = "doc"; // repo-root doc/ — single source shared with the legacy VitePress site
 // One edit branch per page. The single source of truth for this prefix —
 // reviews.ts imports it (a PR whose head is handbook/* is a handbook edit).
 export const EDIT_BRANCH_PREFIX = "handbook/";

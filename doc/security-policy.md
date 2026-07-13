@@ -1,3 +1,11 @@
+---
+title: "Security Policy"
+section: "Policies"
+nav_label: "Security Policy"
+sort: 100
+visibility: internal
+---
+
 Security Policy Standards
 ========================
 

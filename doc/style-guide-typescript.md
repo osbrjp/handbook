@@ -1,3 +1,12 @@
+---
+title: "TypeScript Style Guide"
+section: "Guideline"
+parent: "style-guide"
+nav_label: "TypeScript"
+sort: 62
+visibility: internal
+---
+
 # TypeScript Style Guide
 
 Per-language style guide for TypeScript. Shared rules: the

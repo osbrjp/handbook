@@ -1,4 +1,5 @@
 import type { PageMeta } from "./acl.ts";
+import { stripLeadingH1 } from "./serialize.ts";
 
 // Parse a page file that WE serialized (serialize.ts) back into meta + body —
 // used to resume a draft from its edit branch, where Astro's collection can't
@@ -56,6 +57,8 @@ export function parsePageFile(text: string): ParsedPage | null {
       updated_by: str("updated_by") ?? undefined,
       updated_at: str("updated_at") ?? undefined,
     },
-    body: rawBody.replace(/^\n/, ""),
+    // On-disk bodies carry the title H1 (serialize.ts adds it for VitePress);
+    // in-app bodies never do — same strip as the collection load in pages.ts.
+    body: stripLeadingH1(rawBody.replace(/^\n/, "")),
   };
 }

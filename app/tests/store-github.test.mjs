@@ -84,7 +84,7 @@ test("direct: NEW file -> PUT without sha, on the base branch", async () => {
   const result = await createGithubStore(DIRECT, fn).write(FILE, OPTS);
   assert.equal(result, undefined); // no review created
   const put = calls.find((c) => c.method === "PUT");
-  assert.ok(put.url.endsWith("/contents/app/src/content/pages/test-page.md"));
+  assert.ok(put.url.endsWith("/contents/doc/test-page.md"));
   assert.equal(put.body.sha, undefined);
   assert.equal(put.body.branch, "main");
   assert.ok(Buffer.from(put.body.content, "base64").toString("utf8").includes("title:"));

@@ -1,6 +1,7 @@
 import { type CollectionEntry, getCollection, getEntry } from "astro:content";
 import type { Visitor } from "../auth/visitor";
 import { canRead, type PageRow, searchRows, type SearchHit } from "./acl";
+import { stripLeadingH1 } from "./serialize";
 
 // Astro-bound content reads. All content comes from the `pages` collection
 // (git-backed markdown, bundled at build — everything in it is PUBLISHED;
@@ -8,7 +9,7 @@ import { canRead, type PageRow, searchRows, type SearchHit } from "./acl";
 // The ACL lives in ./acl.ts and is applied here per surface.
 
 function toRow(entry: CollectionEntry<"pages">): PageRow {
-  return { slug: entry.id, body: entry.body ?? "", ...entry.data };
+  return { slug: entry.id, body: stripLeadingH1(entry.body ?? ""), ...entry.data };
 }
 
 async function allRows(): Promise<PageRow[]> {

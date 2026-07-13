@@ -2,7 +2,7 @@
 // content-agent.mjs — LOCAL DEV ONLY. A tiny Node HTTP server the in-browser
 // editor calls (via fetch, from the workerd SSR) to persist content, because
 // workerd itself can't touch the filesystem. It writes the markdown file under
-// src/content/pages and makes a git commit. Run it alongside `astro dev`
+// doc/ (repo root) and makes a git commit. Run it alongside `astro dev`
 // (see `pnpm content:agent` / `pnpm dev:edit`).
 //
 // Safety: binds to 127.0.0.1 only, requires a shared token header
@@ -24,7 +24,7 @@ const exec = promisify(execFile);
 const here = path.dirname(fileURLToPath(import.meta.url)); // app/scripts
 const appDir = path.resolve(here, ".."); // app
 const repoRoot = path.resolve(appDir, ".."); // repo root (where .git lives)
-const CONTENT_REL = "app/src/content/pages";
+const CONTENT_REL = "doc"; // repo-root doc/ — single source shared with the legacy VitePress site
 
 const PORT = Number(process.env.CONTENT_AGENT_PORT || 4322);
 const TOKEN = process.env.CONTENT_AGENT_TOKEN || "dev-agent";
