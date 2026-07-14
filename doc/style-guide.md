@@ -5,6 +5,7 @@ Language-agnostic coding style guide for OSBR repositories. Per-language guides:
 * [Golang Style Guide](/style-guide-golang)
 * [Python Style Guide](/style-guide-python)
 * [HTML & CSS Style Guide](/style-guide-html-css)
+* [Terraform Style Guide](/style-guide-terraform)
 
 ## How to read this guide
 

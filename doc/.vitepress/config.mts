@@ -1,7 +1,10 @@
 import { defineConfig } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
+import llmstxt from "vitepress-plugin-llms";
 
-const mermaidPlugin = withMermaid({});
+// llmstxt() generates /llms.txt + /llms-full.txt at build (llmstxt.org). It
+// goes through withMermaid so it's merged with mermaid's own vite plugins.
+const mermaidPlugin = withMermaid({ vite: { plugins: [llmstxt()] } });
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -73,8 +76,10 @@ export default defineConfig({
                   { text: "Golang", link: "/style-guide-golang" },
                   { text: "Python", link: "/style-guide-python" },
                   { text: "HTML & CSS", link: "/style-guide-html-css" },
+                  { text: "Terraform", link: "/style-guide-terraform" },
                 ],
               },
+              { text: "Database Guidelines", link: "/database-guidelines" },
             ],
           },
           {
@@ -86,7 +91,13 @@ export default defineConfig({
       },
       {
         text: "Policies",
-        items: [{ text: "SHEQ Policy", link: "/sheq-policy" }],
+        items: [
+          { text: "SHEQ Policy", link: "/sheq-policy" },
+          {
+            text: "Infrastructure Planning Policy",
+            link: "/infra-planning-policy",
+          },
+        ],
       },
     ],
     socialLinks: [

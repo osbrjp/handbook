@@ -60,8 +60,16 @@ Follow the instructions provided for each project to set up the required executi
 ### 1-8. Coding Style Guide
 
 Follow the [Style Guide](/style-guide) for how we write code: language-agnostic
-principles plus per-language rules (TypeScript, Go, Python, HTML & CSS), each
-tagged 🌎 industry-standard or 🏠 house-rule. Read it before your first pull request.
+principles plus per-language rules (TypeScript, Go, Python, HTML & CSS,
+Terraform), each tagged 🌎 industry-standard or 🏠 house-rule. Read it before your
+first pull request.
+
+### 1-9. Database Guidelines
+
+Follow the [Database Guidelines](/database-guidelines) when choosing a data store
+(SQL vs NoSQL) or designing a relational schema, including OSBR's SQL house
+style. The [Infrastructure Planning Policy](/infra-planning-policy) sets the
+higher-level infrastructure defaults these build on.
 
 ## 2. Workflow Overview
 
