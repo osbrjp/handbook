@@ -18,6 +18,9 @@ on:
       - main
     paths:
       - "app/**"
+      # content is doc/*.md (single source since the doc/ refactor) — an
+      # approved editor merge touches ONLY doc/, and it must redeploy too
+      - "doc/**"
   workflow_dispatch:
 
 permissions:
