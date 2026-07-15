@@ -54,6 +54,15 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  — NO DATABASE (statele
   secret content belongs in a different (private) repo, not behind a flag here.
 - Reader access is enforced **server-side**, fails **closed**, and forbidden == not-found (both 404 — no existence signal). A file with missing/invalid `visibility` defaults to the **tightest** tier (internal) via the collection schema.
 - Page bodies are **markdown**, **sanitized at render** (`rehype-sanitize`), shared by the reader page and the editor preview.
+- **Agent surface (llmstxt.org):** `/llms.txt` (index), `/llms-full.txt` (all
+  readable content) and per-page `/<slug>.md` (raw markdown) — dynamic
+  endpoints through the SAME `canRead` gate as HTML (anon → public only, fail
+  closed, forbidden == 404). This is what the `standard-repository`
+  code-quality hook consumes (it sends every org AI session to the handbook
+  for the style guides — those pages must be `public` by cutover, since the
+  hook fetches anonymously). The legacy site gets the same files statically
+  from `vitepress-plugin-llms` at build (fine while everything there is
+  public); the dynamic version supersedes it at cutover, same URLs.
 - Auth = **hand-written GitHub OAuth** (session crypto ported from
   `osbrjp/coop-csnet-poc`, AES-GCM encrypted cookie), hardened with a
   state-nonce CSRF check the original lacked. The user grants **no scopes**
@@ -103,7 +112,7 @@ Browser ──> Astro SSR Worker (@astrojs/cloudflare)  — NO DATABASE (statele
 ## What's verified
 
 **Verified locally with no Docker/GitHub (unit):**
-- `pnpm check` (types), `pnpm build`, `pnpm test` (72 tests), `pnpm guard`.
+- `pnpm check` (types), `pnpm build`, `pnpm test` (94 tests), `pnpm guard`.
 - Session crypto round-trip + tamper/expiry/wrong-key/bad-role rejection; the `canRead` ACL truth table + `searchRows` ACL; the GitHub role mapping (collaborator 404 → no access even where a public repo reports `read`); render pipeline (callouts/TOC/mermaid + XSS sanitize); `doc/*.md → content-file` helpers.
 - The role-resolution calls were also probed against the **live GitHub API** (real org/repo): collaborator 204/404 gate + `role_name` mapping behave as coded.
 
@@ -317,6 +326,13 @@ moving the zone is the standard path.)
 Workers** — it checks GitHub identity and per-page access on every request,
 which a static host (GitHub Pages) fundamentally can't do. So the cutover is a
 host swap, not a redeploy of the same thing.
+
+**Cutover prerequisite — style-guide visibility:** the `standard-repository`
+code-quality hook fetches the style guides ANONYMOUSLY; they are `internal`
+in the POC content, so post-cutover the hook would 404. Flip the five
+`doc/style-guide*.md` files to `visibility: public` (one frontmatter word
+each) before the DNS swap — pending an explicit "coding standards are public"
+sign-off (they are already world-readable on the current site and in git).
 
 **Cutover steps (when ready to go live):**
 1. **Deploy the Worker.** `wrangler deploy` (or a CI job) publishes the Astro
