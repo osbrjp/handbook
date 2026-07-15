@@ -71,6 +71,14 @@ Follow the [Database Guidelines](/database-guidelines) when choosing a data stor
 style. The [Infrastructure Planning Policy](/infra-planning-policy) sets the
 higher-level infrastructure defaults these build on.
 
+### 1-10. The Quality Gate
+
+Follow the [Quality Gate](/quality-gate): the three checks every change clears before it reaches `Done` — that it is **reliable**, **secure**, and **sustainable**. One engineer, with their AI, holds all three as they build, and the gate sits on the board between `Impl Review` and `Done`.
+
+### 1-11. AI Usage Guideline
+
+Follow the [AI Usage Guideline](/ai-usage-guideline) for how we work with AI: one engineer owning the whole of a piece of work with AI beside them, and the standards — data boundaries, provider resilience, day/night rhythm, policies-as-plugins — that keep AI-assisted work safe, resilient, and honest.
+
 ## 2. Workflow Overview
 
 ### 2-1. Scrum-Like Agile Development
@@ -250,6 +258,16 @@ Difficulty estimates the complexity of a task, which may arise from unclear spec
 Sprint is a period of time during which specific work has to be completed and made ready for review. It is usually 1 week long.
 
 
+#### Repositories Are Not a Support Channel
+
+The issue tracker is the **engineering backlog** — reproducible defects, planned features, and technical debt the team owns and burns down on engineering time. It is not a helpdesk. Support requests — how-to questions, account problems, billing, "is this broken for me?" — run on a different clock and a different audience, and mixing the two buries real defects under noise while answering users on a cadence never designed for them.
+
+So before any product goes live it has a **dedicated, published support channel**, and the resolution path for a support request stays entirely inside it. When a request lands as an issue anyway, we **thank** the person, **redirect** them to the support channel with its URL, and **close** the issue — never keep it open under a standing `support` label. The only bridge from support into the tracker runs one way: when a support conversation surfaces a genuine defect, its owner opens a fresh, reproduced, engineer-written issue, and the user stays updated in the support channel.
+
+- We **MUST** give every product a nominated, published support channel before it goes live, and resolve support requests there, never through the issue tracker.
+- We **MUST** handle a support request that arrives as an issue by thank → redirect → close, rather than parking it under a support label.
+- We **SHOULD** re-file genuine engineering work found via support as a fresh, deduplicated, engineer-written issue — not a forwarded user thread.
+
 ### 2-3. Weekly Planning
 
 All developers participate in the weekly planning meeting to discuss the progress of the project and plan the next week's work.
@@ -291,6 +309,28 @@ Following is the typical agenda for the weekly planning meeting.
 * Summarize key takeaways and action items.
 * Encourage feedback on the meeting's structure or areas for improvement.
 * End with a positive note to motivate the team for the upcoming sprint!
+
+### 2-4. Planning & Shaping
+
+Before a piece of work reaches the board as something we can build, it has to be shaped — turned from a customer's initiative into a committed, understood slice with a number against it and the riskiest part already tested. This is the pre-work phase, and it maps to the early board stages: `Todo`, where a request lands, and `Spec Review`, where we agree it is worth doing and know enough to do it. A week-long sprint gives us little room to discover halfway through that we were solving the wrong problem, so we spend the front of the effort making sure we are not.
+
+**We research the real need before we take a request at face value.** A stated request is a symptom and a hypothesis — evidence of a deeper business need, not the need itself. So we study the customer's world first: how their industry makes money, what people actually do all day versus the tidy process on the org chart, and the workarounds and shadow spreadsheets they have built to survive the current one. We trace each stated request down to the job beneath it — the progress the customer is trying to make, independent of any solution — and we validate that job against what we found. Serving the customer well sometimes means telling them, early and with evidence, that the thing they asked for is not the thing their business needs. That honesty is service, not cleverness at their expense.
+
+**We prove the risky part with something that actually runs.** Where an idea carries real uncertainty — whether it will pay off, whether it is what the customer needs, whether people will use it, whether we can even build it — we do not find out by building the whole thing and hoping. We find out cheaply first, with the smallest experiment that answers the question: a spike for a technical unknown, a thin walking skeleton for an end-to-end one, a proof-of-concept for a doubt about value. The experiment is time-boxed and carries a written question and a written "what result changes our plan." Its value is the lesson, not the code — a spike that fails in three days has saved a three-month bet, and that is a success. Experiment code lives in a clearly marked disposable space (a `lab/` or `spike/` area, a `spike:` comment) and is never quietly promoted into production; if the idea is proven, we budget the real build.
+
+**We size it honestly, and we judge it by the customer's return.** An estimate is a communication that serves a decision, not a promise squeezed out of us, so every estimate carries a visible breakdown, states plainly what it includes and excludes, and is expressed as a range rather than a single figure that hides how little we yet know. Because agents change task cost sharply but unevenly, an estimate says which world it assumes — scaffolded ground with clear specs and tests, or unprepared ground where that speed-up largely evaporates. Above the cost sits the prior question: for this customer's business, does the return justify the spend, and how sure are we? We rank proposals by their return to the customer, not by how large an order they would be for us; we state the expected effect and how certain we are of it; and we phase large spend into increments the customer can verify before funding the next, attacking the riskiest, highest-value part first. The agreed estimate and the accepted case — range, breakdown, assumptions, increment plan — land in the meeting record, so that when an assumption breaks, re-quoting is fair rather than a fight over memory.
+
+**We win and start work by demonstrated capability, not by reciting the past.** When a customer needs to believe we can do the work, we reach for the real thing at hand — a working proof-of-concept against their actual problem, the concrete reasoning behind a design decision, the running service they can click and try to break — before we reach for a list of past projects. A track record answers "were they any good before?"; a demonstration answers "are they solving *this* problem, right now?", and only the second keeps our motivation honestly tied to the customer's value. When we publish case studies to build reputation, we get consent first and keep the detail coarse — the shape of a solution, never the versions, endpoints, and topology an attacker probing the customer's systems would need.
+
+**We share one language across customer, code, and team.** The terms we harvest from the customer's world become the project's ubiquitous language — one authoritative word per concept, agreed with the domain experts and mirrored everywhere the concept appears. We search the existing terms before coining a new one, treat a second synonym for an existing idea as a defect rather than a style choice, and flag contradictions (two words for one thing, one word for two) as findings that usually mark a real boundary. When a concept is renamed, the rename is atomic — code, schema, tests, logs, and docs in the same change — so the old word leaves no landmine for the next reader, human or AI.
+
+- We **MUST** research the customer's industry, real workflow, and pain before treating a request as a specification, and trace every request down to the job it is trying to satisfy.
+- We **MUST**, where real uncertainty exists, reduce it with the smallest time-boxed experiment that answers a written question — and keep that experiment disposable and out of production until the real build is budgeted.
+- We **MUST** give every estimate a visible breakdown, explicit scope in/out, a range not a single figure, and a stated assumption about scaffolded versus unprepared ground.
+- We **MUST** rank proposals by return to the customer rather than order size to us, state the expected effect and its certainty, and phase large spend into increments the customer can verify before funding the next.
+- We **MUST** record the agreed estimate and accepted case, with their assumptions, in the meeting record.
+- We **SHOULD** demonstrate capability with a runnable proof-of-concept, design reasoning, or the live service before citing past work — and publish case studies only with consent and with detail kept coarse.
+- We **SHOULD** capture the field's own terms verbatim as the project's ubiquitous language, one word per concept, and hold that language consistent across the customer, the code, and the team.
 
 
 ## 3. Tutorial

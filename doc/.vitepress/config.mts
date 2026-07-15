@@ -84,7 +84,10 @@ export default defineConfig({
                   { text: "Terraform", link: "/style-guide-terraform" },
                 ],
               },
+              { text: "Design Guidelines", link: "/design-guidelines" },
               { text: "Database Guidelines", link: "/database-guidelines" },
+              { text: "Quality Gate", link: "/quality-gate" },
+              { text: "AI Usage Guideline", link: "/ai-usage-guideline" },
             ],
           },
           {
@@ -102,6 +105,7 @@ export default defineConfig({
             text: "Infrastructure Planning Policy",
             link: "/infra-planning-policy",
           },
+          { text: "Ethical Design Policy", link: "/ethical-design-policy" },
         ],
       },
     ],
