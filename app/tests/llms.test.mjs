@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-const { buildLlmsIndex, buildLlmsFull, pageMarkdown, pageSummary, SITE_TITLE } = await import(
-  "../src/lib/content/llms.ts"
-);
+const { buildLlmsIndex, buildLlmsFull, pageMarkdown } = await import("../src/lib/content/llms.ts");
+const { SITE_TITLE } = await import("../src/lib/site.ts");
+const { excerpt } = await import("../src/lib/content/acl.ts");
 
 // Builders take rows ALREADY canRead-filtered (getNavPages does the gating) —
 // these tests cover the text shape; the ACL itself is covered in acl.test.mjs.
@@ -42,7 +42,9 @@ test("index: title header, one section per group in row order, .md links", () =>
   assert.ok(out.startsWith(`# ${SITE_TITLE}\n`));
   // sections in first-encounter order over the (sort-ordered) rows
   assert.ok(out.indexOf("## About") < out.indexOf("## Guideline"));
-  assert.ok(out.includes("- [What is the OSBR Handbook?](https://handbook.example/what-is-handbook.md)"));
+  assert.ok(
+    out.includes("- [What is the OSBR Handbook?](https://handbook.example/what-is-handbook.md)"),
+  );
   assert.ok(out.includes("(https://handbook.example/style-guide.md)"));
 });
 
@@ -60,8 +62,8 @@ test("index contains exactly the rows given — the caller's ACL filter is the g
   assert.ok(!out.includes("strategy.md"));
 });
 
-test("pageSummary truncates long bodies with an ellipsis", () => {
-  const s = pageSummary(`${"word ".repeat(100)}end`, 40);
+test("excerpt truncates long text with an ellipsis (shared with search snippets)", () => {
+  const s = excerpt(`${"word ".repeat(100)}end`, 40);
   assert.ok(s.length <= 41); // 40 + ellipsis
   assert.ok(s.endsWith("…"));
 });

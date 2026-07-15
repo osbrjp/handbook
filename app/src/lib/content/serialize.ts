@@ -1,5 +1,10 @@
 import type { PageMeta } from "./acl";
 
+// Repo-relative home of the content files: doc/ at the repo root — the SAME
+// files the legacy VitePress site builds from (single source). Shared by the
+// GitHub write driver and the local dev agent so the two can never drift.
+export const CONTENT_DIR = "doc";
+
 // Serialize a page to markdown-with-YAML-frontmatter (the on-disk / in-repo
 // format the content collection reads back). Double-quoted scalars (via
 // JSON.stringify) are valid YAML and safely escape colons/quotes/newlines.
@@ -15,6 +20,11 @@ export function stripLeadingH1(body: string): string {
   return body.replace(/^\s*# [^\n]*\n+/, "");
 }
 
+/** The re-add half of the boundary (also the shape /<slug>.md serves). */
+export function withTitleH1(title: string, body: string): string {
+  return `# ${title}\n\n${body.trim()}\n`;
+}
+
 export function serializePageFile(fm: PageMeta, body: string): string {
   const lines = ["---"];
   lines.push(`title: ${yamlScalar(fm.title)}`);
@@ -26,9 +36,7 @@ export function serializePageFile(fm: PageMeta, body: string): string {
   if (fm.updated_by) lines.push(`updated_by: ${yamlScalar(fm.updated_by)}`);
   if (fm.updated_at) lines.push(`updated_at: ${yamlScalar(fm.updated_at)}`);
   lines.push("---");
-  // Re-add the `# H1` the app strips on load (pages.ts): doc/ files also feed
-  // the legacy VitePress build, which renders the body's H1 as the page title.
-  return `${lines.join("\n")}\n\n# ${fm.title}\n\n${body.trim()}\n`;
+  return `${lines.join("\n")}\n\n${withTitleH1(fm.title, body)}`;
 }
 
 // A slug becomes a FILENAME (and a repo path), so it must be strictly safe:

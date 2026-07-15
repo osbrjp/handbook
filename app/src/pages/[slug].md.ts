@@ -9,15 +9,13 @@ import { getPageBySlug } from "../lib/content/pages";
 // (red-team R2), exactly like the HTML route.
 export const GET: APIRoute = async ({ locals, params }) => {
   const visitor = locals.visitor ?? null;
-  const slug = params.slug ?? "";
-  let page: Awaited<ReturnType<typeof getPageBySlug>>;
   try {
-    page = await getPageBySlug(slug, visitor);
+    const page = await getPageBySlug(params.slug ?? "", visitor);
+    if (!page) return new Response(null, { status: 404 });
+    const headers = new Headers({ "Content-Type": "text/markdown; charset=utf-8" });
+    setReaderCacheHeaders(headers, page.visibility, visitor);
+    return new Response(pageMarkdown(page), { headers });
   } catch {
     return new Response("Service unavailable", { status: 503 });
   }
-  if (!page) return new Response(null, { status: 404 });
-  const headers = new Headers({ "Content-Type": "text/markdown; charset=utf-8" });
-  setReaderCacheHeaders(headers, page.visibility, visitor);
-  return new Response(pageMarkdown(page), { headers });
 };

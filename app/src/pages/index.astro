@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import { SITE_TITLE } from "../lib/site";
 
 const { visitor } = Astro.locals;
 
@@ -17,7 +18,7 @@ if (visitor) {
 <Base title="Home" visitor={visitor}>
   <div class="home">
     <section class="hero">
-    <h1 class="hero-name">The OSBR Handbook</h1>
+    <h1 class="hero-name">{SITE_TITLE}</h1>
     <p class="hero-text">A guide to our culture, values, and workflows</p>
     <p class="hero-tagline">
       Transparency as our commitment to clients, team members, and future team members.

@@ -63,12 +63,17 @@ export function toPlainText(md: string): string {
     .trim();
 }
 
+/** Truncate plain text with an ellipsis — the one excerpt rule (search snippets, llms summaries). */
+export function excerpt(text: string, maxLen = 160): string {
+  return text.length <= maxLen ? text : `${text.slice(0, maxLen).trimEnd()}…`;
+}
+
 export function makeSnippet(body: string, q: string, maxLen = 160): string {
   const text = toPlainText(body);
   if (!text) return "";
   const idx = text.toLowerCase().indexOf(q.toLowerCase());
   if (idx < 0) {
-    return text.length <= maxLen ? text : `${text.slice(0, maxLen).trimEnd()}…`;
+    return excerpt(text, maxLen);
   }
   // Centre the window on the match, but never start AFTER it (a query longer
   // than maxLen would otherwise push `start` past `idx` and drop the match).
@@ -77,6 +82,21 @@ export function makeSnippet(body: string, q: string, maxLen = 160): string {
   if (start > 0) snip = `…${snip}`;
   if (start + maxLen < text.length) snip = `${snip}…`;
   return snip;
+}
+
+/**
+ * Group rows by section, sections in first-encounter order over the given
+ * (sort-ordered) rows — THE nav grouping contract, shared by the sidebar and
+ * the llms.txt index so the two can never disagree.
+ */
+export function groupBySection(rows: PageRow[]): Array<[string, PageRow[]]> {
+  const groups = new Map<string, PageRow[]>();
+  for (const r of rows) {
+    const list = groups.get(r.section);
+    if (list) list.push(r);
+    else groups.set(r.section, [r]);
+  }
+  return [...groups.entries()];
 }
 
 /**

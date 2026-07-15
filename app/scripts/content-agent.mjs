@@ -18,13 +18,12 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 // The ONE path-traversal guard, shared with the SSR write drivers (Node ≥22.18
 // strips the types) — dev and prod slug validation can never drift.
-import { isSafeSlug } from "../src/lib/content/serialize.ts";
+import { CONTENT_DIR, isSafeSlug } from "../src/lib/content/serialize.ts";
 
 const exec = promisify(execFile);
 const here = path.dirname(fileURLToPath(import.meta.url)); // app/scripts
 const appDir = path.resolve(here, ".."); // app
 const repoRoot = path.resolve(appDir, ".."); // repo root (where .git lives)
-const CONTENT_REL = "doc"; // repo-root doc/ — single source shared with the legacy VitePress site
 
 const PORT = Number(process.env.CONTENT_AGENT_PORT || 4322);
 const TOKEN = process.env.CONTENT_AGENT_TOKEN || "dev-agent";
@@ -83,7 +82,7 @@ const server = http.createServer(async (req, res) => {
     const { slug, oldSlug, text, title, editor, message } = p;
     if (!isSafeSlug(slug)) return send(400, { error: "invalid slug" });
 
-    const rel = `${CONTENT_REL}/${slug}.md`;
+    const rel = `${CONTENT_DIR}/${slug}.md`;
     const abs = path.join(repoRoot, rel);
 
     if (op === "write" || op === "rename") {
@@ -95,7 +94,7 @@ const server = http.createServer(async (req, res) => {
       await writeFile(abs, text);
       const paths = [rel];
       if (doRename) {
-        const oldRel = `${CONTENT_REL}/${oldSlug}.md`;
+        const oldRel = `${CONTENT_DIR}/${oldSlug}.md`;
         await rm(path.join(repoRoot, oldRel), { force: true });
         paths.unshift(oldRel); // staging the removed path records the delete
       }
@@ -116,6 +115,6 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, "127.0.0.1", () => {
   console.log(
-    `content-agent listening on http://127.0.0.1:${PORT} (writes ${CONTENT_REL} + git commit)`,
+    `content-agent listening on http://127.0.0.1:${PORT} (writes ${CONTENT_DIR} + git commit)`,
   );
 });

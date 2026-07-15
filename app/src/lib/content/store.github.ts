@@ -3,7 +3,7 @@ import type { ContentStore, PageFile, WriteOpts, WriteResult } from "./store";
 // types but does NOT resolve extensionless specifiers).
 import { GITHUB_API as API, githubHeaders } from "../githubApi.ts";
 import { type ParsedPage, parsePageFile } from "./frontmatter.ts";
-import { serializePageFile } from "./serialize.ts";
+import { CONTENT_DIR, serializePageFile } from "./serialize.ts";
 
 // Production driver: persist content via the GitHub API, WITH THE SIGNED-IN
 // USER'S OWN TOKEN — every save is a commit authored by the actual person
@@ -25,8 +25,7 @@ import { serializePageFile } from "./serialize.ts";
 // (content is bundled at build) — the deploy-on-push pipeline is the remaining
 // deferred piece.
 
-// Repo-relative home of the content files (mirrors scripts/content-agent.mjs).
-const CONTENT_DIR = "doc"; // repo-root doc/ — single source shared with the legacy VitePress site
+
 // One edit branch per page. The single source of truth for this prefix —
 // reviews.ts imports it (a PR whose head is handbook/* is a handbook edit).
 export const EDIT_BRANCH_PREFIX = "handbook/";

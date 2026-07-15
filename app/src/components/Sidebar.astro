@@ -1,4 +1,5 @@
 ---
+import { groupBySection } from "../lib/content/acl";
 import type { PageRow } from "../lib/content/pages";
 import CollapsePersistence from "./CollapsePersistence.astro";
 import SidebarTree from "./SidebarTree.astro";
@@ -10,7 +11,7 @@ interface Props {
   current?: string;
 }
 const { pages, current } = Astro.props;
-const sections = [...new Set(pages.map((p) => p.section))];
+const sections = groupBySection(pages);
 ---
 
 <aside class="doc-sidebar">
@@ -24,8 +25,7 @@ const sections = [...new Set(pages.map((p) => p.section))];
   </button>
   <div class="sb-groups" id="sb-groups">
     {
-      sections.map((section) => {
-        const items = pages.filter((p) => p.section === section);
+      sections.map(([section, items]) => {
         const hasCurrent = items.some((p) => p.slug === current);
         // Top level = no parent, or a parent this VISITOR can't see (ACL may
         // hide the parent; its readable children must surface, not vanish).

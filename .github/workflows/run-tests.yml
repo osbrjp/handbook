@@ -11,17 +11,24 @@ permissions:
   pull-requests: write
 
 jobs:
-  run-tests:
-    # handbook/* head branches are editor "submit for review" PRs (opened by
-    # the handbook app, never review_requested/labeled) — run-tests is a
-    # REQUIRED check on main, so without this clause those PRs could never merge.
+  # ONE copy of the trigger condition; both build jobs hang off it via `needs`
+  # (a skipped gate skips them too). handbook/* head branches are editor
+  # "submit for review" PRs (opened by the handbook app, never
+  # review_requested/labeled) — run-tests is a REQUIRED check on main, so
+  # without that clause those PRs could never merge.
+  gate:
     if: |
       (github.event.action == 'review_requested' ||
       (github.event.action == 'labeled' && github.event.label.name == 'ci-testing') ||
       (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'ci-testing'))) ||
       (github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'handbook/')) ||
       (github.event_name == 'push')
+    runs-on: ubuntu-latest
+    steps:
+      - run: "true"
 
+  run-tests:
+    needs: gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -61,13 +68,7 @@ jobs:
   # The legacy VitePress site still ships from doc/ until the cutover
   # (POC.md "Migration & production cutover") — keep its build green too.
   docs-build:
-    if: |
-      (github.event.action == 'review_requested' ||
-      (github.event.action == 'labeled' && github.event.label.name == 'ci-testing') ||
-      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'ci-testing'))) ||
-      (github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'handbook/')) ||
-      (github.event_name == 'push')
-
+    needs: gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
