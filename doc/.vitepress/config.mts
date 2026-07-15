@@ -14,6 +14,11 @@ export default defineConfig({
   description: "A transparent guide to OSBR’s culture, values, and workflows.",
   head: [
     ["link", { rel: "icon", href: "favicon.svg", type: "image/svg+xml" }],
+    // Belt-and-suspenders LLM hint for agents that read <head> (the visible
+    // line in index.md is the load-bearing one; a static host can't set the
+    // matching HTTP Link: header).
+    ["link", { rel: "alternate", type: "text/plain", href: "/llms.txt", title: "llms.txt (machine-readable handbook index)" }],
+    ["link", { rel: "alternate", type: "text/plain", href: "/llms-full.txt", title: "llms-full.txt (full handbook text for LLMs)" }],
     [
       "script",
       {
