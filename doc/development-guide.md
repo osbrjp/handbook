@@ -190,7 +190,7 @@ This field belongs to our standard project board.
 | 2  | Todo          | Ready to be worked on specification.                               |
 | 3  | Spec Review   | On a specification review before being 'In Progress'. Can skip if enough confident. |
 | 4  | In Progress   | Currently being worked on implementation.              |
-| 5  | Impl Review   | On implementation review before being merged: declaring this status triggers the AI review — run from the engineer's own agent — and a human interprets its findings and owns the merge (see [Code Review](/code-review)). |
+| 5  | Impl Review   | On implementation review before being merged: by declaring this status the engineer takes on running the AI review from their own agent, then a human interprets its findings and owns the merge (see [Code Review](/code-review)). |
 | 6  | Shipping      | Merged to 'main' and ready to be shipped. |
 | 7  | Done          | Shipped and verified on the production environment; the issue is closed. |
 
