@@ -327,4 +327,4 @@ The authoritative regimes this policy is grounded in.
 - [Development Guide](/development-guide) — the *Planning & Shaping* stage where the business facts that decide legal applicability are established.
 - [Supply-Chain Risk](/supply-chain-risk) — the single risk register these requirements are recorded in, and the likelihood × impact machinery that ranks non-compliance against every other risk.
 - [Data Protection](/data-protection) — the concrete controls (access control, logging, retention) that many of these obligations are satisfied by.
-- [Quality Gate](/quality-gate) — the always-on review that checks these premises were honoured in the delivered design, not just listed.
+- [Quality Gate](/quality-gate) — the AI code review that checks these premises were honoured in the delivered design, not just listed.

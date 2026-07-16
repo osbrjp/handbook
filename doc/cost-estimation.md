@@ -60,7 +60,7 @@ twelve days, most likely eight, assuming X" — because the second one is true.
   number.
 - The **reviewer** (a second engineer) sanity-checks the breakdown and the range
   independently before it reaches the client. Estimates are reviewed like code —
-  the same always-on review the [Quality Gate](/quality-gate) requires.
+  the same AI code review the [Quality Gate](/quality-gate) requires.
 - The **project lead** ensures the estimate reaches the client as a range with
   its assumptions intact, and that the agreement and its assumptions land in the
   meeting record. They own that we do not quietly collapse the range to its low
@@ -244,5 +244,5 @@ in our estimates, not a footnote.
   that internal forecasting feeds.
 - [IT Investment Evaluation](/it-investment-evaluation) — judging whether the
   work an estimate prices is worth doing.
-- [Quality Gate](/quality-gate) — the always-on review that estimates, like code,
+- [Quality Gate](/quality-gate) — the AI code review that estimates, like code,
   pass through.

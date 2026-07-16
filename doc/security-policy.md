@@ -13,7 +13,7 @@ Developers and collaborators must adhere to the following:
 
 ### 1. Mandatory Code Review, with Security as a First-Class Concern
 
-Every change passes the [Code Review](/code-review) standard before it merges: an always-on, AI-automated review runs as the default gate, and security — OWASP/ASVS-class risks — is one of the three concerns it guards, alongside correctness and readability. A human stays in the loop, interprets the findings, and remains accountable for the merge; human review is welcome but not the enforced default. The reviewing human must have enough knowledge of secure development practices to judge the security findings the gate raises.
+Every change passes the [Code Review](/code-review) standard before it merges: an AI review, run when the change is declared `Impl Review`, is the default gate, and security — OWASP/ASVS-class risks — is one of the three concerns it guards, alongside correctness and readability. A human stays in the loop, interprets the findings, and remains accountable for the merge; human review is welcome but not the enforced default. The reviewing human must have enough knowledge of secure development practices to judge the security findings the gate raises.
 
 ### 2. Understanding of Web Security Fundamentals
 

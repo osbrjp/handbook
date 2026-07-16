@@ -240,6 +240,6 @@ prove the change is healthy in production. CD closes that last gap.
 
 - [Infrastructure Planning Policy](/infra-planning-policy) — CI/CD stance, dev/prod parity, DORA metrics.
 - [Testing Standards](/testing-standards) — where tests run: local-agnostic vs CI production-simulating (§3-12).
-- [Quality Gate](/quality-gate) — the always-on review and reliability lens the pipeline serves.
+- [Quality Gate](/quality-gate) — the AI code review and reliability lens the pipeline serves.
 - [Code Review](/code-review) — a passing pipeline is a precondition for review, not a substitute.
 - [Development Guide](/development-guide) — the pull-request flow the gates sit within.

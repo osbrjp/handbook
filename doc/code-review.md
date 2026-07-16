@@ -1,12 +1,16 @@
 # Code Review
 
-This is the standard the [Quality Gate](/quality-gate)'s always-on review holds
+This is the standard the [Quality Gate](/quality-gate)'s AI code review holds
 every change to before it merges. It expands that gate into a working policy:
 **what** the review guards, in **what priority**, **who** stays accountable, and
-**where** it runs. OSBR's stance is that automated AI review is the default gate
-on every change — consistent and thorough rather than dependent on who happens to
-be free to look. It runs pre-merge alongside the CI production-simulation gate
-described in the [CI/CD Pipeline](/ci-cd-pipeline) standard. Deviations are
+**when** it runs. OSBR's stance is that AI review is the default gate on every
+change — consistent and thorough rather than dependent on who happens to be free
+to look. Every member's machine runs an AI coding agent carrying OSBR's review
+tooling — the `/code-review` plugin and, for security-sensitive surfaces, the
+`asvs-audit` plugin (osbrjp/DevTool) — and the review is performed **when a
+change is declared `Impl Review`**, pre-merge, alongside the CI
+production-simulation gate described in the [CI/CD Pipeline](/ci-cd-pipeline)
+standard. Deviations are
 allowed, but — as everywhere in the handbook — they must be deliberate and
 justified in the project's design notes.
 
@@ -54,7 +58,7 @@ findings that change the code, not for the appearance of having looked.
   reviewer inspects each change and MUST pass — or surface findings to be
   addressed — before merge.
 - **Humans stay in the loop and remain accountable.** The AI review is the
-  always-on baseline, not the final word: an engineer interprets its findings, MAY
+  baseline, not the final word: an engineer interprets its findings, MAY
   override a finding with a stated reason, and owns the merged change. This is the
   same implementer-owns-quality rule the [Quality Gate](/quality-gate) states —
   verification is planned at design, not handed to a separate stage. This is
@@ -70,10 +74,13 @@ findings that change the code, not for the appearance of having looked.
 
 ## 3. Practices
 
-### 3-1. Run the AI reviewer as a pre-merge gate, alongside CI
+### 3-1. Run the AI review when a change is declared `Impl Review`
 
-Run the AI reviewer on each pull request (or pre-merge), **alongside** the CI
-production-simulation gate — a change merges only when both are satisfied.
+When a change moves to `Impl Review` on the board, the engineer runs the AI
+review from the agent on their own machine — the `/code-review` plugin, plus the
+`asvs-audit` plugin (osbrjp/DevTool) where the change touches a
+security-sensitive surface. It runs **alongside** the CI production-simulation
+gate — a change merges only when both are satisfied.
 
 - The two gates are complementary and MUST NOT be collapsed into one: CI proves
   the change *runs* correctly against a production-like environment (see the
@@ -81,8 +88,9 @@ production-simulation gate — a change merges only when both are satisfied.
   the AI review judges whether the change is *built* correctly, safely, and
   legibly. A green test suite is not a substitute for review, and a clean review
   is not a substitute for tests.
-- The review runs from the reviewed main line's workflow, so it is present on
-  every change by construction, not by a reviewer remembering to look.
+- Declaring `Impl Review` without running the review is declaring it early: no
+  change leaves `Impl Review` unreviewed, so the guard is present on every
+  change — by workflow, not by a reviewer remembering to look.
 
 ### 3-2. Guard three concerns, in priority order
 
@@ -153,8 +161,8 @@ followed.**
 Running an AI review on every change costs tokens. That cost is **accepted, not
 minimised away.** The correctness, safety, and legibility it buys — for both the
 humans and the AI agents who will maintain the code — is worth more than the
-tokens. A gate that runs only sometimes, to save cost, is not the always-on guard
-this standard requires.
+tokens. A gate that runs only sometimes, to save cost, is not the every-change
+guard this standard requires.
 
 ## 4. Relationship to human review
 
@@ -163,9 +171,9 @@ review entirely — trusting policy-grounded generation plus each developer's ow
 QA — leaves changes unguarded when that self-QA lapses. Mandating a human
 reviewer on every change makes the guard hostage to reviewer availability and
 turns review into a bottleneck. OSBR takes a third path: **keep a review gate,
-but make it AI-automated and always-on**, so the guard is present on every change
-(unlike "no review") without waiting on a human's calendar (unlike "mandatory
-human reviewer"). Human review stays available and welcome (§2); it is simply not
+and make it an AI review run at `Impl Review`**, so the guard is present on every
+change (unlike "no review") without waiting on a human's calendar (unlike
+"mandatory human reviewer"). Human review stays available and welcome (§2); it is simply not
 the enforced default — the AI review is, and the human's accountability sits on
 top of it.
 
@@ -183,7 +191,7 @@ top of it.
 
 **Related OSBR standards**
 
-- [Quality Gate](/quality-gate) — the always-on review this standard implements.
+- [Quality Gate](/quality-gate) — the AI code review this standard implements.
 - [Security Policy](/security-policy) — the org-level security stance the review's security lens enforces.
 - [Application Security](/application-security) — the OWASP/ASVS-class depth behind §3-2's second concern.
 - [Testing Standards](/testing-standards) — the complementary evidence gate; the "green is not self-justifying" discipline.

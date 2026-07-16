@@ -72,7 +72,7 @@ This is not a hand-off to a separate "analyst" role. In a small team the person
 who will build it is usually the person who models it; that is deliberate,
 because modeling is how you understand what you are about to build. The reviewer
 treats the model as part of the reviewable surface, exactly as the [Quality
-Gate](/quality-gate)'s always-on review treats the code.
+Gate](/quality-gate)'s AI code review treats the code.
 
 ## 3. Practices
 
@@ -254,7 +254,7 @@ documented industry standard an SME can adopt directly.
 **Related OSBR standards**
 
 - [Development Guide](/development-guide) — the Planning & Shaping stage this standard serves.
-- [Quality Gate](/quality-gate) — the always-on review the model is part of.
+- [Quality Gate](/quality-gate) — the AI code review the model is part of.
 - [Architecture Standards](/architecture-standards) — where the C4 Container, aggregate, and ER models become concrete.
 - [Domain Terminology](/domain-terminology) — the ubiquitous language the model, code, and client share.
 - [Market Research](/market-research) — the business understanding Event Storming builds on.

@@ -69,7 +69,7 @@ it is machine-readability, and human⇄AI cooperation depends on it.
   convention.
 - **The reviewer** rejects endpoints that break established conventions without
   a recorded reason, exactly as they would reject a security or schema
-  violation. This is the always-on review the [Quality
+  violation. This is the AI code review the [Quality
   Gate](/quality-gate) requires.
 - **The API definition** — the [OpenAPI](https://spec.openapis.org/) document
   (§3-9) — is the source of truth. Anything not captured there does not exist as

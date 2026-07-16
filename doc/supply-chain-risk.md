@@ -56,7 +56,7 @@ dependency is treated as a live risk to the client, not a backlog item.
   new dependency, a new data flow, a near-miss).
 - **The reviewer** treats an automated dependency-update PR like any other change —
   reviewed before merge, never rubber-stamped — and treats the supply-chain surface
-  as part of the reviewable code, an extension of the always-on review the
+  as part of the reviewable code, an extension of the AI code review the
   [Quality Gate](/quality-gate) requires.
 - **The project lead** owns the remediation clock (§3-7), the exception log, the
   project's single risk register (§4), and its review cadence. Residual-risk

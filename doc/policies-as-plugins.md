@@ -71,7 +71,7 @@ right (§3-4).
   implementer-owns-quality rule the Quality Gate states.
 - The **reviewer** treats the plugin diff as part of the reviewable surface: a PR
   that updates one surface but not the others is rejected exactly as an incomplete
-  rename is (§3-2). This is a natural extension of the always-on review the
+  rename is (§3-2). This is a natural extension of the AI code review the
   [Quality Gate](/quality-gate) requires.
 - The **team** owns drift over time: the plugins are periodically audited against
   the published articles, as part of the policy-conformance auditing the [SHEQ

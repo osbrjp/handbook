@@ -62,7 +62,7 @@ separate stage.
 - **The author of a component** owns its log schema conformance, its
   instrumentation (traces + metrics), its health checks, and the
   timeout/retry/circuit-breaker configuration on every call it makes outward.
-- **The reviewer** — through the always-on review the [Quality
+- **The reviewer** — through the AI code review the [Quality
   Gate](/quality-gate) requires — checks that new external calls carry the §7
   resilience defaults and that no new log field leaks personal data (§8).
 - **The team** owns the SLOs, the alert rules, and the rollback triggers, and

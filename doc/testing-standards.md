@@ -60,7 +60,7 @@ not for a number on a coverage badge (§3-11).
 - The **reviewer** treats tests as part of the reviewable surface: they judge
   whether the tests describe the right behaviour and target the right
   boundaries, not merely whether they exist and pass. This is a natural
-  extension of the always-on review the [Quality Gate](/quality-gate) requires.
+  extension of the AI code review the [Quality Gate](/quality-gate) requires.
 - The **team** owns the health of shared CI: a flaky or perpetually-red main is a
   team-level defect (§3-13), and — like the DORA metrics in the [Infrastructure
   Planning Policy](/infra-planning-policy) — suite health is read as a team

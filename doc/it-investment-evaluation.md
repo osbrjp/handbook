@@ -78,7 +78,7 @@ worth more than a precise-looking ROI figure nobody can defend.
 - The **reviewer** independently sanity-checks the business case before it
   reaches the client — is the claimed effect real, is the certainty stated
   fairly, is a cheaper increment being skipped? Business cases are reviewed like
-  estimates and like code; this is the always-on review the
+  estimates and like code; this is the AI code review the
   [Quality Gate](/quality-gate) requires, applied to the *why* of the work.
 - The **project lead** ensures proposals reach the client ranked by client
   return, that large spend is offered as increments, and that the accepted case
@@ -219,7 +219,7 @@ hide behind a big cheque. We break them up.
   thing is worth building* before a large investment case is built on guesses.
 - [Development Guide](/development-guide) — the Planning & Shaping stage this
   policy fronts, and the meeting record the accepted case lands in.
-- [Quality Gate](/quality-gate) — the always-on review discipline applied here
+- [Quality Gate](/quality-gate) — the AI code review discipline applied here
   to the business case, not just the code.
 
 ## 6. References

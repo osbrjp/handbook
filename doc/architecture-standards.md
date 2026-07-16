@@ -79,7 +79,7 @@ the option to change cheaply, not for the appearance of a grown-up architecture.
   model** records the decision — the concrete need and the cost accepted — in a PR
   or ADR *before* it ships. An undocumented architectural change is an
   architectural defect, not a preference.
-- **Code reviewers** treat structure as reviewable surface, per the always-on
+- **Code reviewers** treat structure as reviewable surface, per the AI code
   review the [Quality Gate](/quality-gate) requires: they reject an undocumented
   split, a leaked vendor type, a layer-first tree, or a tenant-scoped table with no
   isolation decision. Security-sensitive structure (tenant boundaries especially)
@@ -538,7 +538,7 @@ migration project. We name the endpoints and the middle with the industry's
 
 **Related OSBR standards**
 
-- [Quality Gate](/quality-gate) — the always-on review this standard's structural rules are checked under.
+- [Quality Gate](/quality-gate) — the AI code review this standard's structural rules are checked under.
 - [Coding Style Guide](/style-guide) — the Dependency Rule, Ports & Adapters, `Result` errors, and the KISS/YAGNI dependency ladder this page operationalises.
 - [Infrastructure Planning Policy](/infra-planning-policy) — managed/serverless preference, stateless & disposable runtime, lock-in and exit-cost weighing.
 - [Application Security](/application-security) — data classification, mandatory security review, and the "assume breach" stance behind tenant isolation.

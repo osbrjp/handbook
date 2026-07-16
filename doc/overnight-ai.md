@@ -173,7 +173,7 @@ work.**
 
 - The developer **MUST** begin the day by reviewing the overnight output **before**
   merging, deploying, or building on any of it: read the diff, run the checks, confirm
-  the agent stayed in scope. The always-on review the [Quality Gate](/quality-gate)
+  the agent stayed in scope. The AI code review the [Quality Gate](/quality-gate)
   requires applies in full, and [Code Review](/code-review) is where that judgment
   happens — an agent's diff is reviewed exactly as a human's would be.
 - Then **work the morning question queue** from §3-4 — answer the parked judgment calls,
@@ -238,7 +238,7 @@ readable.
 **Related OSBR standards**
 
 - [AI Usage Guideline](/ai-usage-guideline) — the human ⇄ AI cooperation stance this policy operationalises.
-- [Quality Gate](/quality-gate) — implementer-owns-quality; always-on review.
+- [Quality Gate](/quality-gate) — implementer-owns-quality; AI code review.
 - [Code Review](/code-review) — where the morning review of an agent's diff happens.
 - [CI/CD Pipeline](/ci-cd-pipeline) — reviewed main line, dev/prod parity, delivery metrics.
 - [Development Guide](/development-guide) — how we ship; the reversibility rule.

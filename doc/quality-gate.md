@@ -37,8 +37,9 @@ its verification — quality is not handed to a separate stage at the end. We te
 against real databases and real interfaces, not only mocks, because the failures
 that matter live at the seams; we aim tests at those boundaries and at the
 domain logic that carries the business. Coverage is a signal, not a goal. An
-always-on review — an AI reading every change, a person judging what it finds —
-is part of how a change earns its merge, not an optional courtesy.
+AI review at `Impl Review` — the agent on the engineer's own machine reading the
+change, a person judging what it finds — is part of how a change earns its
+merge, not an optional courtesy.
 
 **We assume things will break.** Every call that leaves our process has a
 timeout and a defined behaviour when it fails; every dependency can fall over,

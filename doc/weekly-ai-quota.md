@@ -56,7 +56,7 @@ Utilisation is the means; value is the end.
   productive, hit an internal number, or "not waste it" is itself waste — it
   consumes the quota *and* the human review it generates.
 - **The reviewer still owns quality.** Spare-cycle output enters the codebase like
-  any other change, so it meets the same always-on review the [Quality
+  any other change, so it meets the same AI code review the [Quality
   Gate](/quality-gate) requires — the prepaid origin buys no exemption (§3-5).
 
 ## 3. Practices
@@ -228,6 +228,6 @@ readable.
 - [AI Usage Guideline](/ai-usage-guideline) — the terms under which AI runs at all.
 - [Preparing for Overnight AI Operation](/overnight-ai) — the natural home for spare
   capacity.
-- [Quality Gate](/quality-gate) — the always-on review every spare-cycle result
+- [Quality Gate](/quality-gate) — the AI code review every spare-cycle result
   meets.
 - [Development Guide](/development-guide) — what "value" and "done" mean here.
