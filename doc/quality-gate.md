@@ -12,6 +12,12 @@ where the standard is re-written. The gate sits between `Impl Review` and
 `Done`: a change that adds bloat, weakens a defence, or leaves a solution costly
 to keep alive is a finding — even when it works — and goes back before it ships.
 
+Holding this bar is where our values meet the code. It is **Be Nice** — a high
+standard of care for the people who use what we build and the next person who
+maintains it; **Be Kind** — a solution left sound enough for someone else to
+own; and **Be Strong** — the readiness to find our own gaps rather than ship
+them.
+
 [[TOC]]
 
 ## Reliability

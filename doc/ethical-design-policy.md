@@ -1,6 +1,6 @@
 # Ethical Design Policy
 
-The people using what we build are the people we are here to serve. That single fact settles how we design: an interface earns a choice honestly, or it does not earn it at all. This policy sets out how we keep our sign-up, consent, subscription, cancellation, and pricing flows free of deception — not as a legal chore, but because manipulating the people who trust us is a short-term win and a long-term betrayal.
+The people using what we build are the people we are here to serve. That single fact settles how we design: an interface earns a choice honestly, or it does not earn it at all. This policy sets out how we keep our sign-up, consent, subscription, cancellation, and pricing flows free of deception — not as a legal chore, but because manipulating the people who trust us is a short-term win and a long-term betrayal. Designing honestly is **Be Nice** made concrete: thinking wholeheartedly about the people on the other side of the screen.
 
 [[TOC]]
 
