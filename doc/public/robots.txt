@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# LLM index: /llms.txt
+# LLM full text: /llms-full.txt

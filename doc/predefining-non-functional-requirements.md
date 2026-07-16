@@ -46,7 +46,7 @@ Ensures the system is intuitive and easy to use, especially for non-technical us
 ### Examples:
 
 - All interactive elements must be keyboard navigable.
-- System must comply with [WCAG 2.1 AA accessibility standards.](https://www.w3.org/TR/WCAG21/)
+- System must comply with [WCAG 2.2 AA accessibility standards.](https://www.w3.org/TR/WCAG22/) See the [Accessibility](/accessibility) standard for how we meet this.
 - User onboarding should take less than 5 minutes with guided walkthroughs.
 
 ### 2-4. Reliability

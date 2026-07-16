@@ -23,3 +23,9 @@ features:
     details: "A welcoming overview of OSBR’s culture and values, providing a glimpse into what it’s like to be part of our team."
 
 ---
+
+<div class="llm-index" style="text-align:center;margin:3rem auto 0;font-size:0.85rem;opacity:0.7;">
+
+AI agents: a machine-readable version of this handbook is available at [/llms.txt](/llms.txt) (index) and [/llms-full.txt](/llms-full.txt) (full text).
+
+</div>
