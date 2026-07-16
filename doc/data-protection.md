@@ -42,13 +42,11 @@ bar.
   **SHOULD NOT** state a strong default overridable only with a documented reason.
   **MAY** marks a free choice.
 * **Named practice.** Where a rule adopts an external standard or legal regime, it
-  is named inline and cited under [References](#references). OSBR is a Malaysian
-  company with a Japanese parent studio serving international clients, so wherever a
-  rule anchors to a privacy regime we name them **Malaysia first, then Japan, then
-  the EU/US/international baseline**: Malaysia's **PDPA** (Personal Data Protection
-  Act 2010, as amended by the 2024 Amendment Act), Japan's **APPI**, then **GDPR /
-  CCPA-CPRA / OECD**. They share one spine, so a single set of engineering controls
-  satisfies all of them. We adopt the *criteria* — PDPA, APPI, GDPR, CCPA/CPRA,
+  is named inline and cited under [References](#references). OSBR's home regime is
+  Malaysia's **PDPA** (Personal Data Protection Act 2010, as amended in 2024); its
+  Japanese parent studio and international clients also bring Japan's **APPI**, the
+  EU's **GDPR**, and **CCPA/CPRA** into scope, and these rest on the same core
+  duties. We adopt the *criteria* — PDPA, APPI, GDPR, CCPA/CPRA,
   SQL:2011, the email authentication RFCs — and right-size them for an SME; we do
   not adopt the headcount behind a large organisation's compliance function. The
   organisation-level notice these controls make truthful is the [Privacy
@@ -501,11 +499,10 @@ cannot be tied to an exact version, the design is not ready.
 
 ## References
 
-**Privacy law** — ordered **Malaysia → Japan → EU/US/international** to match OSBR's
-priorities. The organisation-level notice these controls make truthful is the
+**Privacy law.** The organisation-level notice these controls uphold is the
 [Privacy Policy](/privacy-policy).
 
-*Malaysia (home jurisdiction)*
+*Malaysia*
 
 - Personal Data Protection Act 2010 (Act 709) and the seven Personal Data Protection Principles — General, Notice and Choice, Disclosure, Security, Retention, Data Integrity, Access — Personal Data Protection Commissioner / JPDP — <https://www.pdp.gov.my/>
 - Personal Data Protection (Amendment) Act 2024 (Act A1727) — mandatory breach notification, Data Protection Officer duty, data portability, cross-border transfer to jurisdictions with substantially similar / adequate protection, and "data user" → "data controller" — <https://www.pdp.gov.my/>

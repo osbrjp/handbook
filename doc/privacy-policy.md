@@ -2,14 +2,14 @@
 
 This is OSBR's organisation-level commitment on personal data — the promise, made to the people whose data we hold, that stands behind everything else in this handbook. It is the counterpart of the [Security Policy](/security-policy) (which protects information assets) and the [SHEQ Policy](/sheq-policy) (which commits us on safety, health, environment, and quality): where those govern what we protect, this governs the trust of the person the data describes. It is a **notice**, not an engineering spec — the concrete technical controls that satisfy these commitments live in the [Data Protection](/data-protection) standard, and the legal judgement calls behind them in [Legal Compliance](/legal-compliance). This document is the promise those pages keep.
 
-OSBR is a Malaysian company, so our home law is Malaysia's **Personal Data Protection Act 2010 (PDPA)**. We work with a Japanese parent studio and with clients elsewhere, so **Japan's APPI** and, for clients in their reach, the **EU's GDPR** and comparable US regimes also apply — in that order of priority: Malaysia first, then Japan, then the EU/US baseline. The good news is that they share one spine, so a single set of commitments satisfies all of them.
+OSBR is a Malaysian company, so our home law is Malaysia's **Personal Data Protection Act 2010 (PDPA)**. Because we work with a Japanese parent studio and with clients elsewhere, **Japan's APPI** and, where a client brings us within their reach, the **EU's GDPR** and comparable US regimes also apply. These regimes rest on the same core duties, so the commitments below honour all of them.
 
 Personal data is not ours. It belongs to the person it describes, and they lend it to us for a purpose. **Be Nice**: a person who can see what we hold, correct it, and ask us to stop is someone we have treated as a partner, not a resource. **Be Kind**: behind every record is a human being who trusted someone with it, and honouring that trust is the whole point. **Be Strong**: do the unglamorous work of collecting less, deleting on time, and telling a client plainly when a use of data exceeds what the person consented to — even when more data would be convenient.
 
 ## How to read this policy
 
 * **Requirement levels** follow RFC 2119, as elsewhere in the handbook. **MUST** / **MUST NOT** are absolute. **SHOULD** / **SHOULD NOT** state a strong default overridable only with a documented reason. **MAY** marks a free choice.
-* **Named practice.** These principles are not novel inventions — they are the long-settled duties shared across the world's data-protection regimes, named inline and cited under [References](#6-references). We cite them **Malaysia first, then Japan, then the EU/international baseline**, and right-size the discipline for an SME; we do not import a large enterprise's headcount or ceremony to do so.
+* **Named practice.** These principles are not novel inventions — they are the long-settled duties shared across the world's data-protection regimes, named inline and cited under [References](#6-references). We adopt the *discipline* of these regimes and right-size it for an SME; we do not import a large enterprise's headcount or ceremony to do so.
 
 [[TOC]]
 
@@ -118,9 +118,9 @@ Three PDPA principles meet here — **Retention**, **Data Integrity**, and **Acc
 
 ## 6. References
 
-The authoritative privacy regimes this commitment is grounded in, ordered **Malaysia → Japan → EU/international** to match OSBR's priorities.
+The authoritative privacy regimes this commitment is grounded in.
 
-**Malaysia (home jurisdiction)**
+**Malaysia**
 
 - Personal Data Protection Act 2010 (Act 709) and the seven Personal Data Protection Principles — Personal Data Protection Department (JPDP) — <https://www.pdp.gov.my/>
 - Personal Data Protection (Amendment) Act 2024 (Act A1727) — data-controller terminology, mandatory breach notification, Data Protection Officer, data portability, cross-border transfer — <https://www.pdp.gov.my/ppdpv1/en/akta/personal-data-protection-amendment-act-2024/>

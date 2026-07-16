@@ -27,12 +27,6 @@ it in an audit or a complaint.
 * **Requirement levels** follow RFC 2119, as elsewhere in the handbook.
   **MUST** / **MUST NOT** are absolute. **SHOULD** / **SHOULD NOT** state a strong
   default overridable only with a documented reason. **MAY** marks a free choice.
-* **Jurisdiction order.** OSBR is a Malaysian company working with a Japanese
-  parent studio and clients elsewhere, so we enumerate and cite obligations
-  **Malaysia first (home law), then Japan, then the EU/US/international
-  baseline**. Malaysia's [PDPA](https://www.pdp.gov.my/) is the home regime;
-  the others layer on with the jurisdictions of the users a project actually
-  serves.
 * **Named practice.** This is the *compliance-by-design* and *privacy-by-design*
   posture — building legal obligations into the design from the first line rather
   than inspecting for them at the end. Privacy-by-design is codified as **data
@@ -296,8 +290,7 @@ date:
 
 ## References
 
-The authoritative regimes this policy is grounded in, ordered **Malaysia → Japan
-→ EU/international** to match OSBR's home-first priorities.
+The authoritative regimes this policy is grounded in.
 
 **Compliance- and privacy-by-design (the frame)**
 
@@ -305,7 +298,7 @@ The authoritative regimes this policy is grounded in, ordered **Malaysia → Jap
 - GDPR Article 25 — Data protection by design and by default — <https://gdpr-info.eu/art-25-gdpr/>
 - ISO/IEC 27001:2022 — Annex A controls 5.31 (legal, statutory, regulatory & contractual requirements) and 5.34 (privacy and protection of PII) — <https://www.iso.org/standard/27001>
 
-**Malaysia (home jurisdiction)**
+**Malaysia**
 
 - Personal Data Protection Act 2010 (Act 709) and the seven Personal Data Protection Principles — Personal Data Protection Department (JPDP) — <https://www.pdp.gov.my/>
 - Personal Data Protection (Amendment) Act 2024 (Act A1727) — data-controller terminology, mandatory breach notification, Data Protection Officer, data portability, cross-border transfer — <https://www.pdp.gov.my/ppdpv1/en/akta/personal-data-protection-amendment-act-2024/>

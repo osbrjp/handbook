@@ -505,7 +505,7 @@ observability pipeline's masking.
 - Etsy — Blameless PostMortems and a Just Culture (John Allspaw) — <https://www.etsy.com/codeascraft/blameless-postmortems/>
 - Google SRE — Postmortem Culture: Learning from Failure — <https://sre.google/sre-book/postmortem-culture/>
 
-**Legal / mandatory reporting** *(ordered Malaysia → Japan → EU/international, to match OSBR's home jurisdiction)*
+**Legal / mandatory reporting**
 
 - Malaysia — Personal Data Protection Act 2010 (Act 709), the home law — Personal Data Protection Department (JPDP) — <https://www.pdp.gov.my/>
 - Malaysia — Personal Data Protection (Amendment) Act 2024 (Act A1727), mandatory breach notification to the Personal Data Protection Commissioner (as soon as practicable; affected data subjects where significant harm is likely) — <https://www.pdp.gov.my/ppdpv1/en/akta/personal-data-protection-amendment-act-2024/>
