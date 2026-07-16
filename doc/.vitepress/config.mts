@@ -98,7 +98,7 @@ export default defineConfig({
               { text: "Database Guidelines", link: "/database-guidelines" },
               {
                 text: "Planning & Shaping",
-                link: "/development-guide",
+                link: "/development-guide#_2-4-planning-shaping",
                 collapsed: true,
                 items: [
                   { text: "Market Research", link: "/market-research" },
