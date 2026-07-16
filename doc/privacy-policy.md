@@ -118,7 +118,7 @@ Three PDPA principles meet here — **Retention**, **Data Integrity**, and **Acc
 
 ## 6. References
 
-The authoritative privacy regimes this commitment is grounded in.
+OSBR is a Malaysian company serving clients worldwide. The commitments above rest on the duties common to the data-protection regimes below.
 
 **Malaysia**
 
@@ -129,7 +129,7 @@ The authoritative privacy regimes this commitment is grounded in.
 
 - 個人情報保護法 (Act on the Protection of Personal Information, APPI) — Personal Information Protection Commission (PPC) — <https://www.ppc.go.jp/en/legal/>
 
-**EU / international baseline**
+**European Union**
 
 - GDPR (Regulation (EU) 2016/679) — full text — <https://gdpr-info.eu/>
 - GDPR Art. 5 — principles (lawfulness, fairness, purpose limitation, data minimisation, storage limitation) — <https://gdpr-info.eu/art-5-gdpr/>
@@ -137,6 +137,13 @@ The authoritative privacy regimes this commitment is grounded in.
 - GDPR Arts. 15–18, 20 — rights of access, rectification, erasure, restriction, and portability — <https://gdpr-info.eu/chapter-3/>
 - GDPR Art. 28 — processor obligations (entrustment/supervision) — <https://gdpr-info.eu/art-28-gdpr/>
 - GDPR Art. 32 — security of processing — <https://gdpr-info.eu/art-32-gdpr/>
+
+**United States**
+
+- California Consumer Privacy Act (CCPA), as amended by the California Privacy Rights Act (CPRA) — California Attorney General — <https://oag.ca.gov/privacy/ccpa>
+
+**International frameworks**
+
 - OECD Privacy Framework — <https://www.oecd.org/en/publications/2013/07/the-oecd-privacy-framework_g1g33269.html>
 - ISO/IEC 27701 — Privacy Information Management System (PIMS) — <https://www.iso.org/standard/71670.html>
 - ISO/IEC 27001 — Information security management systems — <https://www.iso.org/standard/27001>
