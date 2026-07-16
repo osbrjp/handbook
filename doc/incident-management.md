@@ -521,5 +521,3 @@ observability pipeline's masking.
 - [Infrastructure Planning Policy](/infra-planning-policy) — backups/DR, RPO/RTO, observability, and reversible deploys that make detection and recovery possible.
 - [Development Guide](/development-guide) — the pull-request discipline that carries root-cause fixes and prevention items.
 - [Code of Conduct](/code-of-conduct) — the behavioural baseline that makes blameless reporting safe.
-</content>
-</invoke>
