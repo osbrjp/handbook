@@ -2,7 +2,13 @@
 
 This is how OSBR works with AI: one engineer, with AI beside them, carrying a
 whole piece of work — and the standards that keep that way of working safe,
-resilient, and honest.
+resilient, and honest. This page is the overview; each part below has a full
+standard behind it.
+
+**In depth:** [AI Data-Handling](/ai-data-handling) · [Multiple AI
+Agents](/multiple-ai-agents) · [Overnight AI Operation](/overnight-ai) · [Weekly
+AI Quota](/weekly-ai-quota) · [Voice Input](/voice-input) · [Policies as
+Plugins](/policies-as-plugins) · [Building for AI Users](/building-for-ai-users)
 
 [[TOC]]
 

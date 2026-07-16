@@ -332,6 +332,8 @@ Before a piece of work reaches the board as something we can build, it has to be
 - We **SHOULD** demonstrate capability with a runnable proof-of-concept, design reasoning, or the live service before citing past work — and publish case studies only with consent and with detail kept coarse.
 - We **SHOULD** capture the field's own terms verbatim as the project's ubiquitous language, one word per concept, and hold that language consistent across the customer, the code, and the team.
 
+Each part of shaping has a full standard behind it: [Market Research](/market-research), [Requirements Modeling](/requirements-modeling), [Verify Before Building](/verify-before-building), [Cost Estimation](/cost-estimation), [IT Investment Evaluation](/it-investment-evaluation), [Legal Compliance](/legal-compliance), [Domain Terminology](/domain-terminology), and [Capability over Track Record](/capability-over-track-record).
+
 
 ## 3. Tutorial
 

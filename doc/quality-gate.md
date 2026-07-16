@@ -54,7 +54,12 @@ cause, and investigate production read-only, with personal data masked before it
 reaches any AI context. The reporter of an incident does not decide whether it
 was worth reporting.
 
-Held to the [Infrastructure Planning Policy](/infra-planning-policy) (measured
+Held to the standards that carry the detail: [Testing
+Standards](/testing-standards), [Observability &
+Resilience](/observability-resilience), [Incident
+Management](/incident-management), [Code Review](/code-review), [CI/CD
+Pipeline](/ci-cd-pipeline), and [Architecture Standards](/architecture-standards)
+— and to the [Infrastructure Planning Policy](/infra-planning-policy) (measured
 SLI/SLO and delivery, resilience patterns, environment parity, backups and
 disaster recovery, safe and reversible deploys) and the [Non-functional
 Requirements](/predefining-non-functional-requirements) (the availability, RPO,
@@ -105,7 +110,10 @@ rather hold a release than ship past a known, unpatched flaw. Risks we cannot
 remove we name in a living register — with an owner, and an explicit decision to
 accept them — rather than leave them unspoken.
 
-Held to the [Security Policy](/security-policy) and the OWASP ASVS baseline.
+Held to the standards that carry the detail: [Application
+Security](/application-security), [Access Control](/access-control), [Data
+Protection](/data-protection), and [Supply Chain & Risk](/supply-chain-risk) —
+and to the [Security Policy](/security-policy) and the OWASP ASVS baseline.
 
 - We **MUST** verify the solution against ASVS at the level its data warrants,
   and record any requirement waived, with the reason.
@@ -144,7 +152,10 @@ we design for both at once — the infrastructure defaults that deliver this
 constraint, managed services over self-hosting) are set in the Infrastructure
 Planning Policy, and a solution is held to them here.
 
-Held to the [Infrastructure Planning Policy](/infra-planning-policy)
+Held to the standards that carry the detail: [Architecture
+Standards](/architecture-standards), [Repository & Documentation
+Standards](/repository-documentation-standards), and [API Design](/api-design) —
+and to the [Infrastructure Planning Policy](/infra-planning-policy)
 (scale-to-zero and on-demand infrastructure, cost as a design constraint,
 managed services, data portability).
 
