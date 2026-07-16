@@ -174,7 +174,9 @@ Mocks encode what we *believe* a dependency does; real dependencies encode what
 it *actually* does. For the code that crosses a boundary — repositories, HTTP
 clients, migrations, queries — the belief is exactly the thing under test.
 
-- Boundary code SHOULD be tested against a **real instance** of its dependency: a
+- **Critical paths MUST be exercised against real dependencies**, not only mocks
+  — this is the bar the [Quality Gate](/quality-gate) holds. Boundary code more
+  broadly SHOULD be tested against a **real instance** of its dependency: a
   real database, a real message broker, a real headless browser — not a mock of
   one. **Testcontainers** is the standard way to bring a throwaway real
   dependency up for the duration of the test.

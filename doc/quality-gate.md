@@ -8,9 +8,9 @@ board until all three are met.
 These are lenses, not a checklist someone else runs at the end. Each names the
 standards we hold the work to, and points at the policy that defines the posture
 behind them — the gate is where we confirm the work meets that standard, not
-where the standard is re-written. The gate sits between `Impl Review` and
-`Done`: a change that adds bloat, weakens a defence, or leaves a solution costly
-to keep alive is a finding — even when it works — and goes back before it ships.
+where the standard is re-written. The gate holds at `Impl Review`: a change that
+adds bloat, weakens a defence, or leaves a solution costly to keep alive is a
+finding — even when it works — and goes back before it merges.
 
 Holding this bar is where our values meet the code. It is **Be Nice** — a high
 standard of care for the people who use what we build and the next person who
@@ -123,8 +123,8 @@ and to the [Security Policy](/security-policy) and the OWASP ASVS baseline.
   separate, logged authorisation step.
 - We **MUST** pin and scan dependencies, and hold any release that ships a known
   unpatched vulnerability.
-- We **SHOULD** mask personal data before it enters a log or an AI context, and
-  name every accepted risk in a register with an owner.
+- We **MUST** mask personal data before it enters a log or an AI context, and
+  **SHOULD** name every accepted risk in a register with an owner.
 
 ## Sustainability
 

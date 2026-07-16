@@ -7,7 +7,8 @@ standard behind it.
 
 **In depth:** [AI Data-Handling](/ai-data-handling) · [Multiple AI
 Agents](/multiple-ai-agents) · [Overnight AI Operation](/overnight-ai) · [Weekly
-AI Quota](/weekly-ai-quota) · [Voice Input](/voice-input) · [Policies as
+AI Quota](/weekly-ai-quota) · [Voice Input](/voice-input) · [Meeting
+Recording](/meeting-recording) · [Policies as
 Plugins](/policies-as-plugins) · [Building for AI Users](/building-for-ai-users)
 
 [[TOC]]

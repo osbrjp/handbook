@@ -14,7 +14,7 @@ The following checklist is all mandatory by our security policy:
 * Sleep mode activation within 5 minutes, mandatory reauthentication after sleep mode.
 * Install antivirus software on Windows devices.
 * Prohibit keeping files permanently on the desktop.
-* Prohibit displaying text in the browser’s bookmark bar.
+* Prohibit displaying project or client names in the browser’s bookmark bar.
 * Configure proxy settings for verification and production environment testing.
   * Ask administrator for the proxy settings.
 
@@ -81,7 +81,7 @@ higher-level infrastructure defaults these build on.
 
 ### 1-11. The Quality Gate
 
-Follow the [Quality Gate](/quality-gate): the three checks every change clears before it reaches `Done` — that it is **reliable**, **secure**, and **sustainable**. One engineer, with their AI, holds all three as they build, and the gate sits on the board between `Impl Review` and `Done`.
+Follow the [Quality Gate](/quality-gate): the three checks every change clears before it merges — that it is **reliable**, **secure**, and **sustainable**. One engineer, with their AI, holds all three as they build, and the gate holds at `Impl Review` on the board.
 
 ### 1-12. AI Usage Guideline
 
@@ -105,11 +105,11 @@ Following practices characterize our agile style:
 
 * Work is broken down into short iterations, typically 1 week.
 * To ensure continuous delivery of value and frequent opportunities for feedback.
-* CI/CD piplines have to be set up and automated first.
+* CI/CD pipelines have to be set up and automated first.
 
 #### Brief Issues, Contextual Pull Requests
 
-* **Issues** should be short-descripted to help the team:
+* **Issues** should be briefly described to help the team:
   * Create small, manageable tasks that fit within a 1-week sprint.
   * Encourage the creation of more issues to track all identifiable tasks at any given moment.
   * Motivate project leaders to take ownership of issue creation instead of delegating it to team members.
@@ -182,7 +182,7 @@ The following GitHub Actions are pre-configured in each repository.
 
 #### Status
 
-This field belongs our standard project board.
+This field belongs to our standard project board.
 
 | No | Status        | Description                                                               |
 |----|---------------|---------------------------------------------------------------------------|
@@ -190,9 +190,9 @@ This field belongs our standard project board.
 | 2  | Todo          | Ready to be worked on specification.                               |
 | 3  | Spec Review   | On a specification review before being 'In Progress'. Can skip if enough confident. |
 | 4  | In Progress   | Currently being worked on implementation.              |
-| 5  | Impl Review   | On a implementation review before being merged. |
-| 6  | Shipping      | Merged to 'main', issue closed, and ready to be shipped. |
-| 7  | Done          | Shipped and verified on the production environment. |
+| 5  | Impl Review   | On implementation review before being merged: the always-on AI review is the default gate, and a human interprets its findings and owns the merge (see [Code Review](/code-review)). |
+| 6  | Shipping      | Merged to 'main' and ready to be shipped. |
+| 7  | Done          | Shipped and verified on the production environment; the issue is closed. |
 
 The following is a flowchart of the project status.
 
