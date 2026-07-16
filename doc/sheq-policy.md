@@ -36,6 +36,10 @@ Good work speaks for itself. High quality results are achieved when:
 - Innovating without compromising reliability.
 - Regularly evaluating and improving our processes
 
+In engineering, this commitment is held by the [Quality Gate](/quality-gate):
+the three checks — reliable, secure, sustainable — every change clears before
+it merges.
+
 #### Keeping honest to our own policies
 
 A policy written once and never re-checked quietly stops being true: code changes, deadlines get met by cutting the corner a policy forbids, and the gap between what we say and what we ship widens until it is structural and expensive. We surface that drift while it is still cheap to fix. On a fixed cadence — at least quarterly, and again after any major architectural change — we check reality against every active policy, record a per-policy verdict with evidence, and log each gap as a visible, owned item in the technical-debt register rather than a mental note. A deliberate, time-boxed exception is honest; a silent violation is not. Where a check can be mechanised it is, and run first, so human judgement is spent only where it is needed. A gap still open after two cycles is escalated for an explicit decision — fund it, accept the risk, or change the policy — and a policy the audit keeps refuting is the thing we fix, not the engineers who keep tripping it. No policy is exempt, and no finding is a personal performance rating; a non-conformance is a signal about the system, never about a person. We keep ourselves honest this way as an act of our values: **Be Nice** — a gap caught early spares a colleague a bad night; **Be Kind** — an honest "not yet, here is the plan" beats a policy everyone quietly breaks; and **Be Strong** — we would rather find our own gaps than have a client find them.
