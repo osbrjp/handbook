@@ -14,6 +14,11 @@ export default defineConfig({
   description: "A transparent guide to OSBR’s culture, values, and workflows.",
   head: [
     ["link", { rel: "icon", href: "favicon.svg", type: "image/svg+xml" }],
+    // Belt-and-suspenders LLM hint for agents that read <head> (the visible
+    // line in index.md is the load-bearing one; a static host can't set the
+    // matching HTTP Link: header).
+    ["link", { rel: "alternate", type: "text/plain", href: "/llms.txt", title: "llms.txt (machine-readable handbook index)" }],
+    ["link", { rel: "alternate", type: "text/plain", href: "/llms-full.txt", title: "llms-full.txt (full handbook text for LLMs)" }],
     [
       "script",
       {
@@ -79,7 +84,67 @@ export default defineConfig({
                   { text: "Terraform", link: "/style-guide-terraform" },
                 ],
               },
+              {
+                text: "Design Guidelines",
+                link: "/design-guidelines",
+                collapsed: true,
+                items: [
+                  { text: "Accessibility", link: "/accessibility" },
+                  { text: "Self-Explanatory UI", link: "/self-explanatory-ui" },
+                  { text: "Modeless Design", link: "/modeless-design" },
+                  { text: "Interaction Design", link: "/interaction-design" },
+                ],
+              },
               { text: "Database Guidelines", link: "/database-guidelines" },
+              {
+                text: "Planning & Shaping",
+                link: "/development-guide#_2-4-planning-shaping",
+                collapsed: true,
+                items: [
+                  { text: "Market Research", link: "/market-research" },
+                  { text: "Requirements Modeling", link: "/requirements-modeling" },
+                  { text: "Verify Before Building", link: "/verify-before-building" },
+                  { text: "Cost Estimation", link: "/cost-estimation" },
+                  { text: "IT Investment Evaluation", link: "/it-investment-evaluation" },
+                  { text: "Legal Compliance", link: "/legal-compliance" },
+                  { text: "Domain Terminology", link: "/domain-terminology" },
+                  { text: "Capability over Track Record", link: "/capability-over-track-record" },
+                ],
+              },
+              {
+                text: "Quality Gate",
+                link: "/quality-gate",
+                collapsed: true,
+                items: [
+                  { text: "Testing Standards", link: "/testing-standards" },
+                  { text: "Observability & Resilience", link: "/observability-resilience" },
+                  { text: "Incident Management", link: "/incident-management" },
+                  { text: "Code Review", link: "/code-review" },
+                  { text: "CI/CD Pipeline", link: "/ci-cd-pipeline" },
+                  { text: "Application Security", link: "/application-security" },
+                  { text: "Access Control", link: "/access-control" },
+                  { text: "Data Protection", link: "/data-protection" },
+                  { text: "Supply Chain & Risk", link: "/supply-chain-risk" },
+                  { text: "Architecture Standards", link: "/architecture-standards" },
+                  { text: "Repository & Documentation Standards", link: "/repository-documentation-standards" },
+                  { text: "API Design", link: "/api-design" },
+                ],
+              },
+              {
+                text: "AI Usage Guideline",
+                link: "/ai-usage-guideline",
+                collapsed: true,
+                items: [
+                  { text: "AI Data-Handling", link: "/ai-data-handling" },
+                  { text: "Multiple AI Agents", link: "/multiple-ai-agents" },
+                  { text: "Overnight AI Operation", link: "/overnight-ai" },
+                  { text: "Weekly AI Quota", link: "/weekly-ai-quota" },
+                  { text: "Voice Input", link: "/voice-input" },
+                  { text: "Meeting Recording", link: "/meeting-recording" },
+                  { text: "Policies as Plugins", link: "/policies-as-plugins" },
+                  { text: "Building for AI Users", link: "/building-for-ai-users" },
+                ],
+              },
             ],
           },
           {
@@ -97,6 +162,9 @@ export default defineConfig({
             text: "Infrastructure Planning Policy",
             link: "/infra-planning-policy",
           },
+          { text: "Security Policy", link: "/security-policy" },
+          { text: "Ethical Design Policy", link: "/ethical-design-policy" },
+          { text: "Privacy Policy", link: "/privacy-policy" },
         ],
       },
     ],
