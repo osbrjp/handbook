@@ -64,18 +64,26 @@ principles plus per-language rules (TypeScript, Go, Python, HTML & CSS,
 Terraform), each tagged 🌎 industry-standard or 🏠 house-rule. Read it before your
 first pull request.
 
-### 1-9. Database Guidelines
+### 1-9. Design Guidelines
+
+Follow the [Design Guidelines](/design-guidelines) for how the experience
+behaves: accessibility as the floor, screens that explain themselves, every
+state designed, and modeless, reachable interaction. They are the counterpart to
+the Style Guide — that governs how we write code; these govern how the thing we
+build feels to use.
+
+### 1-10. Database Guidelines
 
 Follow the [Database Guidelines](/database-guidelines) when choosing a data store
 (SQL vs NoSQL) or designing a relational schema, including OSBR's SQL house
 style. The [Infrastructure Planning Policy](/infra-planning-policy) sets the
 higher-level infrastructure defaults these build on.
 
-### 1-10. The Quality Gate
+### 1-11. The Quality Gate
 
 Follow the [Quality Gate](/quality-gate): the three checks every change clears before it reaches `Done` — that it is **reliable**, **secure**, and **sustainable**. One engineer, with their AI, holds all three as they build, and the gate sits on the board between `Impl Review` and `Done`.
 
-### 1-11. AI Usage Guideline
+### 1-12. AI Usage Guideline
 
 Follow the [AI Usage Guideline](/ai-usage-guideline) for how we work with AI: one engineer owning the whole of a piece of work with AI beside them, and the standards — data boundaries, provider resilience, day/night rhythm, policies-as-plugins — that keep AI-assisted work safe, resilient, and honest.
 

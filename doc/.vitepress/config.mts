@@ -162,6 +162,7 @@ export default defineConfig({
             text: "Infrastructure Planning Policy",
             link: "/infra-planning-policy",
           },
+          { text: "Security Policy", link: "/security-policy" },
           { text: "Ethical Design Policy", link: "/ethical-design-policy" },
           { text: "Privacy Policy", link: "/privacy-policy" },
         ],
