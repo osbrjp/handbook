@@ -13,9 +13,10 @@ Policy](/infra-planning-policy) (data residency, backups, durability) and the
 This is an **engineering** standard: how we design schemas, record consent, keep
 history, and send mail so that personal data is handled correctly by construction.
 The user-facing **Privacy Policy** — the legal notice of what we collect and why —
-is a separate document tracked elsewhere; this page is what the system must
-actually do so that policy is truthful. As everywhere in the handbook, deviations
-are allowed but must be deliberate and justified in the project's design notes.
+is the organisation-level [Privacy Policy](/privacy-policy) standard; this page is
+what the system must actually do so that policy is truthful. As everywhere in the
+handbook, deviations are allowed but must be deliberate and justified in the
+project's design notes.
 
 Data protection is where OSBR's values become load-bearing. **Be Nice**: the user
 always knows what they agreed to and what we hold, and can retrieve both — and
@@ -41,10 +42,17 @@ bar.
   **SHOULD NOT** state a strong default overridable only with a documented reason.
   **MAY** marks a free choice.
 * **Named practice.** Where a rule adopts an external standard or legal regime, it
-  is named inline and cited under [References](#references). We adopt the
-  *criteria* — GDPR, CCPA/CPRA, SQL:2011, the email authentication RFCs — and
-  right-size them for an SME; we do not adopt the headcount behind a large
-  organisation's compliance function.
+  is named inline and cited under [References](#references). OSBR is a Malaysian
+  company with a Japanese parent studio serving international clients, so wherever a
+  rule anchors to a privacy regime we name them **Malaysia first, then Japan, then
+  the EU/US/international baseline**: Malaysia's **PDPA** (Personal Data Protection
+  Act 2010, as amended by the 2024 Amendment Act), Japan's **APPI**, then **GDPR /
+  CCPA-CPRA / OECD**. They share one spine, so a single set of engineering controls
+  satisfies all of them. We adopt the *criteria* — PDPA, APPI, GDPR, CCPA/CPRA,
+  SQL:2011, the email authentication RFCs — and right-size them for an SME; we do
+  not adopt the headcount behind a large organisation's compliance function. The
+  organisation-level notice these controls make truthful is the [Privacy
+  Policy](/privacy-policy).
 
 [[TOC]]
 
@@ -182,8 +190,9 @@ and answers nothing.
 The least data we can hold is the safest data — data we never collected can never
 leak, never needs exporting, and never needs deleting.
 
-- Collect only fields the feature **actually uses** (GDPR Art. 5(1)(c)). Do not
-  collect "just in case."
+- Collect only fields the feature **actually uses** (PDPA General Principle; the
+  APPI's purpose-of-use limitation; GDPR Art. 5(1)(c)). Do not collect "just in
+  case."
 - Prefer not storing personal data at all where a design allows it — derive rather
   than store, reference rather than copy.
 - Logs, analytics, and error reports are personal data when they carry user
@@ -193,7 +202,8 @@ leak, never needs exporting, and never needs deleting.
 ### 3-7. Documented retention, audited against the running system
 
 Retention MUST be a decision on the record, not an accident of "we never delete
-anything" (GDPR Art. 5(1)(e), storage limitation).
+anything" (PDPA **Retention** Principle; the APPI's retention limits; GDPR Art.
+5(1)(e), storage limitation).
 
 - Each category of personal data MUST have a **documented retention period** and a
   reason. "Indefinite" is a choice that must be justified, not a default.
@@ -211,7 +221,9 @@ anything" (GDPR Art. 5(1)(e), storage limitation).
 ### 3-8. Self-service data export (portability)
 
 A user MUST be able to export their own data themselves, without emailing support
-and without a developer running a query (GDPR Art. 20).
+and without a developer running a query (PDPA **Access** Principle and the
+**data-portability** right added by the 2024 Amendment; the APPI's 開示 access
+right; GDPR Art. 20).
 
 - Export MUST be **portable and machine-readable** — JSON or CSV, documented schema,
   UTF-8 — per the Art. 20 standard of "structured, commonly used and
@@ -229,7 +241,8 @@ and without a developer running a query (GDPR Art. 20).
 ### 3-9. Complete account and data deletion (erasure)
 
 A user MUST be able to delete their account and have their personal data actually
-deleted (GDPR Art. 17; CCPA/CPRA right to delete).
+deleted (PDPA **Access** Principle and the right to withdraw consent; the APPI's
+利用停止・消去 cease-use/erasure right; GDPR Art. 17; CCPA/CPRA right to delete).
 
 - **Deletion semantics and cascade MUST be defined at schema time** (§3-1): for every
   table, decide up front whether the row is hard-deleted, anonymised, or retained
@@ -263,7 +276,11 @@ channels. Have a defined path for them.
 
 ### 3-11. Data residency and sovereignty
 
-"Data sovereignty" also means honouring *where* the data is legally allowed to live.
+"Data sovereignty" also means honouring *where* the data is legally allowed to live
+— the PDPA's **cross-border transfer** rule (under the 2024 Amendment, transfer only
+to a place with substantially similar or an adequate level of protection, or on
+another permitted ground such as consent), the APPI's cross-border-provision rule,
+and the GDPR's Chapter V transfer safeguards.
 
 - Know and document **which region** personal data is stored and processed in, and
   keep it consistent with client and legal requirements — this extends the residency
@@ -284,8 +301,9 @@ produces a **new version**.
   MUST be able to retrieve the exact `v5` text they saw.
 - The identifier MUST be the join key between the consent event (§3-13) and the
   document text. A consent record pointing at "the Privacy Policy" with no version is
-  **not** a valid record — GDPR Art. 7(1) puts the burden on us to *demonstrate*
-  consent, which is impossible for wording we can no longer reproduce.
+  **not** a valid record — the PDPA **Notice and Choice** Principle and GDPR Art.
+  7(1) put the burden on us to *demonstrate* consent, which is impossible for wording
+  we can no longer reproduce.
 
 ### 3-13. Record each consent as an immutable event
 
@@ -313,8 +331,8 @@ Rules:
   SHOULD be append-only / WORM-style (hash-chained or write-once) so tampering is
   detectable. The current consent state of a user is *derived* by replaying their
   event stream (§3-4), not stored as an overwritable flag.
-- **Withdrawal MUST be as easy as granting** (GDPR Art. 7(3)) and MUST itself be
-  recorded as an event.
+- **Withdrawal MUST be as easy as granting** (PDPA right to withdraw consent; GDPR
+  Art. 7(3)) and MUST itself be recorded as an event.
 - The consent request MUST be **clearly distinguishable** from other matters — not
   buried inside unrelated ToS acceptance (GDPR Art. 7(2)). This is how Consent
   Management Platforms operate under the IAB TCF: consent encoded per-purpose and
@@ -364,8 +382,9 @@ new version** before continuing to process personal data under the new scope.
 
 At the point personal data is first collected, OSBR MUST present a **notice at
 collection** identifying the categories of data and the purposes, and link to the
-current Privacy Policy version (CCPA/CPRA notice-at-collection; the *informed* limb
-of GDPR consent). The version shown at collection MUST match the version recorded in
+current Privacy Policy version (the PDPA **Notice and Choice** Principle; the APPI's
+purpose-of-use notice; CCPA/CPRA notice-at-collection; the *informed* limb of GDPR
+consent). The version shown at collection MUST match the version recorded in
 the consent event.
 
 ### 3-17. Justify and review every email trigger
@@ -482,7 +501,21 @@ cannot be tied to an exact version, the design is not ready.
 
 ## References
 
-**Privacy law**
+**Privacy law** — ordered **Malaysia → Japan → EU/US/international** to match OSBR's
+priorities. The organisation-level notice these controls make truthful is the
+[Privacy Policy](/privacy-policy).
+
+*Malaysia (home jurisdiction)*
+
+- Personal Data Protection Act 2010 (Act 709) and the seven Personal Data Protection Principles — General, Notice and Choice, Disclosure, Security, Retention, Data Integrity, Access — Personal Data Protection Commissioner / JPDP — <https://www.pdp.gov.my/>
+- Personal Data Protection (Amendment) Act 2024 (Act A1727) — mandatory breach notification, Data Protection Officer duty, data portability, cross-border transfer to jurisdictions with substantially similar / adequate protection, and "data user" → "data controller" — <https://www.pdp.gov.my/>
+
+*Japan*
+
+- 個人情報保護法 (Act on the Protection of Personal Information, APPI) — Personal Information Protection Commission (PPC) — purpose-of-use specification, cross-border-provision rule, and 開示・訂正・利用停止 rights — <https://www.ppc.go.jp/en/legal/>
+- 特定電子メール法 — 特定電子メールの送信の適正化等に関する法律 (Japan) — opt-in regime for advertising email.
+
+*EU / US / international*
 
 - EU General Data Protection Regulation (GDPR), Regulation (EU) 2016/679 — <https://gdpr-info.eu/>
   - Art. 4(11) — definition of consent: freely given, specific, informed, unambiguous.
@@ -494,7 +527,7 @@ cannot be tied to an exact version, the design is not ready.
   - Recital 32 — consent by a clear affirmative act; silence / pre-ticked boxes / inactivity do not constitute consent.
 - California CCPA / CPRA (Cal. Civ. Code §1798.100 et seq.) — notice at collection, right to know, right to delete — <https://cppa.ca.gov/regulations/>
 - ePrivacy Directive 2002/58/EC (as amended by 2009/136/EC), Art. 5(3) — prior informed consent for storing/accessing information on a terminal device.
-- 特定電子メール法 — 特定電子メールの送信の適正化等に関する法律 (Japan) — opt-in regime for advertising email.
+- OECD Privacy Framework — collection limitation, purpose specification, use limitation, security safeguards — <https://www.oecd.org/en/publications/2013/07/the-oecd-privacy-framework_g1g33269.html>
 - CAN-SPAM Act — 15 U.S.C. §§ 7701–7713; FTC *CAN-SPAM Act: A Compliance Guide for Business*.
 
 **Privacy engineering frameworks**

@@ -27,6 +27,12 @@ it in an audit or a complaint.
 * **Requirement levels** follow RFC 2119, as elsewhere in the handbook.
   **MUST** / **MUST NOT** are absolute. **SHOULD** / **SHOULD NOT** state a strong
   default overridable only with a documented reason. **MAY** marks a free choice.
+* **Jurisdiction order.** OSBR is a Malaysian company working with a Japanese
+  parent studio and clients elsewhere, so we enumerate and cite obligations
+  **Malaysia first (home law), then Japan, then the EU/US/international
+  baseline**. Malaysia's [PDPA](https://www.pdp.gov.my/) is the home regime;
+  the others layer on with the jurisdictions of the users a project actually
+  serves.
 * **Named practice.** This is the *compliance-by-design* and *privacy-by-design*
   posture — building legal obligations into the design from the first line rather
   than inspecting for them at the end. Privacy-by-design is codified as **data
@@ -44,10 +50,12 @@ it in an audit or a complaint.
 
 ## 1. Goal
 
-A cookie banner bolted on after launch, a 特定商取引法 notation page scrambled
-together the week before a store opens, a data flow that turns out to need a
-telecom-business notification after the pipes are already laid — each is cheap to
-design in and painful to retrofit. The goal here is to move that work to the one
+A cookie banner bolted on after launch, a mandatory online-seller disclosure page
+— Malaysia's under the Consumer Protection (Electronic Trade Transactions)
+Regulations 2024, or Japan's 特定商取引法に基づく表記 — scrambled together the week
+before a store opens, a data flow that turns out to need a telecom-business
+notification after the pipes are already laid — each is cheap to design in and
+painful to retrofit. The goal here is to move that work to the one
 moment it is cheap:
 
 **Before design begins, enumerate every legal and regulatory requirement that
@@ -96,22 +104,29 @@ concrete facts of the engagement (established during the [Development
 Guide](/development-guide)'s *Planning & Shaping* stage):
 
 - **Who are the users, and where are they?** Jurisdiction of the users — not of
-  the company — is what pulls in most obligations. EU/EEA users pull in
-  [GDPR](https://gdpr-info.eu/); users in Japan pull in the
-  [APPI (個人情報保護法)](https://www.ppc.go.jp/en/legal/); users elsewhere pull in
+  the company — is what pulls in most obligations. Users in Malaysia pull in the
+  [PDPA (Personal Data Protection Act 2010)](https://www.pdp.gov.my/); users in
+  Japan pull in the [APPI (個人情報保護法)](https://www.ppc.go.jp/en/legal/);
+  EU/EEA users pull in [GDPR](https://gdpr-info.eu/); users elsewhere pull in
   their own regimes (for example the CCPA/CPRA for California consumers).
 - **What data is collected, for what purpose, and how long is it kept?** This
   decides consent, notification, purpose-limitation, and log-retention duties.
-- **Is anything sold, and to consumers?** Consumer online sales in Japan pull in
-  the [特定商取引法 (Act on Specified Commercial Transactions)](https://www.no-trouble.caa.go.jp/)
+- **Is anything sold, and to consumers?** Consumer online sales pull in an
+  online-seller disclosure duty. In Malaysia the **Consumer Protection
+  (Electronic Trade Transactions) Regulations 2024** require the seller to
+  disclose its name/company, business (company) registration number, contact
+  (email, phone, address), and the full price, with the **Electronic Commerce
+  Act 2006** governing the validity of the electronic contract; in Japan the
+  [特定商取引法 (Act on Specified Commercial Transactions)](https://www.no-trouble.caa.go.jp/)
   and its mandatory 特定商取引法に基づく表記 (seller notation).
 - **Does the service transmit user information to third parties, or operate as a
   communications service?** This pulls in Japan's telecom rules (§3-3).
 - **Are card payments handled?** This pulls in [PCI DSS](https://www.pcisecuritystandards.org/).
 
 The output is a list of *named* obligations tied to *named* business facts — not
-"we should probably be GDPR-compliant", but "EU users → GDPR applies → lawful
-basis, privacy notice, and data-subject rights are design premises".
+"we should probably be compliant", but "Malaysian users → PDPA applies → notice
+and choice, security, and retention limits are design premises; EU users → GDPR
+adds lawful basis, privacy notice, and data-subject rights".
 
 ### 3-2. The starter checklist — enumerate, then justify each in or out
 
@@ -122,9 +137,10 @@ because…" is a required answer, not a silent omission.
 | Requirement | Trigger | Named source |
 | --- | --- | --- |
 | **Terms of Service** | Any service users sign up for or transact through | Contract law; consumer-protection statutes |
-| **Privacy policy / privacy notice** | Any collection of personal data | [GDPR Arts. 13–14](https://gdpr-info.eu/art-13-gdpr/); [APPI](https://www.ppc.go.jp/en/legal/) purpose-of-use notification |
-| **Lawful basis + data-subject rights** | Processing personal data of EU/EEA users | [GDPR Arts. 6, 15–22](https://gdpr-info.eu/art-6-gdpr/) |
+| **Privacy policy / privacy notice** | Any collection of personal data | [PDPA](https://www.pdp.gov.my/) Notice and Choice Principle; [APPI](https://www.ppc.go.jp/en/legal/) purpose-of-use notification; [GDPR Arts. 13–14](https://gdpr-info.eu/art-13-gdpr/) |
+| **Data-subject / individual rights** | Processing personal data of Malaysian, Japanese, or EU/EEA users | [PDPA](https://www.pdp.gov.my/) Access Principle (access, correction, withdrawal, portability); [APPI](https://www.ppc.go.jp/en/legal/) 開示・訂正・利用停止; [GDPR Arts. 6, 15–22](https://gdpr-info.eu/art-6-gdpr/) |
 | **Consumer privacy rights (US)** | Personal data of California (or similar-state) consumers | CCPA / CPRA |
+| **Online-seller disclosure (Malaysia)** | Consumer online sales from Malaysia | Consumer Protection (Electronic Trade Transactions) Regulations 2024; Electronic Commerce Act 2006 |
 | **特定商取引法 notation (表記)** | Consumer online sales from Japan | [特定商取引法](https://www.no-trouble.caa.go.jp/) |
 | **Cookie / tracker consent + disclosure** | Cookies or trackers beyond the strictly necessary | [ePrivacy Directive 2002/58/EC](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32002L0058); Japan external-transmission rules (§3-3) |
 | **Telecom-business notification** | Operating a telecommunications service in Japan | [電気通信事業法 (Telecommunications Business Act)](https://www.soumu.go.jp/main_sosiki/joho_tsusin/eng/) |
@@ -136,10 +152,17 @@ The checklist is a floor, not a ceiling. It is a prompt to think, not the full
 universe of law — sector rules (finance, health, education) and other
 jurisdictions are enumerated the same way.
 
-### 3-3. Get the Japan-specific and cookie duties right
+### 3-3. Get the Malaysia- and Japan-specific and cookie duties right
 
 These are the ones most often missed by teams anchored on GDPR alone.
 
+- **Consumer Protection (Electronic Trade Transactions) Regulations 2024
+  (Malaysia).** Consumer online sales from Malaysia require the seller to
+  publish its name/company, business (company) registration number, contact
+  (email, phone, address), and the full price; the **Electronic Commerce Act
+  2006** governs the validity of the resulting electronic contract and records.
+  Like Japan's notation below, this is a design premise — a page that must exist
+  and be reachable, decided before the checkout flow is drawn.
 - **特定商取引法 (Specified Commercial Transactions Act).** Consumer online sales
   require a published **特定商取引法に基づく表記**: seller identity, address,
   contact, price, delivery, and return/cancellation terms. It is a design premise
@@ -189,10 +212,11 @@ Logs attract *two* opposing legal pressures, and the design MUST satisfy both:
   (accounting/tax records, sector-specific audit trails, and communications
   records where a telecom obligation applies). Losing them too early is the
   violation.
-- **A duty not to over-retain** — [GDPR Article
-  5(1)(e)](https://gdpr-info.eu/art-5-gdpr/) **storage limitation** and APPI's
-  purpose-limitation principle require that personal data is **not kept longer
-  than necessary**. Keeping everything forever is the violation.
+- **A duty not to over-retain** — Malaysia's [PDPA](https://www.pdp.gov.my/)
+  **Retention Principle**, APPI's purpose-limitation principle, and [GDPR Article
+  5(1)(e)](https://gdpr-info.eu/art-5-gdpr/) **storage limitation** require that
+  personal data is **not kept longer than necessary**. Keeping everything forever
+  is the violation.
 
 The resolution is a **defined, per-data-class retention period** chosen at design
 time and recorded in the register — long enough to meet retention duties, short
@@ -211,7 +235,7 @@ fields every entry carries:
 
 | Field | For a legal requirement |
 | --- | --- |
-| **Description** | The obligation and what triggers it: *EU users → GDPR Art. 25 → data protection by design and by default is required.* |
+| **Description** | The obligation and what triggers it: *Malaysian users → PDPA → the seven Personal Data Protection Principles are design premises; EU users → GDPR Art. 25 → data protection by design and by default is required.* |
 | **Likelihood / Impact** | The risk of non-compliance — how likely to be caught, how bad the consequence (fine, injunction, reputational, client harm). |
 | **Countermeasures** | The design and process controls that satisfy the obligation (consent flow, notation page, DPIA, retention schedule). |
 | **Residual risk (named & accepted)** | Any remaining exposure, explicitly accepted by an authorised named person — including "we sought counsel and this is the agreed interpretation". |
@@ -252,13 +276,15 @@ change. A project **MUST** re-evaluate the affected legal entries, and add new
 ones, whenever any of the following happens, without waiting for the scheduled
 date:
 
-- **A new user jurisdiction** — the service opens to EU, Japan, US-state, or other
-  users it did not serve before, pulling in that jurisdiction's regime.
+- **A new user jurisdiction** — the service opens to users in Malaysia, Japan, the
+  EU, a US state, or elsewhere it did not serve before, pulling in that
+  jurisdiction's regime.
 - **A new data class or purpose** — the project starts collecting or using a new
   category of personal data, or uses existing data for a new purpose (re-checks
   consent, notice, DPIA).
 - **A new payment or commerce flow** — card handling (PCI DSS) or consumer sales
-  (特定商取引法) enters scope.
+  (Malaysia's Consumer Protection (Electronic Trade Transactions) Regulations
+  2024; Japan's 特定商取引法) enters scope.
 - **A new external transmission or third-party tag** — analytics, ads, or embeds
   that transmit user information (external-transmission disclosure, cookie
   consent).
@@ -270,24 +296,34 @@ date:
 
 ## References
 
+The authoritative regimes this policy is grounded in, ordered **Malaysia → Japan
+→ EU/international** to match OSBR's home-first priorities.
+
 **Compliance- and privacy-by-design (the frame)**
 
 - Privacy by Design — the 7 Foundational Principles (Ann Cavoukian) — <https://iapp.org/resources/article/privacy-by-design-the-7-foundational-principles/>
 - GDPR Article 25 — Data protection by design and by default — <https://gdpr-info.eu/art-25-gdpr/>
 - ISO/IEC 27001:2022 — Annex A controls 5.31 (legal, statutory, regulatory & contractual requirements) and 5.34 (privacy and protection of PII) — <https://www.iso.org/standard/27001>
 
-**EU data protection**
+**Malaysia (home jurisdiction)**
 
-- GDPR (Regulation (EU) 2016/679) — full text — <https://gdpr-info.eu/>
-- GDPR Article 35 — Data Protection Impact Assessment — <https://gdpr-info.eu/art-35-gdpr/>
-- EDPB / WP29 — DPIA guidelines (WP248) — <https://ec.europa.eu/newsroom/article29/items/611236>
-- ePrivacy Directive 2002/58/EC (cookie consent) — <https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32002L0058>
+- Personal Data Protection Act 2010 (Act 709) and the seven Personal Data Protection Principles — Personal Data Protection Department (JPDP) — <https://www.pdp.gov.my/>
+- Personal Data Protection (Amendment) Act 2024 (Act A1727) — data-controller terminology, mandatory breach notification, Data Protection Officer, data portability, cross-border transfer — <https://www.pdp.gov.my/ppdpv1/en/akta/personal-data-protection-amendment-act-2024/>
+- Consumer Protection (Electronic Trade Transactions) Regulations 2024 — online-seller disclosure (identity, business registration number, contact, full price); in force 25 December 2024, revoking the 2012 version
+- Electronic Commerce Act 2006 (Act 658) — validity of electronic contracts and records
 
 **Japan**
 
 - APPI (個人情報保護法) — Personal Information Protection Commission — <https://www.ppc.go.jp/en/legal/>
 - 特定商取引法 (Act on Specified Commercial Transactions) — <https://www.no-trouble.caa.go.jp/>
 - 電気通信事業法 (Telecommunications Business Act), incl. the 2023 external-transmission rules (外部送信規律) — Ministry of Internal Affairs and Communications — <https://www.soumu.go.jp/main_sosiki/joho_tsusin/eng/>
+
+**EU / international data protection**
+
+- GDPR (Regulation (EU) 2016/679) — full text — <https://gdpr-info.eu/>
+- GDPR Article 35 — Data Protection Impact Assessment — <https://gdpr-info.eu/art-35-gdpr/>
+- EDPB / WP29 — DPIA guidelines (WP248) — <https://ec.europa.eu/newsroom/article29/items/611236>
+- ePrivacy Directive 2002/58/EC (cookie consent) — <https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32002L0058>
 
 **Payments**
 

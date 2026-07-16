@@ -176,8 +176,8 @@ blame, and is set by the officer, never by the reporter.
 | **SEV4 / near-miss** | Caught before impact. | Record as a free lesson (§1-4); no urgent response. |
 
 When unsure between two severities, the officer **MUST** pick the higher one and
-de-escalate later. Under APPI and GDPR the reporting clock can start on a
-*suspected* breach, not only a confirmed one (§2-3). Downgrading is cheap; a
+de-escalate later. Under the PDPA, APPI, and GDPR the reporting clock can start on
+a *suspected* breach, not only a confirmed one (§2-3). Downgrading is cheap; a
 missed legal deadline is not. **Do not under-classify to avoid paperwork.**
 
 ### 2-3. Mandatory-reporting obligations
@@ -186,6 +186,14 @@ As part of analysis, the Security Officer **MUST** determine whether a legal
 notification duty applies **and start the clock the moment a breach is reasonably
 suspected** — not when it is fully understood. If a duty applies, the **Disclose**
 flow (§2-4) becomes mandatory, not optional.
+
+**Malaysia — PDPA (Personal Data Protection Act 2010, Act 709).** OSBR's home
+law. Under the **Personal Data Protection (Amendment) Act 2024 (Act A1727)**, a
+data controller must **notify the Personal Data Protection Commissioner of a
+personal-data breach as soon as practicable**, and **notify affected data subjects
+where the breach is likely to cause significant harm**. The regulator is the
+**Personal Data Protection Commissioner / Personal Data Protection Department
+(JPDP)**.
 
 **Japan — APPI (revised Act on the Protection of Personal Information).** A
 business handling personal information must report a reportable breach to the
@@ -210,9 +218,9 @@ individuals; a missed 72-hour mark must be explained. **Article 34** — where t
 breach is likely to result in a **high risk** to individuals' rights and freedoms,
 communicate it to the **affected data subjects without undue delay**.
 
-**Both may apply.** A single incident can trigger APPI *and* GDPR at once. Track
-each clock separately — they have different recipients and different deadlines —
-inside the incident record (§2-4).
+**More than one may apply.** A single incident can trigger the PDPA, APPI, *and*
+GDPR at once. Track each clock separately — they have different recipients and
+different deadlines — inside the incident record (§2-4).
 
 ### 2-4. The five response flows
 
@@ -270,8 +278,10 @@ the recurrence-prevention plan (§2-5), each with an owner and a verification da
 — **honestly, promptly, in plain language.** This flow is **mandatory** whenever
 §2-3 applies, and good practice even when it does not. The Security Officer (or
 Communications lead) **MUST**: file the **regulator** notifications on their
-deadlines (APPI 速報 / 確報 to the PPC; GDPR Art. 33 to the supervisory authority);
-notify **affected individuals** where required (APPI; GDPR Art. 34 high-risk);
+deadlines (PDPA notification to the Personal Data Protection Commissioner as soon
+as practicable; APPI 速報 / 確報 to the PPC; GDPR Art. 33 to the supervisory
+authority); notify **affected individuals** where required (PDPA where significant
+harm is likely; APPI; GDPR Art. 34 high-risk);
 keep the **client** informed from the start — never let a client learn of their
 own incident from a regulator or the news; and give internal stakeholders honest,
 timely status updates (**Be Nice**). Disclosure **SHOULD** state what happened,
@@ -495,12 +505,14 @@ observability pipeline's masking.
 - Etsy — Blameless PostMortems and a Just Culture (John Allspaw) — <https://www.etsy.com/codeascraft/blameless-postmortems/>
 - Google SRE — Postmortem Culture: Learning from Failure — <https://sre.google/sre-book/postmortem-culture/>
 
-**Legal / mandatory reporting**
+**Legal / mandatory reporting** *(ordered Malaysia → Japan → EU/international, to match OSBR's home jurisdiction)*
 
+- Malaysia — Personal Data Protection Act 2010 (Act 709), the home law — Personal Data Protection Department (JPDP) — <https://www.pdp.gov.my/>
+- Malaysia — Personal Data Protection (Amendment) Act 2024 (Act A1727), mandatory breach notification to the Personal Data Protection Commissioner (as soon as practicable; affected data subjects where significant harm is likely) — <https://www.pdp.gov.my/ppdpv1/en/akta/personal-data-protection-amendment-act-2024/>
+- Japan — Personal Information Protection Commission (PPC), breach-reporting duty under the revised APPI — <https://www.ppc.go.jp/en/>
 - GDPR Article 33 — Notification of a personal data breach to the supervisory authority (within 72 hours) — <https://gdpr-info.eu/art-33-gdpr/>
 - GDPR Article 34 — Communication of a personal data breach to the data subject — <https://gdpr-info.eu/art-34-gdpr/>
 - GDPR Article 5(1)(c) — Data minimisation — <https://gdpr-info.eu/art-5-gdpr/>
-- Japan — Personal Information Protection Commission (PPC), breach-reporting duty under the revised APPI — <https://www.ppc.go.jp/en/>
 
 **Least-privilege, read-only & human-approved access**
 

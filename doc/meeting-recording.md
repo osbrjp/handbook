@@ -74,11 +74,15 @@ consent**. This is both a legal requirement and a trust requirement.
 
 **Why "prior" and "all-party" matter legally.** Many jurisdictions require
 all-party (two-party) consent to record a conversation, and the strictest
-applicable law governs a multi-jurisdiction call. Japan's **APPI** treats a
+applicable law governs a multi-jurisdiction call. As a Malaysian company,
+OSBR starts with Malaysia's **Personal Data Protection Act 2010 (PDPA)**: a
+recording of an identifiable person is personal data, so the PDPA's **Notice and
+Choice** principle applies — give notice and obtain consent **before** recording,
+and use it only for the stated purpose. Japan's **APPI** likewise treats a
 recording of an identifiable person as personal information whose acquisition and
-use must stay within a stated purpose; the EU **GDPR** requires consent that is
-specific, informed, and unambiguous. The safe, universal rule that satisfies all
-of these: **get everyone's consent, in advance, on the record.**
+use must stay within a stated purpose (利用目的); the EU **GDPR** requires consent
+that is specific, informed, and unambiguous. The safe, universal rule that
+satisfies all of these: **get everyone's consent, in advance, on the record.**
 
 ### 3-2. Use only within the client-agreed scope
 
@@ -88,7 +92,7 @@ the client agreed to** — preserving the decision record for that engagement.
 - The transcript, summary, and audio MUST NOT be repurposed — not for training
   models outside the agreed scope, not for marketing, not for sharing with other
   clients or teams — without fresh, specific consent. This is **purpose
-  limitation** under both APPI and GDPR.
+  limitation** under Malaysia's PDPA, Japan's APPI, and the GDPR.
 - Access MUST be limited to the people who need it for the engagement, under the
   access controls of the [Data Protection Policy](/data-protection).
 - Where the transcription tool is a third party, its **data-processing terms**
@@ -165,6 +169,12 @@ If prior consent cannot be shown, there is no recording — full stop.
 - **All-party (two-party) consent** — many jurisdictions require every party to a
   conversation to consent before it may be recorded; the strictest applicable law
   governs a multi-jurisdiction call.
+- **PDPA (Personal Data Protection Act 2010)** — Malaysia's data-protection law
+  (amended 2024; regulator: Personal Data Protection Commissioner,
+  <https://www.pdp.gov.my/>). A recording of an identifiable person is personal
+  data, so the **Notice and Choice** principle requires notice and consent before
+  recording, the **Retention** principle limits keeping it beyond need, and use
+  stays bound to the stated purpose — a consent-based regime.
 - **APPI (個人情報の保護に関する法律)** — Japan's Act on the Protection of Personal
   Information: a recording of an identifiable person is personal information, and
   its acquisition and use must stay within a stated purpose (利用目的).

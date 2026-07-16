@@ -95,9 +95,10 @@ controller, OSBR is a processor, and any AI provider is a **sub-processor**. Und
 [GDPR Art. 28](https://gdpr-info.eu/art-28-gdpr/) a processor MUST NOT engage a
 sub-processor without the controller's authorization and MUST bind it by contract
 to equivalent protection. The AI Data-Handling Record is that authorization, made
-explicit. Where client data originates under another regime (e.g. Japan's APPI for
-cross-border transfer and third-party handling), the record MUST satisfy it too —
-see [Data Protection](/data-protection).
+explicit. Where client data falls under OSBR's home regime — Malaysia's Personal Data
+Protection Act 2010 (PDPA) — or another regime (e.g. Japan's APPI for cross-border
+transfer and third-party handling, or the EU's GDPR), the record MUST satisfy it
+too — see [Data Protection](/data-protection).
 
 Every developer is responsible for **staying inside the record**. If a task seems
 to need data or a provider the record does not permit, the answer is never to
