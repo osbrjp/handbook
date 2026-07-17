@@ -1,0 +1,60 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import Sidebar from "../components/Sidebar.astro";
+import Toc from "../components/Toc.astro";
+import { getNavPages, getPageBySlug, type PageRow } from "../lib/content/pages";
+import { renderMarkdown, extractHeadings } from "../lib/markdown";
+import { setReaderCacheHeaders } from "../lib/access";
+import { isEditorRole } from "../lib/auth/visitor";
+
+const slug = Astro.params.slug;
+if (!slug) return new Response(null, { status: 404 });
+
+const { visitor } = Astro.locals;
+
+let page: PageRow | null;
+let navPages: PageRow[] = [];
+try {
+  // independent reads — run concurrently (the page body + the sidebar list)
+  [page, navPages] = await Promise.all([getPageBySlug(slug, visitor), getNavPages(visitor)]);
+} catch {
+  // FAIL CLOSED: never render content on a backend error.
+  return new Response("Service unavailable", { status: 503 });
+}
+
+// Not-found AND forbidden both return 404 — no existence signal (red-team R2).
+if (!page) return new Response(null, { status: 404 });
+
+setReaderCacheHeaders(Astro.response.headers, page.visibility, visitor);
+let html: string;
+let headings: ReturnType<typeof extractHeadings>;
+try {
+  html = renderMarkdown(page.body);
+  headings = extractHeadings(page.body);
+} catch {
+  // FAIL CLOSED: a render-pipeline throw must not leak an unhandled 500.
+  return new Response("Service unavailable", { status: 503 });
+}
+---
+
+<Base title={page.title} visitor={visitor}>
+  <div class="doc">
+    <Sidebar pages={navPages} current={slug} />
+    <article class="prose doc-main">
+      <div class="doc-head">
+        <h1>{page.title}</h1>
+        {
+          isEditorRole(visitor?.role) && (
+            <a class="edit-btn" href={`/edit-pages/edit/${page.slug}`} title="Edit this page">
+              <Icon name="pencil" />
+              Edit
+            </a>
+          )
+        }
+      </div>
+      <Fragment set:html={html} />
+    </article>
+    <Toc headings={headings} />
+  </div>
+</Base>

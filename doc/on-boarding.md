@@ -1,3 +1,11 @@
+---
+title: "On-boarding Guide"
+section: "Guideline"
+nav_label: "On-boarding Guide"
+sort: 50
+visibility: internal
+---
+
 # On-boarding Guide
 
 Welcome to OSBR! This guide outlines the on-boarding process for new team members.

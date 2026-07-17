@@ -1,0 +1,13 @@
+---
+// Renders the "preview only" warning when a write bounced back with
+// ?error=readonly (server-side fallback path — the client normally shows a
+// popup first). Reads the flag itself so callers just drop it in.
+const show = Astro.url.searchParams.get("error") === "readonly";
+---
+{
+  show && (
+    <div class="notice notice-warn">
+      ⚠ That change can’t be saved in this environment (preview only).
+    </div>
+  )
+}

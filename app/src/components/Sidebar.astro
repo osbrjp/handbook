@@ -1,0 +1,55 @@
+---
+import { groupBySection } from "../lib/content/acl";
+import type { PageRow } from "../lib/content/pages";
+import CollapsePersistence from "./CollapsePersistence.astro";
+import SidebarTree from "./SidebarTree.astro";
+
+// The sidebar lists exactly what the visitor may read (getNavPages already
+// applied the ACL) — nothing to grey out: public|internal is the whole model.
+interface Props {
+  pages: PageRow[];
+  current?: string;
+}
+const { pages, current } = Astro.props;
+const sections = groupBySection(pages);
+---
+
+<aside class="doc-sidebar">
+  {/* Mobile-only disclosure: under 760px the sidebar collapses behind a
+      "Menu" bar so page content is immediately visible. A real button with
+      aria-expanded (same inline-script pattern as CollapsePersistence /
+      theme-toggle) so screen readers get disclosure semantics. Desktop hides
+      the button and shows the groups as before. */}
+  <button type="button" class="sb-menu-btn" aria-expanded="false" aria-controls="sb-groups">
+    <span aria-hidden="true">☰</span> Menu
+  </button>
+  <div class="sb-groups" id="sb-groups">
+    {
+      sections.map(([section, items]) => {
+        const hasCurrent = items.some((p) => p.slug === current);
+        // Top level = no parent, or a parent this VISITOR can't see (ACL may
+        // hide the parent; its readable children must surface, not vanish).
+        const roots = items.filter((p) => !p.parent || !items.some((q) => q.slug === p.parent));
+        return (
+          <details class="sb-group" data-section={section} open={hasCurrent || undefined}>
+            <summary class="sb-title">{section}</summary>
+            <SidebarTree items={items} nodes={roots} current={current} />
+          </details>
+        );
+      })
+    }
+  </div>
+</aside>
+
+<CollapsePersistence selector=".doc-sidebar details[data-section]" storageKey="sbSections" />
+
+<script is:inline>
+  // Mobile menu disclosure: flip aria-expanded; CSS shows .sb-groups when true.
+  (function () {
+    var btn = document.querySelector(".sb-menu-btn");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      btn.setAttribute("aria-expanded", btn.getAttribute("aria-expanded") === "true" ? "false" : "true");
+    });
+  })();
+</script>

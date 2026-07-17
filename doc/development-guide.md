@@ -1,3 +1,11 @@
+---
+title: "Development Guide"
+section: "Guideline"
+nav_label: "Development Guide"
+sort: 60
+visibility: internal
+---
+
 # Development Guide
 
 In this page, you will find the standard development policy and workflow in OSBR.

@@ -1,0 +1,29 @@
+---
+// Reusable app alert popup. Include ONCE per page, then show it from any client
+// script (no import needed) by dispatching a custom event:
+//   document.dispatchEvent(new CustomEvent("app:alert", { detail: "message" }))
+// Reuses the .confirm-dialog styling so it matches the delete confirmations.
+interface Props {
+  title?: string;
+}
+const { title = "Can’t do that here" } = Astro.props;
+---
+
+<dialog id="app-alert" class="confirm-dialog">
+  <h2>{title}</h2>
+  <p id="app-alert-msg"></p>
+  <div class="confirm-actions">
+    <button type="button" class="btn btn-brand" id="app-alert-ok">OK</button>
+  </div>
+</dialog>
+
+<script>
+  const dialog = document.getElementById("app-alert") as HTMLDialogElement | null;
+  const msgEl = document.getElementById("app-alert-msg");
+  document.addEventListener("app:alert", (e) => {
+    const detail = (e as CustomEvent<string>).detail;
+    if (msgEl) msgEl.textContent = detail ?? "Something went wrong.";
+    if (dialog && !dialog.open) dialog.showModal();
+  });
+  document.getElementById("app-alert-ok")?.addEventListener("click", () => dialog?.close());
+</script>

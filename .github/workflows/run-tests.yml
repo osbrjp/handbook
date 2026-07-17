@@ -1,7 +1,7 @@
 name: Run Tests
 on:
   pull_request:
-    types: [review_requested, synchronize, labeled]
+    types: [opened, review_requested, synchronize, labeled]
   push:
     branches:
       - "main"
@@ -11,13 +11,24 @@ permissions:
   pull-requests: write
 
 jobs:
-  run-tests:
+  # ONE copy of the trigger condition; both build jobs hang off it via `needs`
+  # (a skipped gate skips them too). handbook/* head branches are editor
+  # "submit for review" PRs (opened by the handbook app, never
+  # review_requested/labeled) — run-tests is a REQUIRED check on main, so
+  # without that clause those PRs could never merge.
+  gate:
     if: |
       (github.event.action == 'review_requested' ||
       (github.event.action == 'labeled' && github.event.label.name == 'ci-testing') ||
       (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'ci-testing'))) ||
+      (github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'handbook/')) ||
       (github.event_name == 'push')
+    runs-on: ubuntu-latest
+    steps:
+      - run: "true"
 
+  run-tests:
+    needs: gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -35,6 +46,35 @@ jobs:
               repo: context.repo.repo,
               labels: ["ci-testing"]
             })
+      - name: Set up pnpm
+        # app/ is a standalone pnpm project (not in the root workspace);
+        # pin its pnpm from app/package.json, not the root's.
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: app/package.json
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24 # >=22.18 for node --test importing .ts (type stripping)
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: app
+      - name: Typecheck, test, guard, build
+        run: pnpm check && pnpm test && pnpm guard && pnpm build
+        working-directory: app
+
+  # The legacy VitePress site still ships from doc/ until the cutover
+  # (POC.md "Migration & production cutover") — keep its build green too.
+  docs-build:
+    needs: gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up pnpm
         uses: pnpm/action-setup@v6
       - name: Set up Node.js

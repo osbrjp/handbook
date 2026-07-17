@@ -1,0 +1,347 @@
+---
+import "../styles/global.css";
+import Icon from "../components/Icon.astro";
+import { isEditorRole, type Visitor } from "../lib/auth/visitor";
+import { environmentName } from "../lib/env";
+import { SITE_TITLE } from "../lib/site";
+
+interface Props {
+  title: string;
+  visitor?: Visitor | null;
+}
+const { title, visitor = null } = Astro.props;
+// Environment ribbon above EVERYTHING (even the header) on non-production
+// hosts, so nobody mistakes local/staging for the live handbook. Production
+// renders nothing.
+const env = environmentName(Astro.url.host);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+    />
+    <title>{title} · OSBR Handbook</title>
+    <script is:inline>
+      // Apply saved light/dark theme before paint (default dark, like the original).
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem("theme") || "dark";
+      } catch (_) {}
+    </script>
+  </head>
+  <body>
+    {
+      env !== "production" && (
+        <div class={`env-ribbon env-ribbon-${env}`}>
+          {env === "local"
+            ? "LOCAL environment — this is a development copy, not the live handbook"
+            : "POC environment — a proof-of-concept demo, not the live handbook"}
+        </div>
+      )
+    }
+    <header class="site-header">
+      <a class="brand" href="/">
+        <img class="brand-logo" src="/logo1.svg" alt="OSBR" width="32" height="32" />
+        <span class="brand-text">{SITE_TITLE}</span>
+      </a>
+      {/* Own header slot (not part of nav-right): auto margins float it in
+          the middle on desktop; on mobile it flexes to fill the row. */}
+      <div class="search" id="search">
+        <input
+          type="search"
+          id="search-input"
+          class="search-input"
+          placeholder="Search…"
+          autocomplete="off"
+          spellcheck="false"
+          role="combobox"
+          aria-expanded="false"
+          aria-controls="search-results"
+          aria-label="Search the handbook"
+        />
+        <div id="search-results" class="search-results" role="listbox" hidden></div>
+      </div>
+      <div class="nav-right">
+        <nav class="nav-links">
+          <a href="https://www.osbrjp.com" target="_blank" rel="noopener">OSBR ↗</a>
+        </nav>
+        {
+          /* Signed out: standalone theme toggle. Signed in: it lives in the
+             profile dropdown instead (same id either way — one renders). */
+          !visitor && (
+            <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle light/dark">
+              🌙
+            </button>
+          )
+        }
+        <a
+          class="icon-btn gh-btn"
+          href="https://github.com/osbrjp/handbook"
+          target="_blank"
+          rel="noopener"
+          aria-label="GitHub"
+        >
+          <Icon name="github" size={18} />
+        </a>
+        <span class="nav-sep"></span>
+        {
+          visitor ? (
+            <>
+              {isEditorRole(visitor.role) && <a class="nav-edit" href="/edit-pages">Manage pages</a>}
+              <div class="profile">
+                <button
+                  type="button"
+                  class="avatar-btn"
+                  id="profile-btn"
+                  aria-expanded="false"
+                  aria-controls="profile-dropdown"
+                  aria-label={`Account menu — ${visitor.login}`}
+                >
+                  {/* GitHub serves any user's avatar at github.com/<login>.png —
+                      no API/token. Fallback initial sits behind it if it 404s
+                      (e.g. dev-shim fake logins). */}
+                  <span class="avatar-fallback" aria-hidden="true">
+                    {visitor.login.charAt(0).toUpperCase()}
+                  </span>
+                  <img
+                    class="avatar"
+                    src={`https://github.com/${visitor.login}.png?size=64`}
+                    alt=""
+                    width="28"
+                    height="28"
+                    referrerpolicy="no-referrer"
+                    onerror="this.remove()"
+                  />
+                </button>
+                <div class="profile-dropdown" id="profile-dropdown" hidden>
+                  <div class="profile-who">
+                    <strong>{visitor.login}</strong>
+                    <span class="profile-role">{visitor.role}</span>
+                  </div>
+                  {isEditorRole(visitor.role) && (
+                    <a class="profile-item" href="/edit-pages">
+                      <span class="item-icon" aria-hidden="true">✏️</span>
+                      <span>Manage pages</span>
+                    </a>
+                  )}
+                  {/* role=switch: on = dark. The knob slides + spins via CSS
+                      keyed off aria-checked; JS only flips the attribute. */}
+                  <button
+                    id="theme-toggle"
+                    class="profile-item theme-item"
+                    type="button"
+                    role="switch"
+                    aria-checked="true"
+                    data-menu-item="1"
+                  >
+                    <span class="item-icon" aria-hidden="true">🌗</span>
+                    <span>Dark mode</span>
+                    <span class="theme-switch" aria-hidden="true">
+                      <span class="theme-knob"></span>
+                    </span>
+                  </button>
+                  <form method="POST" action="/api/auth/logout">
+                    <button type="submit" class="profile-item">
+                      <span class="item-icon" aria-hidden="true">↪</span>
+                      <span>Sign out</span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </>
+          ) : (
+            <a href="/api/auth/login">Sign in</a>
+          )
+        }
+      </div>
+    </header>
+
+    <slot />
+
+    <script is:inline>
+      // Light/dark toggle — persisted. Renders as a bare icon in the navbar
+      // (signed out) or a "Dark mode" switch row in the profile dropdown
+      // (signed in, data-menu-item): there the CSS animates the knob off
+      // aria-checked, so JS only flips the attribute.
+      (function () {
+        const btn = document.getElementById("theme-toggle");
+        const icon = () => {
+          if (!btn) return;
+          const light = document.documentElement.dataset.theme === "light";
+          if (btn.dataset.menuItem) {
+            btn.setAttribute("aria-checked", String(!light));
+          } else {
+            btn.textContent = light ? "🌙" : "☀️";
+          }
+        };
+        icon();
+        btn?.addEventListener("click", () => {
+          const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+          document.documentElement.dataset.theme = next;
+          try {
+            localStorage.setItem("theme", next);
+          } catch (_) {}
+          icon();
+        });
+      })();
+    </script>
+    <script is:inline>
+      // Profile dropdown: avatar button toggles; click-outside / Escape close.
+      (function () {
+        const btn = document.getElementById("profile-btn");
+        const menu = document.getElementById("profile-dropdown");
+        if (!btn || !menu) return;
+        const close = () => {
+          menu.hidden = true;
+          btn.setAttribute("aria-expanded", "false");
+        };
+        btn.addEventListener("click", () => {
+          const open = !menu.hidden;
+          menu.hidden = open;
+          btn.setAttribute("aria-expanded", String(!open));
+        });
+        document.addEventListener("click", (e) => {
+          if (!btn.contains(e.target) && !menu.contains(e.target)) close();
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") close();
+        });
+      })();
+    </script>
+    <script is:inline>
+      // Navbar search: debounced fetch of /api/search, dropdown of results.
+      // Result DOM is built with createElement + textContent so API strings are
+      // never injected as HTML (no innerHTML on untrusted data).
+      (function () {
+        const wrap = document.getElementById("search");
+        const input = document.getElementById("search-input");
+        const panel = document.getElementById("search-results");
+        if (!wrap || !input || !panel) return;
+
+        let timer = 0;
+        let seq = 0;
+
+        function close() {
+          panel.hidden = true;
+          panel.replaceChildren();
+          input.setAttribute("aria-expanded", "false");
+        }
+
+        function showMessage(text) {
+          panel.replaceChildren();
+          const div = document.createElement("div");
+          div.className = "search-empty";
+          div.textContent = text;
+          panel.appendChild(div);
+          panel.hidden = false;
+          input.setAttribute("aria-expanded", "true");
+        }
+
+        function render(results) {
+          panel.replaceChildren();
+          if (!results.length) {
+            showMessage("No results");
+            return;
+          }
+          for (const r of results) {
+            const a = document.createElement("a");
+            a.className = "search-hit";
+            a.href = "/" + r.slug;
+            a.setAttribute("role", "option");
+
+            const title = document.createElement("span");
+            title.className = "search-hit-title";
+            title.textContent = r.title;
+            a.appendChild(title);
+
+            const section = document.createElement("span");
+            section.className = "search-hit-section";
+            section.textContent = r.section;
+            a.appendChild(section);
+
+            if (r.snippet) {
+              const snip = document.createElement("span");
+              snip.className = "search-hit-snippet";
+              snip.textContent = r.snippet;
+              a.appendChild(snip);
+            }
+            panel.appendChild(a);
+          }
+          panel.hidden = false;
+          input.setAttribute("aria-expanded", "true");
+        }
+
+        async function run(q) {
+          const mine = ++seq;
+          try {
+            const res = await fetch("/api/search?q=" + encodeURIComponent(q), {
+              headers: { Accept: "application/json" },
+            });
+            if (mine !== seq) return; // a newer query superseded this one
+            const data = res.ok ? await res.json() : { results: [] };
+            render(Array.isArray(data.results) ? data.results : []);
+          } catch (_) {
+            if (mine === seq) showMessage("Search unavailable");
+          }
+        }
+
+        input.addEventListener("input", function () {
+          clearTimeout(timer);
+          const q = input.value.trim();
+          if (!q) {
+            close();
+            return;
+          }
+          timer = window.setTimeout(function () {
+            run(q);
+          }, 200);
+        });
+
+        input.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            close();
+            input.blur();
+          }
+        });
+
+        // Enter on a focused result navigates (anchors do this natively); arrow
+        // keys move focus between results as a nice-to-have.
+        panel.addEventListener("keydown", function (e) {
+          const hits = Array.from(panel.querySelectorAll(".search-hit"));
+          if (!hits.length) return;
+          const i = hits.indexOf(document.activeElement);
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            (hits[i + 1] || hits[0]).focus();
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            (hits[i - 1] || hits[hits.length - 1]).focus();
+          } else if (e.key === "Escape") {
+            close();
+            input.focus();
+          }
+        });
+
+        document.addEventListener("click", function (e) {
+          if (!wrap.contains(e.target)) close();
+        });
+      })();
+    </script>
+    <script>
+      if (document.querySelector(".mermaid")) {
+        import("mermaid").then((m) => {
+          const dark = document.documentElement.dataset.theme !== "light";
+          m.default.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral" });
+          m.default.run();
+        });
+      }
+    </script>
+  </body>
+</html>
