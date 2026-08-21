@@ -321,44 +321,82 @@ alternative in production. **Do not move the zone.** Doing so would put the
 Google Workspace mail records through an unnecessary migration for no benefit,
 and would need registrar access nobody has had to find.
 
-`handbook.osbrjp.com` follows the same path as `www`: a CloudFront
-distribution with the handbook Worker as its origin, and a Route 53 record
-pointing at that distribution. Route 53 stays authoritative for everything.
+The obvious move is therefore to give `handbook.osbrjp.com` the same treatment
+as `www` — a CloudFront distribution with the Worker as its origin, and a
+Route 53 record pointing at it. **That does not work for this app**; the
+measured reasons are in the next section. Read it before building anything.
 
-**⚠️ The handbook is NOT the marketing site — caching must be off.** `www`
-happily serves `cf-cache-status: HIT` because every byte of it is public. The
-handbook serves **per-reader access-controlled** content. If CloudFront caches
-an authenticated `200` and replays it to the next requester, the Worker's
-fail-closed `canRead` gate never runs and the ACL is bypassed entirely — the
-request never reaches the origin. The distribution therefore needs:
+**Caching, if a CDN ever does sit in front.** The app already emits
+CDN-correct headers — verified against the live Worker on 2026-08-21:
 
-- **`CachingDisabled`** cache policy on all handbook routes. Don't try to be
-  clever with a cookie-keyed cache key; the content is small and the Worker is
-  fast.
-- **Origin request policy forwarding all cookies** — the session is an AES-GCM
-  encrypted cookie and must reach the Worker on every request.
-- **Forward the original `Host` header — this one is a hard 403, not a
-  subtlety.** Two independent origin checks depend on it:
-  - **Astro's `security.checkOrigin`** (pinned on in `app/astro.config.mjs`,
-    and the default in Astro 7) compares the browser's `Origin` header against
-    **the origin of the URL the Worker receives** — it does *not* consult
-    `x-forwarded-host`. CloudFront rewrites `Host` to the origin domain by
-    default, which would make `Origin: https://handbook.osbrjp.com` unequal to
-    `https://<worker>.workers.dev` and return
-    `403 Cross-site POST form submissions are forbidden` on **every** save,
-    approve, reject and delete. Readers unaffected; the editor entirely dead.
-  - **The app's own `getOrigin`** (`app/src/lib/auth/origin.ts`) resolves from
-    `OAUTH_ORIGIN` and deliberately ignores forwarded headers outside dev, so
-    the proxy cannot spoof it — but it must agree with what Astro computes.
+| Route | `Cache-Control` |
+| --- | --- |
+| `/edit-pages`, `/api/search` | `private, no-store` |
+| content pages, `/llms.txt` | `public, max-age=60, s-maxage=300` |
 
-  Both must resolve to `https://handbook.osbrjp.com`. **Verify empirically
-  before committing to this architecture:** forwarding that Host to a
-  `*.workers.dev` origin puts the `Host` header out of step with the TLS SNI,
-  and Cloudflare's routing behaviour in that configuration must be tested, not
-  assumed. If it cannot be made to work, the fallbacks are (a) set
-  `security.checkOrigin: false` and rely on the app's own double-submit token
-  plus `SameSite: strict` — genuinely strong on its own, but a real reduction
-  in defence-in-depth — or (b) serve the hostname from Cloudflare directly.
+So a cache that honours origin headers will already skip the editor and
+personalized surfaces; a blanket `CachingDisabled` is not required. Two things
+still need care:
+
+- **Forward all cookies.** The session is an AES-GCM encrypted cookie and must
+  reach the Worker on every request — it carries CSRF state as well as
+  identity, so stripping cookies breaks editor writes, not just sign-in.
+- **`Vary: Cookie` is not honoured by CloudFront.** The root `/` sets it
+  alongside `s-maxage=300`. Since CloudFront largely ignores `Vary`, put the
+  session cookie in the cache key for HTML or don't cache HTML at all —
+  otherwise one visitor's chrome (signed-in nav, edit affordances) can be
+  replayed to another. With the corpus currently all-`public` this is a
+  correctness wart rather than a disclosure; it becomes a real ACL bypass the
+  moment any page is marked `internal`.
+### ⛔ CloudFront in front of `*.workers.dev` cannot serve the editor
+
+**This was tested against the live Worker on 2026-08-21, not reasoned about.**
+An earlier revision of this document said "CloudFront must forward the original
+`Host`". That instruction is wrong — it is not merely unverified, it is
+impossible. Measured results:
+
+| Request | Result |
+| --- | --- |
+| `GET` with `Host: handbook.osbrjp.com` | **403**, `server: cloudflare` — Worker never runs |
+| `GET` with `Host: example.com` | **403**, `server: cloudflare` |
+| `POST`, `Host: workers.dev`, `Origin: handbook.osbrjp.com` | **403** `Cross-site POST form submissions are forbidden` (Astro) |
+| `POST`, `Origin: workers.dev` (matching) | 404 — passes `checkOrigin`, reaches the route |
+
+Two independent walls, and they close off both configurations:
+
+1. **Cloudflare's edge rejects any `Host` that isn't the `workers.dev`
+   hostname** — reads *and* writes, before the Worker executes. So "forward the
+   original Host" 403s the entire site, not just the editor.
+2. With CloudFront's **default** Host rewrite, the Worker sees
+   `https://<worker>.workers.dev` while the browser sends
+   `Origin: https://handbook.osbrjp.com`. Astro's `security.checkOrigin`
+   (pinned on in `app/astro.config.mjs`; default `true` in Astro 7) compares
+   the `Origin` header against the origin of the URL **the Worker receives**
+   and never consults `x-forwarded-host` — so every save, approve, reject and
+   delete returns 403. Readers fine; the editor entirely dead.
+
+**Why `www.osbrjp.com` works and this wouldn't:** `www` is a static marketing
+site with no form POSTs, so a rewritten `Host` is harmless there. The pattern
+does not transfer to an app with authenticated writes.
+
+**Viable paths, in preference order:**
+
+1. **Worker Custom Domain, no CloudFront (recommended).** Add
+   `handbook.osbrjp.com` as its own zone in Cloudflare and delegate to it with
+   `NS` records from Route 53, then attach it as a Custom Domain on the Worker.
+   The Worker then sees the real hostname, so `checkOrigin` works natively,
+   TLS is issued automatically, and the `Host` problem disappears rather than
+   being worked around. `osbrjp.com` stays on Route 53 — Google Workspace mail
+   is untouched. Confirm the account can add a subdomain as a standalone zone
+   before committing.
+2. **Cloudflare for SaaS (Custom Hostnames).** Lets the edge accept arbitrary
+   `Host` headers, so CloudFront could forward the original. Correct, but a
+   paid add-on and heavy machinery for one subdomain.
+3. **CloudFront + `security.checkOrigin: false`.** Works, but deliberately
+   removes a security layer. The app's own double-submit token and
+   `SameSite: strict` cookie are origin-independent and would still protect —
+   **owner decision 2026-08-21 was to leave `checkOrigin` ON**, so this path is
+   not taken.
 - **`OAUTH_ORIGIN = https://handbook.osbrjp.com`**, not the `workers.dev`
   hostname. It is dashboard-managed and survives deploys via `keep_vars = true`
   (see `app/wrangler.toml`), so this is a dashboard change, not a commit.
@@ -422,35 +460,38 @@ be internal" as an open content question, not a solved one.
    Workers live in the company Cloudflare account. If any of these sat on a
    personal account, that person leaving/losing access would break sign-in or
    force a mass logout.
-4. **DNS cutover — CloudFront in front of the Worker.** Mirror what `www`
-   already does; no zone move, no Cloudflare custom domain.
-   1. Create a CloudFront distribution for `handbook.osbrjp.com`: origin = the
-      Worker's `*.workers.dev` hostname, ACM cert for the alternate domain
-      name, **cache policy `CachingDisabled`**, origin request policy
-      **forwarding all cookies** (see the caching warning above — this is an
-      ACL-bypass risk, not a performance tuning knob).
-   2. Set `OAUTH_ORIGIN` to `https://handbook.osbrjp.com` and add that
+4. **DNS cutover — Worker Custom Domain via subdomain delegation.** Not
+   CloudFront: see "CloudFront in front of `*.workers.dev` cannot serve the
+   editor" above for the measured reason. `osbrjp.com` stays on Route 53
+   throughout; only the `handbook` subdomain is delegated, so Google Workspace
+   mail is never touched.
+   1. In Cloudflare, *Add a site* → **`handbook.osbrjp.com`** as its own zone
+      (not `osbrjp.com`). Confirm the account can add a subdomain as a
+      standalone zone before going further.
+   2. In Route 53: replace the `handbook → osbrjp.github.io` CNAME with **`NS`
+      records** pointing at the two nameservers Cloudflare assigns. TTL should
+      already be lowered (see above) so this is reversible in minutes.
+   3. Attach `handbook.osbrjp.com` as a **Custom Domain on the Worker**.
+      Cloudflare issues the certificate and routes the hostname to the Worker,
+      so the Worker now sees the real hostname — `checkOrigin` and
+      `getOrigin` agree with no proxy trickery.
+   4. Set `OAUTH_ORIGIN` to `https://handbook.osbrjp.com` and add that
       callback to the GitHub App.
-   3. Test **against the distribution hostname** before touching DNS:
-      - **An editor save actually succeeds.** This is the one that catches a
-        `Host` misconfiguration — a 403 "Cross-site POST form submissions are
-        forbidden" means CloudFront is not forwarding the original Host (see
-        above). Cover save, approve and reject, not just save.
+   5. Test on the real hostname:
+      - **An editor save actually succeeds** — plus approve and reject, not
+        just save. A 403 `Cross-site POST form submissions are forbidden`
+        means the Worker is not seeing the hostname the browser used.
       - **Sign-in completes** — the OAuth round-trip returns to
         `handbook.osbrjp.com`, not to `workers.dev`.
-      - **No cross-user response bleed.** Sign in as two different people and
-        confirm neither sees the other's session — this is what a stray
-        CloudFront cache would break.
       - **The ACL still holds.** The corpus is currently all-`public`, so
         temporarily mark one page `internal` to test it: 404 anonymously,
         renders once signed in. Revert afterwards.
-   4. In Route 53 (TTL already lowered): replace the
-      `handbook → osbrjp.github.io` CNAME with the distribution.
 
-   **Both sites stay up throughout** — GitHub Pages keeps serving anyone with a
-   stale DNS answer, the distribution serves everyone else; visitors see old or
-   new, never an outage. **Rollback = restore the CNAME to `osbrjp.github.io`**
-   (keep Pages alive until step 8 precisely so rollback stays one step).
+   **Rollback** = delete the `NS` records and restore
+   `CNAME → osbrjp.github.io`. Keep Pages alive until step 8 precisely so
+   rollback stays one step. Unlike the CNAME swap this is a delegation change,
+   so the old and new answers do not coexist as cleanly — do it with the low
+   TTL in place and verify immediately.
 5. **Re-establish staging isolation — BEFORE routine post-cutover deploys.**
    Once `osbr-handbook` serves the live domain, `pnpm build && npx wrangler
    deploy` deploys straight to PRODUCTION (the POC's single-worker setup has
