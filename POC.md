@@ -293,34 +293,66 @@ to the `release` branch; `handbook.osbrjp.com` is a CNAME to `osbrjp.github.io`
 (GitHub Pages anycast IPs `185.199.108–111.153`). Everything is public — Pages
 serves static files and can't gate per user.
 
-**DNS reality (checked 2026-07-03):** the `osbrjp.com` zone is hosted on
-**AWS Route 53** (`awsdns-*` nameservers); the apex site rides CloudFront;
-`handbook.osbrjp.com` is a CNAME to `osbrjp.github.io` with a **3600s TTL**.
-This matters because **Cloudflare Workers custom domains require the domain's
-DNS zone to live in the Cloudflare account** — an external (Route 53) CNAME
-pointing at a Worker cannot terminate TLS for the hostname. So the cutover has
-a prerequisite nobody pays for but someone must do: **move the `osbrjp.com`
-DNS zone to the company Cloudflare account** (free plan is fine).
+**DNS reality (re-checked 2026-08-21):** the `osbrjp.com` zone is hosted on
+**AWS Route 53** (`awsdns-*` nameservers, confirmed at the `.com` registry) and
+`handbook.osbrjp.com` is still a CNAME to `osbrjp.github.io` with a **3600s
+TTL**. No DNSSEC (no `DS` at the parent). The zone also carries the company's
+**Google Workspace mail** — `MX → smtp.google.com`, a four-include SPF, DMARC
+at `p=quarantine`, and six domain-verification TXT records.
 
-**Phase 0 — move DNS to Cloudflare (do anytime, zero user impact):**
-1. Identify who holds **registrar access** for `osbrjp.com` (where its
-   nameservers are set) and **Route 53 access** (to export records). This is
-   the one new dependency.
-2. In the company Cloudflare account: *Add a site* → `osbrjp.com` (Free plan).
-   Cloudflare imports the records — **verify against a Route 53 export**
-   (`aws route53 list-resource-record-sets`) so nothing is missed.
-3. Set every imported record to **DNS only (grey cloud)** — especially the
-   CloudFront apex — so the move changes *where DNS answers come from* and
-   nothing about how any site behaves.
-4. At the registrar, switch the nameservers to the pair Cloudflare assigns.
-   Keep the Route 53 zone running unchanged during propagation (both providers
-   give identical answers → zero downtime; NS changes take up to ~48h).
-5. After the zone is active on Cloudflare, decommission the Route 53 zone.
+**The apex already runs the pattern we need.** `www.osbrjp.com` returns *both*
+vendors' headers:
 
-The main osbrjp.com site stays on AWS/CloudFront exactly as-is — only its DNS
-hosting moves. (Alternative if the zone must stay on Route 53: Cloudflare's
-custom-hostname/SaaS setup — disproportionate complexity for one subdomain;
-moving the zone is the standard path.)
+```
+cf-ray / cf-cache-status: HIT / server: cloudflare     ← Cloudflare served it
+via: 1.1 ….cloudfront.net (CloudFront) / x-amz-cf-id   ← CloudFront in front
+```
+
+So the live chain is **Route 53 → CloudFront → Cloudflare Worker**. CloudFront
+terminates TLS for the hostname and the Worker is just a custom origin. (The
+apex itself is a CloudFront Function issuing a 301 to `www`.)
+
+**This removes the prerequisite this document used to state.** An earlier
+revision required moving the whole `osbrjp.com` zone into Cloudflare, on the
+grounds that Workers custom domains need the zone in the Cloudflare account.
+That constraint is real *for Workers custom domains* — but it is not the only
+way to serve a hostname from a Worker, and the company already runs the
+alternative in production. **Do not move the zone.** Doing so would put the
+Google Workspace mail records through an unnecessary migration for no benefit,
+and would need registrar access nobody has had to find.
+
+`handbook.osbrjp.com` follows the same path as `www`: a CloudFront
+distribution with the handbook Worker as its origin, and a Route 53 record
+pointing at that distribution. Route 53 stays authoritative for everything.
+
+**⚠️ The handbook is NOT the marketing site — caching must be off.** `www`
+happily serves `cf-cache-status: HIT` because every byte of it is public. The
+handbook serves **per-reader access-controlled** content. If CloudFront caches
+an authenticated `200` and replays it to the next requester, the Worker's
+fail-closed `canRead` gate never runs and the ACL is bypassed entirely — the
+request never reaches the origin. The distribution therefore needs:
+
+- **`CachingDisabled`** cache policy on all handbook routes. Don't try to be
+  clever with a cookie-keyed cache key; the content is small and the Worker is
+  fast.
+- **Origin request policy forwarding all cookies** — the session is an AES-GCM
+  encrypted cookie and must reach the Worker on every request.
+- **Host handling that preserves the OAuth origin check.** The app verifies
+  request origin explicitly (`app/src/lib/auth/origin.ts`, covered by
+  `tests/origin.test.mjs`). If CloudFront presents the origin a different Host
+  than the browser saw, sign-in breaks — or the check silently weakens.
+- **`OAUTH_ORIGIN = https://handbook.osbrjp.com`**, not the `workers.dev`
+  hostname. It is dashboard-managed and survives deploys via `keep_vars = true`
+  (see `app/wrangler.toml`), so this is a dashboard change, not a commit.
+
+Note the `*.workers.dev` hostname stays publicly reachable alongside
+CloudFront. That is acceptable — the Worker enforces auth itself — but two
+hostnames then serve the same gated content, and the origin check should
+reject the one we don't intend.
+
+**Before the swap:** drop the `handbook` CNAME TTL in Route 53 from 3600 to
+60–300. It is free, has zero user impact, and it is what makes both the
+cutover and the rollback fast.
 
 **Why the site host must change:** this app is Astro **SSR on Cloudflare
 Workers** — it checks GitHub identity and per-page access on every request,
@@ -329,10 +361,17 @@ host swap, not a redeploy of the same thing.
 
 **Cutover prerequisite — style-guide visibility:** the `standard-repository`
 code-quality hook fetches the style guides ANONYMOUSLY; they are `internal`
-in the POC content, so post-cutover the hook would 404. Flip the five
+in the POC content, so post-cutover the hook would 404. Flip all **six**
 `doc/style-guide*.md` files to `visibility: public` (one frontmatter word
 each) before the DNS swap — pending an explicit "coding standards are public"
 sign-off (they are already world-readable on the current site and in git).
+
+More broadly: the 2026-08-21 frontmatter migration set **every** newly-migrated
+page to `visibility: internal` — the schema's fail-closed default, chosen so a
+bulk migration could not silently publish anything. But all 55 pages are
+public on the live VitePress site *today*, so at cutover any page left
+`internal` becomes **less** visible than it is now. Deciding which pages are
+`public` is a content call that must happen before the DNS swap, not after.
 
 **Cutover steps (when ready to go live):**
 1. **Deploy the Worker.** `wrangler deploy` (or a CI job) publishes the Astro
@@ -361,14 +400,26 @@ sign-off (they are already world-readable on the current site and in git).
    Workers live in the company Cloudflare account. If any of these sat on a
    personal account, that person leaving/losing access would break sign-in or
    force a mass logout.
-4. **DNS cutover (requires Phase 0 done).** In Cloudflare: delete the
-   `handbook → osbrjp.github.io` CNAME and add `handbook.osbrjp.com` as a
-   **custom domain on the prod Worker** (Cloudflare creates the record and the
-   certificate automatically). Effectively instant at the edge. **Both sites
-   stay up throughout** — GitHub Pages keeps serving anyone with a stale DNS
-   answer, the Worker serves everyone else; visitors see old or new, never an
-   outage. **Rollback = recreate the CNAME to `osbrjp.github.io`** (keep Pages
-   alive until step 8 precisely so rollback stays one click).
+4. **DNS cutover — CloudFront in front of the Worker.** Mirror what `www`
+   already does; no zone move, no Cloudflare custom domain.
+   1. Create a CloudFront distribution for `handbook.osbrjp.com`: origin = the
+      Worker's `*.workers.dev` hostname, ACM cert for the alternate domain
+      name, **cache policy `CachingDisabled`**, origin request policy
+      **forwarding all cookies** (see the caching warning above — this is an
+      ACL-bypass risk, not a performance tuning knob).
+   2. Set `OAUTH_ORIGIN` to `https://handbook.osbrjp.com` and add that
+      callback to the GitHub App.
+   3. Test **against the distribution hostname** signed-out *and* signed-in
+      before touching DNS: a `public` page renders anonymously; an `internal`
+      page 404s anonymously and renders once signed in; two different users
+      never see each other's responses.
+   4. In Route 53 (TTL already lowered): replace the
+      `handbook → osbrjp.github.io` CNAME with the distribution.
+
+   **Both sites stay up throughout** — GitHub Pages keeps serving anyone with a
+   stale DNS answer, the distribution serves everyone else; visitors see old or
+   new, never an outage. **Rollback = restore the CNAME to `osbrjp.github.io`**
+   (keep Pages alive until step 8 precisely so rollback stays one step).
 5. **Re-establish staging isolation — BEFORE routine post-cutover deploys.**
    Once `osbr-handbook` serves the live domain, `pnpm build && npx wrangler
    deploy` deploys straight to PRODUCTION (the POC's single-worker setup has
