@@ -20,6 +20,22 @@ export default defineConfig({
   // distribution) MUST forward the original Host or every editor POST 403s.
   // See POC.md "Migration & production cutover". This layers over — and does
   // not replace — the app's own double-submit token in src/lib/csrf.ts.
+  //
+  // NOT a fix for that *on this adapter*: `security.allowedDomains`. It exists
+  // in Astro 7 and looks like the answer (it allowlists hosts and then trusts
+  // `x-forwarded-host` / `x-forwarded-proto`), but it is consumed only by the
+  // NODE adapter's request reconstruction (astro/dist/core/app/node.js) and
+  // the dev server. `@astrojs/cloudflare` never reads it — on Workers the
+  // Request arrives with a real URL, so there is no forwarded-header trust
+  // step to configure. Setting it here today would be inert; fix the Host at
+  // the proxy instead.
+  //
+  // It DOES become the correct mechanism if this app is ever moved to
+  // `@astrojs/node` behind a reverse proxy that terminates TLS (Cloudron,
+  // nginx, Traefik). In that setup the proxy's `x-forwarded-*` headers are
+  // what carry the real hostname, and `allowedDomains` is how you tell Astro
+  // which of them to trust — without it the Node adapter ignores them and
+  // checkOrigin compares against the internal container host instead.
   security: {
     checkOrigin: true,
   },
