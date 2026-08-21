@@ -1,3 +1,12 @@
+---
+title: "Database Guidelines"
+section: "Guideline"
+parent: "development-guide"
+nav_label: "Database Guidelines"
+sort: 430
+visibility: internal
+---
+
 # Database Guidelines
 
 These guidelines cover how OSBR chooses a data store and structures relational schemas. They are the detailed companion to the [Infrastructure Planning Policy](/infra-planning-policy) — that page sets the high-level principles; this one is the database how-to. The [Technical Glossary](/technical-glossary) defines the underlying terms.

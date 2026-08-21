@@ -1,3 +1,12 @@
+---
+title: "The Quality Gate"
+section: "Guideline"
+parent: "development-guide"
+nav_label: "Quality Gate"
+sort: 520
+visibility: internal
+---
+
 # The Quality Gate
 
 A piece of work is not done when it runs. It is done when it clears three

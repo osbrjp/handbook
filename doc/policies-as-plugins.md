@@ -1,3 +1,12 @@
+---
+title: "Policies as Plugins"
+section: "Guideline"
+parent: "ai-usage-guideline"
+nav_label: "Policies as Plugins"
+sort: 720
+visibility: internal
+---
+
 # Policies as Plugins
 
 This is the standard for how the OSBR engineering policy series reaches the AI

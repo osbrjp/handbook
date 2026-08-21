@@ -3,7 +3,7 @@ title: "Golang Style Guide"
 section: "Guideline"
 parent: "style-guide"
 nav_label: "Golang"
-sort: 63
+sort: 340
 visibility: internal
 ---
 

@@ -1,3 +1,12 @@
+---
+title: "Market Research"
+section: "Guideline"
+parent: "development-guide"
+nav_label: "Market Research"
+sort: 440
+visibility: internal
+---
+
 # Market Research
 
 This policy defines what OSBR does **before** it takes a single requirement from

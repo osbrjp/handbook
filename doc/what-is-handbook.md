@@ -2,7 +2,7 @@
 title: "What is the OSBR Handbook?"
 section: "About"
 nav_label: "What is Handbook?"
-sort: 10
+sort: 100
 visibility: public
 ---
 

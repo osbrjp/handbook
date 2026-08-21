@@ -1,3 +1,12 @@
+---
+title: "Multiple AI Agents"
+section: "Guideline"
+parent: "ai-usage-guideline"
+nav_label: "Multiple AI Agents"
+sort: 670
+visibility: internal
+---
+
 # Multiple AI Agents
 
 Every OSBR developer keeps **at least two coding agents usable every day** — for

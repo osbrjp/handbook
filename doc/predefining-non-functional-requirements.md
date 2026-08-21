@@ -2,7 +2,7 @@
 title: "Non-functional Requirements"
 section: "Guideline"
 nav_label: "Non-functional Requirements"
-sort: 70
+sort: 740
 visibility: internal
 ---
 

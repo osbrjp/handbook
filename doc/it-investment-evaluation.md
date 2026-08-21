@@ -1,3 +1,12 @@
+---
+title: "IT Investment Evaluation"
+section: "Guideline"
+parent: "development-guide"
+nav_label: "IT Investment Evaluation"
+sort: 480
+visibility: internal
+---
+
 # IT Investment Evaluation
 
 This policy defines how OSBR decides whether a piece of work is **worth doing**

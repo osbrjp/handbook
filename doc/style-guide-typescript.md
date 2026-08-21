@@ -3,7 +3,7 @@ title: "TypeScript Style Guide"
 section: "Guideline"
 parent: "style-guide"
 nav_label: "TypeScript"
-sort: 62
+sort: 330
 visibility: internal
 ---
 

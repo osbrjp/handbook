@@ -1,3 +1,12 @@
+---
+title: "AI Data-Handling"
+section: "Guideline"
+parent: "ai-usage-guideline"
+nav_label: "AI Data-Handling"
+sort: 660
+visibility: internal
+---
+
 # AI Data-Handling
 
 This is the highest-priority page of OSBR's AI operating model, and the one the

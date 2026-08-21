@@ -1,3 +1,12 @@
+---
+title: "Supply Chain & Risk"
+section: "Guideline"
+parent: "quality-gate"
+nav_label: "Supply Chain & Risk"
+sort: 610
+visibility: internal
+---
+
 # Supply Chain & Risk
 
 This is the standard the [Quality Gate](/quality-gate)'s **Security** lens holds

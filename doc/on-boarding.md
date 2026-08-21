@@ -2,7 +2,7 @@
 title: "On-boarding Guide"
 section: "Guideline"
 nav_label: "On-boarding Guide"
-sort: 50
+sort: 300
 visibility: internal
 ---
 

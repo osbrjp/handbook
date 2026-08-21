@@ -1,3 +1,12 @@
+---
+title: "Domain Terminology"
+section: "Guideline"
+parent: "development-guide"
+nav_label: "Domain Terminology"
+sort: 500
+visibility: internal
+---
+
 # Domain Terminology
 
 Every OSBR project maintains a **ubiquitous-language dictionary**: one

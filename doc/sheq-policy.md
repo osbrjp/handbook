@@ -2,7 +2,7 @@
 title: "OSBR SHEQ Policy"
 section: "Policies"
 nav_label: "SHEQ Policy"
-sort: 90
+sort: 800
 visibility: internal
 ---
 

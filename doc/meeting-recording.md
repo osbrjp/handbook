@@ -1,3 +1,12 @@
+---
+title: "Meeting Recording"
+section: "Guideline"
+parent: "ai-usage-guideline"
+nav_label: "Meeting Recording"
+sort: 710
+visibility: internal
+---
+
 # Meeting Recording
 
 This standard governs how OSBR records and transcribes meetings: **only with

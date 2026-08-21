@@ -3,7 +3,7 @@ title: "HTML & CSS Style Guide"
 section: "Guideline"
 parent: "style-guide"
 nav_label: "HTML & CSS"
-sort: 65
+sort: 360
 visibility: internal
 ---
 

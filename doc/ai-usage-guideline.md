@@ -1,3 +1,12 @@
+---
+title: "AI Usage Guideline"
+section: "Guideline"
+parent: "development-guide"
+nav_label: "AI Usage Guideline"
+sort: 650
+visibility: internal
+---
+
 # AI Usage Guideline
 
 This is how OSBR works with AI: one engineer, with AI beside them, carrying a

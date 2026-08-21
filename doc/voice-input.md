@@ -1,3 +1,12 @@
+---
+title: "Voice Input"
+section: "Guideline"
+parent: "ai-usage-guideline"
+nav_label: "Voice Input"
+sort: 700
+visibility: internal
+---
+
 # Voice Input
 
 We think faster than we type, and the gap between the two is where ideas leak

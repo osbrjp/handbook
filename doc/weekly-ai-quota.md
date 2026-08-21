@@ -1,3 +1,12 @@
+---
+title: "Weekly AI Quota"
+section: "Guideline"
+parent: "ai-usage-guideline"
+nav_label: "Weekly AI Quota"
+sort: 690
+visibility: internal
+---
+
 # Weekly AI Quota
 
 This policy defines how we treat the **prepaid weekly AI subscription quota**: a

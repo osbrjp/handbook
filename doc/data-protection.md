@@ -1,3 +1,12 @@
+---
+title: "Data Protection"
+section: "Guideline"
+parent: "quality-gate"
+nav_label: "Data Protection"
+sort: 600
+visibility: internal
+---
+
 # Data Protection
 
 This is the standard the [Quality Gate](/quality-gate)'s **Security** lens holds

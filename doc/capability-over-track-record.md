@@ -1,3 +1,12 @@
+---
+title: "Capability over Track Record"
+section: "Guideline"
+parent: "development-guide"
+nav_label: "Capability over Track Record"
+sort: 510
+visibility: internal
+---
+
 # Capability over Track Record
 
 This policy defines how OSBR **proves it can do the work.** When a client or a

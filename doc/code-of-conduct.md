@@ -2,7 +2,7 @@
 title: "OSBR Code of Conduct"
 section: "People & Culture"
 nav_label: "Code of Conduct"
-sort: 30
+sort: 200
 visibility: public
 ---
 
