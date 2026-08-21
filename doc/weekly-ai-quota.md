@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "ai-usage-guideline"
 nav_label: "Weekly AI Quota"
 sort: 690
-visibility: internal
+visibility: public
 ---
 
 # Weekly AI Quota

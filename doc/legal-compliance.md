@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "development-guide"
 nav_label: "Legal Compliance"
 sort: 490
-visibility: internal
+visibility: public
 ---
 
 # Legal Compliance

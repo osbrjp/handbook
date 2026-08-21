@@ -3,7 +3,7 @@ title: "Development Guide"
 section: "Guideline"
 nav_label: "Development Guide"
 sort: 310
-visibility: internal
+visibility: public
 ---
 
 # Development Guide

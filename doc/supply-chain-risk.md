@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "quality-gate"
 nav_label: "Supply Chain & Risk"
 sort: 610
-visibility: internal
+visibility: public
 ---
 
 # Supply Chain & Risk

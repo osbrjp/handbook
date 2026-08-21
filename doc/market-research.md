@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "development-guide"
 nav_label: "Market Research"
 sort: 440
-visibility: internal
+visibility: public
 ---
 
 # Market Research

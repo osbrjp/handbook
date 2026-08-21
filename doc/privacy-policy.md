@@ -3,7 +3,7 @@ title: "Privacy Policy"
 section: "Policies"
 nav_label: "Privacy Policy"
 sort: 840
-visibility: internal
+visibility: public
 ---
 
 # Privacy Policy

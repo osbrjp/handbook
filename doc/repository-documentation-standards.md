@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "quality-gate"
 nav_label: "Repository & Documentation Standards"
 sort: 630
-visibility: internal
+visibility: public
 ---
 
 # Repository & Documentation Standards

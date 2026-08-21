@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "quality-gate"
 nav_label: "Incident Management"
 sort: 550
-visibility: internal
+visibility: public
 ---
 
 # Incident Management

@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "quality-gate"
 nav_label: "Access Control"
 sort: 590
-visibility: internal
+visibility: public
 ---
 
 # Access Control

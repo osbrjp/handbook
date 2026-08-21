@@ -3,7 +3,7 @@ title: "On-boarding Guide"
 section: "Guideline"
 nav_label: "On-boarding Guide"
 sort: 300
-visibility: internal
+visibility: public
 ---
 
 # On-boarding Guide

@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "quality-gate"
 nav_label: "API Design"
 sort: 640
-visibility: internal
+visibility: public
 ---
 
 # API Design

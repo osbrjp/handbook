@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "quality-gate"
 nav_label: "Observability & Resilience"
 sort: 540
-visibility: internal
+visibility: public
 ---
 
 # Observability & Resilience

@@ -3,7 +3,7 @@ title: "Infrastructure Planning Policy"
 section: "Policies"
 nav_label: "Infrastructure Planning Policy"
 sort: 810
-visibility: internal
+visibility: public
 ---
 
 # Infrastructure Planning Policy

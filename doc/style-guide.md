@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "development-guide"
 nav_label: "Style Guide"
 sort: 320
-visibility: internal
+visibility: public
 ---
 
 # Coding Style Guide

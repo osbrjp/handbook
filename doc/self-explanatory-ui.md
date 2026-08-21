@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "design-guidelines"
 nav_label: "Self-Explanatory UI"
 sort: 400
-visibility: internal
+visibility: public
 ---
 
 # Self-Explanatory UI

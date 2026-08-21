@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "design-guidelines"
 nav_label: "Modeless Design"
 sort: 410
-visibility: internal
+visibility: public
 ---
 
 # Modeless Design

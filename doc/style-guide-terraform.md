@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "style-guide"
 nav_label: "Terraform"
 sort: 370
-visibility: internal
+visibility: public
 ---
 
 # Terraform Style Guide

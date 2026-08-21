@@ -3,7 +3,7 @@ title: "Ethical Design Policy"
 section: "Policies"
 nav_label: "Ethical Design Policy"
 sort: 830
-visibility: internal
+visibility: public
 ---
 
 # Ethical Design Policy

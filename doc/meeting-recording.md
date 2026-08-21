@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "ai-usage-guideline"
 nav_label: "Meeting Recording"
 sort: 710
-visibility: internal
+visibility: public
 ---
 
 # Meeting Recording

@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "ai-usage-guideline"
 nav_label: "Voice Input"
 sort: 700
-visibility: internal
+visibility: public
 ---
 
 # Voice Input

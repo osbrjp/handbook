@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "development-guide"
 nav_label: "AI Usage Guideline"
 sort: 650
-visibility: internal
+visibility: public
 ---
 
 # AI Usage Guideline

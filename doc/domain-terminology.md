@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "development-guide"
 nav_label: "Domain Terminology"
 sort: 500
-visibility: internal
+visibility: public
 ---
 
 # Domain Terminology

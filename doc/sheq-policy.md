@@ -3,7 +3,7 @@ title: "OSBR SHEQ Policy"
 section: "Policies"
 nav_label: "SHEQ Policy"
 sort: 800
-visibility: internal
+visibility: public
 ---
 
 # OSBR SHEQ Policy

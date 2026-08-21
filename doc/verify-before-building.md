@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "development-guide"
 nav_label: "Verify Before Building"
 sort: 460
-visibility: internal
+visibility: public
 ---
 
 # Verify Before Building

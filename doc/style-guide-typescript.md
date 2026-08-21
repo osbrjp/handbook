@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "style-guide"
 nav_label: "TypeScript"
 sort: 330
-visibility: internal
+visibility: public
 ---
 
 # TypeScript Style Guide

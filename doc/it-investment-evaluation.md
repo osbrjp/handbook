@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "development-guide"
 nav_label: "IT Investment Evaluation"
 sort: 480
-visibility: internal
+visibility: public
 ---
 
 # IT Investment Evaluation

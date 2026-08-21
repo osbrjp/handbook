@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "design-guidelines"
 nav_label: "Accessibility"
 sort: 390
-visibility: internal
+visibility: public
 ---
 
 # Accessibility

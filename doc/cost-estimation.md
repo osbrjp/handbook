@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "development-guide"
 nav_label: "Cost Estimation"
 sort: 470
-visibility: internal
+visibility: public
 ---
 
 # Cost Estimation

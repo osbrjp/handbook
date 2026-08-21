@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "ai-usage-guideline"
 nav_label: "Policies as Plugins"
 sort: 720
-visibility: internal
+visibility: public
 ---
 
 # Policies as Plugins

@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "design-guidelines"
 nav_label: "Interaction Design"
 sort: 420
-visibility: internal
+visibility: public
 ---
 
 # Interaction Design

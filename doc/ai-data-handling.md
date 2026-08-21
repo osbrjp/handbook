@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "ai-usage-guideline"
 nav_label: "AI Data-Handling"
 sort: 660
-visibility: internal
+visibility: public
 ---
 
 # AI Data-Handling

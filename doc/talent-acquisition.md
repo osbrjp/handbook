@@ -3,7 +3,7 @@ title: "Talent Acquisition"
 section: "People & Culture"
 nav_label: "Talent Acquisition"
 sort: 210
-visibility: internal
+visibility: public
 ---
 
 # Talent Acquisition

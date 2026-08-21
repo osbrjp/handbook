@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "style-guide"
 nav_label: "HTML & CSS"
 sort: 360
-visibility: internal
+visibility: public
 ---
 
 # HTML & CSS Style Guide

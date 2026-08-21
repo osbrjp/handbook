@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "style-guide"
 nav_label: "Golang"
 sort: 340
-visibility: internal
+visibility: public
 ---
 
 # Golang Style Guide

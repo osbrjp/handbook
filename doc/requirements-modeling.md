@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "development-guide"
 nav_label: "Requirements Modeling"
 sort: 450
-visibility: internal
+visibility: public
 ---
 
 # Requirements Modeling

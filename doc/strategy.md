@@ -3,7 +3,7 @@ title: "Strategy Overview"
 section: "About"
 nav_label: "Strategy"
 sort: 110
-visibility: internal
+visibility: public
 ---
 
 # Strategy Overview

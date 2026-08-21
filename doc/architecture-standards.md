@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "quality-gate"
 nav_label: "Architecture Standards"
 sort: 620
-visibility: internal
+visibility: public
 ---
 
 # Architecture Standards

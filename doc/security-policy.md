@@ -3,7 +3,7 @@ title: "Security Policy Standards"
 section: "Policies"
 nav_label: "Security Policy"
 sort: 820
-visibility: internal
+visibility: public
 ---
 
 # Security Policy Standards

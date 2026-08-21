@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "development-guide"
 nav_label: "Capability over Track Record"
 sort: 510
-visibility: internal
+visibility: public
 ---
 
 # Capability over Track Record

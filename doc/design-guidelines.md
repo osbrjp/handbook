@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "development-guide"
 nav_label: "Design Guidelines"
 sort: 380
-visibility: internal
+visibility: public
 ---
 
 # Design Guidelines

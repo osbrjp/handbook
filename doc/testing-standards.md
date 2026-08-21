@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "quality-gate"
 nav_label: "Testing Standards"
 sort: 530
-visibility: internal
+visibility: public
 ---
 
 # Testing Standards

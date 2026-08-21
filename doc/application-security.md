@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "quality-gate"
 nav_label: "Application Security"
 sort: 580
-visibility: internal
+visibility: public
 ---
 
 # Application Security

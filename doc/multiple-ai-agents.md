@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "ai-usage-guideline"
 nav_label: "Multiple AI Agents"
 sort: 670
-visibility: internal
+visibility: public
 ---
 
 # Multiple AI Agents

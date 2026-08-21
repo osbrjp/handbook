@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "development-guide"
 nav_label: "Quality Gate"
 sort: 520
-visibility: internal
+visibility: public
 ---
 
 # The Quality Gate

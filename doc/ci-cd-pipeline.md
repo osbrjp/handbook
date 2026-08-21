@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "quality-gate"
 nav_label: "CI/CD Pipeline"
 sort: 570
-visibility: internal
+visibility: public
 ---
 
 # CI/CD Pipeline

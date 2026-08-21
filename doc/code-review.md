@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "quality-gate"
 nav_label: "Code Review"
 sort: 560
-visibility: internal
+visibility: public
 ---
 
 # Code Review

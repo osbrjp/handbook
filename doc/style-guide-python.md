@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "style-guide"
 nav_label: "Python"
 sort: 350
-visibility: internal
+visibility: public
 ---
 
 # Python Style Guide

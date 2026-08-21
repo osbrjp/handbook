@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "ai-usage-guideline"
 nav_label: "Overnight AI Operation"
 sort: 680
-visibility: internal
+visibility: public
 ---
 
 # Overnight AI Operation

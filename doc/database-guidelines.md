@@ -4,7 +4,7 @@ section: "Guideline"
 parent: "development-guide"
 nav_label: "Database Guidelines"
 sort: 430
-visibility: internal
+visibility: public
 ---
 
 # Database Guidelines

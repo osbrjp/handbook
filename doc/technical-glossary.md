@@ -3,7 +3,7 @@ title: "Technical Glossary"
 section: "Guideline"
 nav_label: "Technical Glossary"
 sort: 750
-visibility: internal
+visibility: public
 ---
 
 # Technical Glossary
