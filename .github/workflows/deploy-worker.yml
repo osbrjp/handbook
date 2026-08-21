@@ -47,16 +47,22 @@ jobs:
             echo "ok=false" >> "$GITHUB_OUTPUT"
             echo "::notice::CLOUDFLARE_API_TOKEN secret not set — skipping deploy (a repo admin must add it; see workflow header)."
           fi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.creds.outputs.ok == 'true'
       - name: Set up pnpm
         if: steps.creds.outputs.ok == 'true'
-        uses: pnpm/action-setup@v4
+        # Pin pnpm from app/package.json, exactly as run-tests.yml does. A bare
+        # `version:` here conflicts with the ROOT package.json's
+        # `packageManager` field (the action defaults to the root file) and the
+        # action hard-fails: "Multiple versions of pnpm specified". That bug sat
+        # here unnoticed because this job skipped on every run until the
+        # CLOUDFLARE_API_TOKEN secret existed.
+        uses: pnpm/action-setup@v6
         with:
-          version: 10
+          package_json_file: app/package.json
       - name: Set up Node.js
         if: steps.creds.outputs.ok == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: pnpm
