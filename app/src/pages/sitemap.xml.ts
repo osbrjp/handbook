@@ -2,8 +2,11 @@ import type { APIRoute } from "astro";
 import { getNavPages, type PageRow } from "../lib/content/pages";
 
 // Anonymous (null visitor) => public pages only by construction (red-team R2).
-export const GET: APIRoute = async ({ site, url }) => {
-  const base = site?.toString().replace(/\/$/, "") || url.origin;
+export const GET: APIRoute = async ({ site, locals }) => {
+  // locals.publicOrigin, NOT url.origin — behind the CloudFront reverse proxy
+  // url.origin is the workers.dev origin name, so the sitemap would advertise
+  // the proxy's backend to search engines. `site` still wins if ever set.
+  const base = site?.toString().replace(/\/$/, "") || locals.publicOrigin;
   let pages: PageRow[] = [];
   try {
     pages = await getNavPages(null);

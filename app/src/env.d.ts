@@ -34,5 +34,12 @@ declare namespace App {
   interface Locals {
     visitor: import("./lib/auth/visitor").Visitor | null;
     contentStore: import("./lib/content/store").ContentStoreConfig;
+    // The origin visitors actually typed, from OAUTH_ORIGIN (getOrigin).
+    // MUST be used instead of Astro.url / request Host for anything that
+    // identifies the site — absolute links, the environment ribbon, the
+    // noindex rule. Behind a reverse proxy the request Host is the ORIGIN's
+    // hostname (e.g. the workers.dev name), never the public one, so
+    // Astro.url.host silently reports the wrong site.
+    publicOrigin: string;
   }
 }

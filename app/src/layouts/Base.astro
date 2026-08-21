@@ -2,7 +2,7 @@
 import "../styles/global.css";
 import Icon from "../components/Icon.astro";
 import { isEditorRole, type Visitor } from "../lib/auth/visitor";
-import { environmentName } from "../lib/env";
+import { environmentName, hostOf } from "../lib/env";
 import { SITE_TITLE } from "../lib/site";
 
 interface Props {
@@ -13,7 +13,7 @@ const { title, visitor = null } = Astro.props;
 // Environment ribbon above EVERYTHING (even the header) on non-production
 // hosts, so nobody mistakes local/staging for the live handbook. Production
 // renders nothing.
-const env = environmentName(Astro.url.host);
+const env = environmentName(hostOf(Astro.locals.publicOrigin));
 ---
 
 <!doctype html>

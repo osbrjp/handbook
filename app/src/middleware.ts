@@ -14,7 +14,7 @@ import type { Visitor } from "./lib/auth/visitor";
 // PROD_HOST lives in lib/env.ts (shared with the environment ribbon): any
 // host that isn't production gets X-Robots-Tag: noindex so search engines
 // never index a duplicate/staging copy of the handbook.
-import { PROD_HOST } from "./lib/env";
+import { hostOf, PROD_HOST } from "./lib/env";
 
 // How long a GitHub-verified role is trusted before re-checking. Short enough
 // that revoking someone on GitHub locks them out in minutes; long enough that
@@ -35,6 +35,11 @@ const TOKEN_HEADROOM_MS = 2 * 60_000;
 // database, no directory, no allow-list in the codebase.
 export const onRequest = defineMiddleware(async (ctx, next) => {
   ctx.locals.visitor = null;
+  // The origin visitors typed. Behind a reverse proxy (CloudFront) the request
+  // Host is the ORIGIN's hostname, so ctx.request/Astro.url identify the wrong
+  // site — see locals.publicOrigin in env.d.ts. getOrigin reads OAUTH_ORIGIN,
+  // which is set per environment and is not client-spoofable.
+  ctx.locals.publicOrigin = getOrigin(ctx.request, env);
   let ghToken: GhTokenSet | undefined;
 
   const raw = ctx.cookies.get(SESSION_COOKIE)?.value;
@@ -168,7 +173,12 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   res.headers.set("X-Content-Type-Options", "nosniff");
   res.headers.set("X-Frame-Options", "DENY");
   res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  const host = ctx.request.headers.get("host") ?? "";
-  if (host !== PROD_HOST) res.headers.set("X-Robots-Tag", "noindex");
+  // Keyed on the PUBLIC origin, not the request Host: behind the CloudFront
+  // reverse proxy the Host is always the workers.dev origin name, so a
+  // Host-based test would tag the real handbook `noindex` on every page and
+  // keep it out of search results permanently.
+  if (hostOf(ctx.locals.publicOrigin) !== PROD_HOST) {
+    res.headers.set("X-Robots-Tag", "noindex");
+  }
   return res;
 });

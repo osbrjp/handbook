@@ -16,3 +16,21 @@ export function environmentName(host: string): EnvName {
   if (import.meta.env.DEV) return "local";
   return host === PROD_HOST ? "production" : "poc";
 }
+
+/**
+ * Host of an origin URL, "" if unparseable.
+ *
+ * Callers MUST pass `locals.publicOrigin` (from OAUTH_ORIGIN) — never
+ * `Astro.url.host` or the request `Host` header. Behind the CloudFront reverse
+ * proxy those carry the ORIGIN's hostname (the workers.dev name), never the
+ * host the visitor typed, so a Host-based check reports the wrong environment:
+ * the live handbook would render the "poc" ribbon and serve `X-Robots-Tag:
+ * noindex` on every page, forever.
+ */
+export function hostOf(origin: string): string {
+  try {
+    return new URL(origin).host;
+  } catch {
+    return "";
+  }
+}
