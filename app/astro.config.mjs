@@ -11,6 +11,18 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   output: "server",
   adapter: cloudflare(),
+  // Astro's own CSRF guard: reject non-GET form posts whose `Origin` header
+  // doesn't equal the request origin (403). It defaults to true in Astro 7 —
+  // pinned explicitly because it is load-bearing security that would otherwise
+  // vanish silently on a default change, and because it constrains deployment:
+  // the check compares against the URL THE WORKER RECEIVES, never
+  // `x-forwarded-host`, so any proxy in front (the planned CloudFront
+  // distribution) MUST forward the original Host or every editor POST 403s.
+  // See POC.md "Migration & production cutover". This layers over — and does
+  // not replace — the app's own double-submit token in src/lib/csrf.ts.
+  security: {
+    checkOrigin: true,
+  },
   vite: {
     plugins: [tailwindcss()],
   },

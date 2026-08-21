@@ -337,10 +337,28 @@ request never reaches the origin. The distribution therefore needs:
   fast.
 - **Origin request policy forwarding all cookies** — the session is an AES-GCM
   encrypted cookie and must reach the Worker on every request.
-- **Host handling that preserves the OAuth origin check.** The app verifies
-  request origin explicitly (`app/src/lib/auth/origin.ts`, covered by
-  `tests/origin.test.mjs`). If CloudFront presents the origin a different Host
-  than the browser saw, sign-in breaks — or the check silently weakens.
+- **Forward the original `Host` header — this one is a hard 403, not a
+  subtlety.** Two independent origin checks depend on it:
+  - **Astro's `security.checkOrigin`** (pinned on in `app/astro.config.mjs`,
+    and the default in Astro 7) compares the browser's `Origin` header against
+    **the origin of the URL the Worker receives** — it does *not* consult
+    `x-forwarded-host`. CloudFront rewrites `Host` to the origin domain by
+    default, which would make `Origin: https://handbook.osbrjp.com` unequal to
+    `https://<worker>.workers.dev` and return
+    `403 Cross-site POST form submissions are forbidden` on **every** save,
+    approve, reject and delete. Readers unaffected; the editor entirely dead.
+  - **The app's own `getOrigin`** (`app/src/lib/auth/origin.ts`) resolves from
+    `OAUTH_ORIGIN` and deliberately ignores forwarded headers outside dev, so
+    the proxy cannot spoof it — but it must agree with what Astro computes.
+
+  Both must resolve to `https://handbook.osbrjp.com`. **Verify empirically
+  before committing to this architecture:** forwarding that Host to a
+  `*.workers.dev` origin puts the `Host` header out of step with the TLS SNI,
+  and Cloudflare's routing behaviour in that configuration must be tested, not
+  assumed. If it cannot be made to work, the fallbacks are (a) set
+  `security.checkOrigin: false` and rely on the app's own double-submit token
+  plus `SameSite: strict` — genuinely strong on its own, but a real reduction
+  in defence-in-depth — or (b) serve the hostname from Cloudflare directly.
 - **`OAUTH_ORIGIN = https://handbook.osbrjp.com`**, not the `workers.dev`
   hostname. It is dashboard-managed and survives deploys via `keep_vars = true`
   (see `app/wrangler.toml`), so this is a dashboard change, not a commit.
@@ -361,17 +379,21 @@ host swap, not a redeploy of the same thing.
 
 **Cutover prerequisite — style-guide visibility:** the `standard-repository`
 code-quality hook fetches the style guides ANONYMOUSLY; they are `internal`
-in the POC content, so post-cutover the hook would 404. Flip all **six**
-`doc/style-guide*.md` files to `visibility: public` (one frontmatter word
-each) before the DNS swap — pending an explicit "coding standards are public"
-sign-off (they are already world-readable on the current site and in git).
+in the POC content, so post-cutover the hook would 404.
 
-More broadly: the 2026-08-21 frontmatter migration set **every** newly-migrated
-page to `visibility: internal` — the schema's fail-closed default, chosen so a
-bulk migration could not silently publish anything. But all 55 pages are
-public on the live VitePress site *today*, so at cutover any page left
-`internal` becomes **less** visible than it is now. Deciding which pages are
-`public` is a content call that must happen before the DNS swap, not after.
+**Resolved (2026-08-21): all 55 pages are `visibility: public`.** The migration
+first landed everything as `internal` (the schema's fail-closed default, so a
+bulk migration could not silently publish anything), then the owner set the
+whole corpus public. This matches the live VitePress site exactly — every page
+is world-readable there today — so **cutover changes nothing about who can read
+what**, and the style-guide/`llms.txt` prerequisite above is satisfied.
+
+Consequence to be clear-eyed about: with no `internal` page in the corpus, the
+reader ACL is **enforced but not currently gating anything**. `canRead` still
+runs fail-closed on every surface, so the tier works the moment a page is
+marked `internal` — but the POC's per-reader access control is, as shipped,
+inert for reading. Sign-in still governs *editing*. Treat "which pages should
+be internal" as an open content question, not a solved one.
 
 **Cutover steps (when ready to go live):**
 1. **Deploy the Worker.** `wrangler deploy` (or a CI job) publishes the Astro
@@ -409,10 +431,19 @@ public on the live VitePress site *today*, so at cutover any page left
       ACL-bypass risk, not a performance tuning knob).
    2. Set `OAUTH_ORIGIN` to `https://handbook.osbrjp.com` and add that
       callback to the GitHub App.
-   3. Test **against the distribution hostname** signed-out *and* signed-in
-      before touching DNS: a `public` page renders anonymously; an `internal`
-      page 404s anonymously and renders once signed in; two different users
-      never see each other's responses.
+   3. Test **against the distribution hostname** before touching DNS:
+      - **An editor save actually succeeds.** This is the one that catches a
+        `Host` misconfiguration — a 403 "Cross-site POST form submissions are
+        forbidden" means CloudFront is not forwarding the original Host (see
+        above). Cover save, approve and reject, not just save.
+      - **Sign-in completes** — the OAuth round-trip returns to
+        `handbook.osbrjp.com`, not to `workers.dev`.
+      - **No cross-user response bleed.** Sign in as two different people and
+        confirm neither sees the other's session — this is what a stray
+        CloudFront cache would break.
+      - **The ACL still holds.** The corpus is currently all-`public`, so
+        temporarily mark one page `internal` to test it: 404 anonymously,
+        renders once signed in. Revert afterwards.
    4. In Route 53 (TTL already lowered): replace the
       `handbook → osbrjp.github.io` CNAME with the distribution.
 
@@ -436,3 +467,36 @@ public on the live VitePress site *today*, so at cutover any page left
    or split gated content into a private repo — before relying on those tiers.
 8. **Verify** the reader ACL matrix + editor flow on the live domain, then
    decommission the old VitePress site.
+
+## Accepted risks
+
+Per [Data Protection](/data-protection) §3-23 and the [Supply Chain &
+Risk](/supply-chain-risk) §4 register convention — recorded, owned, and
+deliberately not restating the personal data they concern.
+
+### AR-1 — A personal email address remains in git history (accepted)
+
+**What.** Before `guard-no-personal-emails` existed, a contributor's personal
+address was committed in a ticket's frontmatter. It was removed from the
+tracked file on 2026-08-21, and the guard now fails the build on any
+recurrence — but the repository is **public**, so the address is still
+reachable in commit history, in forks, and via the GitHub API.
+
+**Decision: accept, do not rewrite.** Purging it would rewrite SHAs across
+already-merged history, force-push `main`, break every existing clone and open
+pull request, and GitHub may retain the unreferenced objects regardless. The
+exposure is one work address in a repository whose entire content is public by
+design; the cost of the rewrite exceeds the reduction in risk.
+
+**Owner.** Repository owner (@VibratingKoala). **Date.** 2026-08-21.
+
+**Revisit if** the repository is made private for the `internal` tier (cutover
+step 7) — a rewrite is far cheaper *before* that point than after, and the
+calculus changes if the person concerned asks for removal.
+
+**Related, not covered by the guard.** The guard scans tracked *file contents*
+only, so **commit author/committer metadata is invisible to it**, and its
+pattern matches only `osbrjp.com` / `oz-design.jp`. Several contributors'
+personal addresses are therefore in commit metadata unchecked. The durable fix
+is a team-wide `user.email` convention (GitHub no-reply addresses) per
+[Data Protection](/data-protection) §3-23, not a wider regex.
