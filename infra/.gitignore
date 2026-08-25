@@ -1,0 +1,9 @@
+# .terraform.lock.hcl is deliberately not ignored — the provider lock is
+# committed so every machine and CI run resolves the same versions.
+.terraform/
+backend.hcl
+tfplan
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
