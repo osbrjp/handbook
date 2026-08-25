@@ -21,8 +21,8 @@ $ sh scripts/deploy.sh                 # applies the plan you just read
 tests before planning, and writes `tfplan`. `deploy.sh` applies that saved plan
 and deletes it, so nothing ships that a human has not read.
 
-Credentials come from your AWS profile locally and from OIDC in CI — never a
-long-lived access key.
+Credentials come from your AWS profile. There is no CI workflow for `infra/`
+yet, so plan and apply are run by hand today — see **Still open** below.
 
 ## What it builds
 
@@ -58,6 +58,10 @@ deployment is a separate change in this repository.
 - **Worker side of the origin lock.** The Worker must check `X-Origin-Verify`
   and refuse requests without it. That code lives in the Worker's repository,
   not here, so until it lands the workers.dev URL is still reachable directly.
+- **CI with OIDC.** #98 asks for plan and apply to run from CI on short-lived
+  OIDC credentials. That needs an IAM role and trust policy that do not exist in
+  the account yet, so the workflow is not written — a workflow without the role
+  would only fail every run. Until it lands, apply is a local, manual step.
 - **WAF.** `web_acl_arn` is `null`. Attaching a web ACL is a follow-up.
 - **Logging.** No standard access log or real-user monitoring is configured yet;
   observability is meant to be built in, not bolted on.

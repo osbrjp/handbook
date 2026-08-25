@@ -68,3 +68,52 @@ test('passes through when the request carries no host header', () => {
   const event = requestOn(null);
   assert.equal(handler(event), event.request);
 });
+
+test('encodes control characters in a query value instead of emitting them raw', () => {
+  const result = handler(
+    requestOn('d111111abcdef8.cloudfront.net', '/', {
+      next: { value: '/a\r\nX-Injected: 1' },
+    }),
+  );
+
+  const location = result.headers.location.value;
+  assert.doesNotMatch(location, /[\r\n]/);
+  assert.equal(location, 'https://handbook.osbrjp.com/?next=/a%0D%0AX-Injected:%201');
+});
+
+test('encodes control characters in the path as well as the query', () => {
+  const result = handler(requestOn('d111111abcdef8.cloudfront.net', '/a\nb'));
+
+  assert.doesNotMatch(result.headers.location.value, /[\r\n]/);
+  assert.equal(result.headers.location.value, 'https://handbook.osbrjp.com/a%0Ab');
+});
+
+test('leaves an already percent-encoded value alone rather than double-encoding it', () => {
+  const result = handler(
+    requestOn('d111111abcdef8.cloudfront.net', '/api/auth/callback', {
+      code: { value: 'abc%2Fdef%20ghi' },
+    }),
+  );
+
+  assert.equal(
+    result.headers.location.value,
+    'https://handbook.osbrjp.com/api/auth/callback?code=abc%2Fdef%20ghi',
+  );
+});
+
+test('encodes an unsafe character in the parameter name too', () => {
+  const result = handler(
+    requestOn('d111111abcdef8.cloudfront.net', '/', { 'a b': { value: 'c' } }),
+  );
+
+  assert.equal(result.headers.location.value, 'https://handbook.osbrjp.com/?a%20b=c');
+});
+
+test('ignores inherited properties when walking the query string', () => {
+  const querystring = Object.create({ inherited: { value: 'leaked' } });
+  querystring.real = { value: 'kept' };
+
+  const result = handler(requestOn('d111111abcdef8.cloudfront.net', '/', querystring));
+
+  assert.equal(result.headers.location.value, 'https://handbook.osbrjp.com/?real=kept');
+});

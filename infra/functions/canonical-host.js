@@ -10,6 +10,20 @@
 
 var CANONICAL_HOST = '${canonical_host}';
 
+// Everything we put in the Location header goes through this: the path, and
+// every query string name and value.
+//
+// It percent-encodes only characters that must never appear in a URL — control
+// characters above all, which are what would let a crafted request break out of
+// the header. It deliberately leaves '%' alone, so a value that arrived already
+// encoded (an OAuth code, a signature) is passed through rather than
+// double-encoded. That holds whichever way CloudFront hands us the value.
+function escapeUnsafe(value) {
+  return value.replace(/[\x00-\x20"<>\\^`{|}\x7F]/g, function (character) {
+    return '%' + character.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0');
+  });
+}
+
 function handler(event) {
   var request = event.request;
   var host = request.headers.host && request.headers.host.value;
@@ -20,15 +34,23 @@ function handler(event) {
     return request;
   }
 
+  var querystring = request.querystring;
   var pairs = [];
-  for (var key in request.querystring) {
-    var parameter = request.querystring[key];
+
+  for (var key in querystring) {
+    if (!Object.prototype.hasOwnProperty.call(querystring, key)) {
+      continue;
+    }
+
+    var parameter = querystring[key];
+    var name = escapeUnsafe(key);
+
     if (parameter.multiValue) {
       for (var i = 0; i < parameter.multiValue.length; i++) {
-        pairs.push(key + '=' + parameter.multiValue[i].value);
+        pairs.push(name + '=' + escapeUnsafe(parameter.multiValue[i].value));
       }
     } else {
-      pairs.push(key + '=' + parameter.value);
+      pairs.push(name + '=' + escapeUnsafe(parameter.value));
     }
   }
 
@@ -38,7 +60,7 @@ function handler(event) {
     statusCode: 301,
     statusDescription: 'Moved Permanently',
     headers: {
-      location: { value: 'https://' + CANONICAL_HOST + request.uri + query },
+      location: { value: 'https://' + CANONICAL_HOST + escapeUnsafe(request.uri) + query },
       'cache-control': { value: 'max-age=3600' }
     }
   };
