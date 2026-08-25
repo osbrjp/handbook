@@ -5,10 +5,10 @@ assignees: []
 depends_on:
 mission:
 merge_policy: review
-verification_handoff: Live CI plan/apply needs the AWS OIDC IAM role ARN and the state bucket, which exist only in the AWS account (PR #99's own apply was already blocked on MFA); an unattended run can only verify workflow syntax and the local checks.
+verification_handoff: Live CI plan/apply needs the AWS OIDC IAM role ARN and the state bucket, which exist only in the AWS account (PR #99's own apply was already blocked on MFA); an unattended run can only verify workflow syntax and the local checks. The query-string encode-semantics probe (gap 3) likewise needs the AWS account (`aws cloudfront test-function` or a test distribution).
 ---
 
-# Close PR #99's gaps against issue #98: OIDC CI pipeline for plan/apply, and canonical-host function on every cache behavior
+# Close PR #99's gaps against issue #98: OIDC CI pipeline for plan/apply, canonical-host function on every cache behavior, and a safely re-encoded redirect query string
 
 ## Overview
 
@@ -16,7 +16,8 @@ PR #99 delivers the Terraform for the CloudFront reverse proxy in front of the
 handbook Worker, and its load-bearing caching claim checks out against the AWS
 docs (`Managed-UseOriginCacheControlHeaders-QueryStrings` keys on **all
 cookies** and **all query strings** and honours origin `Cache-Control`, min TTL
-0). Two gaps remain between the PR and issue #98's acceptance criteria:
+0). Three gaps remain between the PR and issue #98's acceptance criteria (the
+third raised by the Copilot review of 2026-08-25):
 
 1. **No CI pipeline.** Issue #98 accepts only when "`plan` / `apply` run from CI
    with OIDC short-lived credentials, not long-lived keys". The PR ships
@@ -33,6 +34,16 @@ cookies** and **all query strings** and honours origin `Cache-Control`, min TTL
    distribution domain passes through un-canonicalised, which is exactly the
    split-host cookie problem the function's header comment says it exists to
    prevent.
+3. **The redirect rebuilds the query string without encoding**
+   (`infra/functions/canonical-host.js`): keys and values from
+   `request.querystring` are concatenated raw into the `Location` header value.
+   The AWS event-structure page does not document whether those values arrive
+   percent-decoded, so the fix must first pin that down empirically — a blind
+   `encodeURIComponent` double-encodes if they arrive still-encoded. Severity
+   is low: the redirect targets only the canonical host (no open redirect), a
+   `#` fragment never reaches the server, and CloudFront rejects control
+   characters in returned header values — the realistic failure is a broken
+   redirect for query values containing `&`, `=` or spaces.
 
 ## Policies
 
@@ -56,8 +67,11 @@ governing pages are its own `doc/` sources:
   `ordered_cache_behavior` blocks lack the `function_association` the
   `default_cache_behavior` has; also where the OIDC role/provider resources
   (or a reference to them) land.
+- `infra/functions/canonical-host.js` — the query-string rebuild loop that
+  must re-encode (or provably pass through still-encoded) key/value pairs.
 - `infra/functions/canonical-host.test.mjs` — the `/api/auth/callback` test
-  documents behaviour production does not have until the association is added.
+  documents behaviour production does not have until the association is added;
+  gains a reserved-character query case with gap 3.
 - `infra/scripts/plan.sh`, `infra/scripts/deploy.sh` — the checks the CI
   workflow must run (init, fmt -check, validate, node --test, plan; apply of
   the saved plan).
@@ -84,9 +98,19 @@ governing pages are its own `doc/` sources:
    `workflow_dispatch` (or push to main, per review) run the apply of a saved
    plan. `permissions: id-token: write, contents: read`; credentials only via
    `configure-aws-credentials` with `role-to-assume`.
-4. Update `infra/README.md`: CI is now the documented path; local scripts stay
+4. Close gap 3: pin down the event's query-string encoding empirically —
+   `aws cloudfront test-function` (or a test distribution) with a request
+   carrying `?q=a%26b%20c` shows whether `event.request.querystring` values
+   arrive decoded. If decoded, rebuild each pair with `encodeURIComponent` on
+   key and value; if still-encoded, keep the pass-through and say so in a
+   comment citing the probe. Either way, extend `canonical-host.test.mjs`
+   with a reserved-character case matching the observed semantics. (If the
+   AWS account is unreachable in-session, implement the `encodeURIComponent`
+   variant guarded to skip already-encoded input is NOT acceptable — leave
+   gap 3 to the handoff instead; a wrong guess ships broken redirects.)
+5. Update `infra/README.md`: CI is now the documented path; local scripts stay
    as the fallback.
-5. `terraform fmt -check -recursive`, `terraform validate`, `node --test
+6. `terraform fmt -check -recursive`, `terraform validate`, `node --test
    infra/functions/*.test.mjs` all green.
 
 ## Quality Gate
@@ -101,6 +125,10 @@ governing pages are its own `doc/` sources:
   long-lived AWS key from repository secrets.
 - The OIDC provider/role/policy are Terraform resources (no click-ops), pinned
   and formatted per the Terraform Style Guide.
+- The `Location` value built by `canonical-host.js` is well-formed for query
+  strings containing reserved characters, per the empirically confirmed event
+  semantics (or gap 3 is explicitly deferred to the handoff with the probe
+  still owed).
 
 **Verification method** — the commands/tests/probes that prove them:
 
@@ -109,7 +137,9 @@ governing pages are its own `doc/` sources:
   `infra/` (Decided: validate-only in the unattended run, live plan deferred to
   the handoff — the account credentials are not in the environment; developer
   may override at /drive).
-- `node --test infra/functions/*.test.mjs` — 5/5 pass, unchanged.
+- `node --test infra/functions/*.test.mjs` — all pass, including the
+  reserved-character redirect case added with gap 3 (5/5 unchanged if gap 3
+  is deferred to the handoff).
 - `actionlint` (or `gh workflow view` after push) accepts the workflow file;
   the workflow's YAML contains `id-token: write` and no
   `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` reference.
@@ -153,6 +183,11 @@ governing pages are its own `doc/` sources:
 - The apply job should reuse the saved-plan discipline `deploy.sh` documents —
   applying a plan the PR reviewer read, not a fresh one
   (`infra/scripts/deploy.sh`).
+- The Copilot review also suggested a `hasOwnProperty` guard on the
+  `for..in` loop in `canonical-host.js`. The event's `querystring` is a plain
+  JSON-derived object in the cloudfront-js runtime with no enumerable
+  prototype pollution vector; add the guard only if the empirical probe of
+  step 4 shows anything unexpected — it is noise otherwise.
 - Worker-side `X-Origin-Verify` enforcement and WAF stay out of scope: the
   first lives in the Worker's repository, the second is an explicitly deferred
   follow-up in issue #98's open decisions (PR #99 `infra/README.md`, "Still
