@@ -80,16 +80,20 @@ resource "aws_cloudfront_response_headers_policy" "hsts" {
   }
 }
 
-# A distribution answers on its own cloudfront.net domain as well as the alias,
-# and CloudFront cannot redirect between them on its own.
-resource "aws_cloudfront_function" "canonical_host" {
-  name    = "handbook-canonical-host"
+# Rewrites Origin so Astro's checkOrigin accepts editor writes, and redirects
+# the distribution's own domain to the canonical host once DNS points here.
+# Both are things CloudFront configuration cannot express. See the file header
+# and POC.md on the i68-handbook-poc branch.
+resource "aws_cloudfront_function" "viewer_request" {
+  name    = "handbook-viewer-request"
   runtime = "cloudfront-js-2.0"
-  comment = "Redirects requests that arrive on any host other than the canonical one."
+  comment = "Rewrites Origin for the Worker, and canonicalises the host after cutover."
   publish = true
 
-  code = templatefile("${path.module}/functions/canonical-host.js", {
-    canonical_host = var.domain_name
+  code = templatefile("${path.module}/functions/viewer-request.js", {
+    canonical_host        = var.domain_name
+    worker_host           = var.origin_domain_name
+    redirect_to_canonical = var.enable_dns_cutover
   })
 }
 
@@ -138,7 +142,7 @@ resource "aws_cloudfront_distribution" "handbook" {
 
     function_association {
       event_type   = "viewer-request"
-      function_arn = aws_cloudfront_function.canonical_host.arn
+      function_arn = aws_cloudfront_function.viewer_request.arn
     }
   }
 
@@ -155,6 +159,14 @@ resource "aws_cloudfront_distribution" "handbook" {
     cache_policy_id            = data.aws_cloudfront_cache_policy.caching_optimized.id
     origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.all_viewer_except_host.id
     response_headers_policy_id = aws_cloudfront_response_headers_policy.hsts.id
+
+    # Every behaviour needs the function. A function association is per
+    # behaviour, so leaving it on the default alone would mean the auth surface
+    # — the one place the Origin rewrite matters most — never runs it.
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.viewer_request.arn
+    }
   }
 
   # Login and the rest of the auth surface must never be cached.
@@ -169,6 +181,11 @@ resource "aws_cloudfront_distribution" "handbook" {
     cache_policy_id            = data.aws_cloudfront_cache_policy.caching_disabled.id
     origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.all_viewer_except_host.id
     response_headers_policy_id = aws_cloudfront_response_headers_policy.hsts.id
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.viewer_request.arn
+    }
   }
 
   restrictions {

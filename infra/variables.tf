@@ -41,7 +41,7 @@ variable "origin_secret" {
 
 variable "price_class" {
   type        = string
-  description = "CloudFront edge locations to use. PriceClass_200 covers Asia, Europe, and the Americas."
+  description = "CloudFront edge locations to use. PriceClass_200 serves the readership in Japan and Malaysia without paying for the full global footprint — check the current price class region list before assuming any other region is covered."
   default     = "PriceClass_200"
 }
 

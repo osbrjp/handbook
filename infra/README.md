@@ -35,8 +35,24 @@ yet, so plan and apply are run by hand today — see **Still open** below.
 | `Managed-CachingOptimized` (`/_astro/*`) | Astro's build output is content-hashed and identical for everyone — cached once, not once per cookie. |
 | `Managed-CachingDisabled` (`/api/*`) | The auth surface is never cached. |
 | `handbook-hsts` response headers policy | The Worker sets the other security headers; HSTS is the gap. |
-| `handbook-canonical-host` function | Redirects the `*.cloudfront.net` domain to the canonical host — CloudFront has no native host-based redirect. |
+| `handbook-viewer-request` function | Rewrites `Origin` so Astro's `checkOrigin` accepts editor writes, and redirects the `*.cloudfront.net` domain to the canonical host after cutover. Attached to **every** behaviour — associations are per behaviour. |
 | `X-Origin-Verify` origin custom header | Lets the Worker reject requests that bypass CloudFront. CloudFront overwrites a viewer-supplied header of the same name, so it cannot be forged. |
+
+## Why the function rewrites `Origin`
+
+Cloudflare's edge rejects any `Host` that is not the `workers.dev` hostname, so
+CloudFront cannot forward the viewer's `Host` — the whole site would 403 before
+the Worker ran. That leaves the Worker seeing `workers.dev` while the browser
+sends `https://handbook.osbrjp.com`, and Astro's `security.checkOrigin` (pinned
+on in the Worker's `astro.config.mjs`) compares the two: every save, approve,
+reject and delete would return 403.
+
+`Host` cannot be fixed — it is read-only in viewer-request events — so the
+function translates the one legitimate public origin to the one the Worker
+sees. A cross-site POST still carries its own `Origin`, is left untouched, and
+is still rejected, so the security property is unchanged. This was measured
+against the live Worker and decided in `POC.md` on the `i68-handbook-poc`
+branch.
 
 ## The DNS cutover
 
@@ -48,10 +64,20 @@ domain first:
 $ curl -sI https://$(terraform output -raw distribution_domain_name)/
 ```
 
+The flag also compiles the canonical-host redirect in or out of the function.
+While it is `false` the CloudFront domain serves the site directly, which is
+what makes that `curl` a 200 rather than a 301 to a name that still points at
+GitHub Pages. The `Origin` rewrite runs either way — the editor has to work
+before the cutover as well as after it.
+
 To cut over: delete the existing `handbook.osbrjp.com` record (Route 53 will not
 hold a CNAME and an alias A record for the same name), set
 `enable_dns_cutover = true`, plan, and apply. Retiring the GitHub Pages
 deployment is a separate change in this repository.
+
+Also set **`OAUTH_ORIGIN = https://handbook.osbrjp.com`** on the Worker. The
+rewrite fixes the CSRF check, not the app's sense of its own identity — see
+`POC.md`. That is a Cloudflare dashboard change, not a Terraform one.
 
 ## Still open
 
