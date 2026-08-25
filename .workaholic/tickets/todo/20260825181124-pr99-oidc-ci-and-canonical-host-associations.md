@@ -104,10 +104,10 @@ governing pages are its own `doc/` sources:
    arrive decoded. If decoded, rebuild each pair with `encodeURIComponent` on
    key and value; if still-encoded, keep the pass-through and say so in a
    comment citing the probe. Either way, extend `canonical-host.test.mjs`
-   with a reserved-character case matching the observed semantics. (If the
-   AWS account is unreachable in-session, implement the `encodeURIComponent`
-   variant guarded to skip already-encoded input is NOT acceptable — leave
-   gap 3 to the handoff instead; a wrong guess ships broken redirects.)
+   with a reserved-character case matching the observed semantics. If the
+   AWS account is unreachable in-session, do NOT guess the semantics or ship
+   a heuristic that tries to detect already-encoded input — leave gap 3 to
+   the handoff instead; a wrong guess ships broken redirects.
 5. Update `infra/README.md`: CI is now the documented path; local scripts stay
    as the fallback.
 6. `terraform fmt -check -recursive`, `terraform validate`, `node --test
