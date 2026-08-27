@@ -16,10 +16,18 @@ export default defineConfig({
   // pinned explicitly because it is load-bearing security that would otherwise
   // vanish silently on a default change, and because it constrains deployment:
   // the check compares against the URL THE WORKER RECEIVES, never
-  // `x-forwarded-host`, so any proxy in front (the planned CloudFront
-  // distribution) MUST forward the original Host or every editor POST 403s.
-  // See POC.md "Migration & production cutover". This layers over — and does
-  // not replace — the app's own double-submit token in src/lib/csrf.ts.
+  // `x-forwarded-host`.
+  //
+  // How that constraint is actually met — NOT by forwarding the viewer's Host,
+  // which an earlier revision of this comment claimed. Cloudflare's edge
+  // rejects any Host that is not the workers.dev name (measured 2026-08-21),
+  // so a proxy that forwarded it would 403 the entire site before the Worker
+  // ran. The CloudFront viewer-request function rewrites the `Origin` header
+  // instead (infra/functions/viewer-request.js): the one legitimate public
+  // origin becomes the workers.dev origin the Worker sees, while a cross-site
+  // POST keeps its own Origin, mismatches, and is still rejected. See POC.md
+  // "CHOSEN: CloudFront rewrites the Origin header". This layers over — and
+  // does not replace — the app's own double-submit token in src/lib/csrf.ts.
   //
   // NOT a fix for that *on this adapter*: `security.allowedDomains`. It exists
   // in Astro 7 and looks like the answer (it allowlists hosts and then trusts

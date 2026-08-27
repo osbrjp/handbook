@@ -1,8 +1,8 @@
 name: Deploy Worker
 # Deploys the handbook Worker whenever app code or content lands on the
 # deployed branch — this is what makes an approved "Submit for approval" merge
-# actually appear on the site. During the POC that branch is i68-handbook-poc;
-# after the POC merges, pushes to main take over (same worker, same workflow).
+# actually appear on the site. That branch is main (the POC branch merged in
+# PR #72 on 2026-08-27 and its targeting was retired with it).
 #
 # INERT UNTIL CONFIGURED: requires the CLOUDFLARE_API_TOKEN repo secret
 # (repo admin: Settings → Secrets and variables → Actions; token needs
@@ -14,7 +14,6 @@ name: Deploy Worker
 on:
   push:
     branches:
-      - i68-handbook-poc
       - main
     paths:
       - "app/**"

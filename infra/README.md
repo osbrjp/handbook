@@ -31,7 +31,7 @@ yet, so plan and apply are run by hand today — see **Still open** below.
 | ACM certificate (us-east-1) | CloudFront reads its certificate from us-east-1 only. |
 | Distribution | Custom origin, HTTPS-only to the Worker, TLS 1.2+. |
 | `Managed-AllViewerExceptHostHeader` | workers.dev routes by `Host`; the origin must receive its own domain, not the viewer's. |
-| `Managed-UseOriginCacheControlHeaders-QueryStrings` (default) | Keeps every cookie in the cache key, so an authenticated page cannot be served to another reader, and honours the `Cache-Control` the Worker sends. |
+| `UseOriginCacheControlHeaders-QueryStrings` (default) | Keeps every cookie in the cache key, so an authenticated page cannot be served to another reader, and honours the `Cache-Control` the Worker sends. |
 | `Managed-CachingOptimized` (`/_astro/*`) | Astro's build output is content-hashed and identical for everyone — cached once, not once per cookie. |
 | `Managed-CachingDisabled` (`/api/*`) | The auth surface is never cached. |
 | `handbook-hsts` response headers policy | The Worker sets the other security headers; HSTS is the gap. |
@@ -81,9 +81,13 @@ rewrite fixes the CSRF check, not the app's sense of its own identity — see
 
 ## Still open
 
-- **Worker side of the origin lock.** The Worker must check `X-Origin-Verify`
-  and refuse requests without it. That code lives in the Worker's repository,
-  not here, so until it lands the workers.dev URL is still reachable directly.
+- **Origin lock — code landed, not yet engaged.** The Worker checks
+  `X-Origin-Verify` (`app/src/lib/auth/originLock.ts`) and refuses anything
+  without it, but only once `ORIGIN_VERIFY_SECRET` is set on the Worker; unset
+  means off, so the workers.dev URL is still reachable today. Engage it AFTER
+  this distribution is applied and verified — setting it first 403s every
+  reader — with `wrangler secret put ORIGIN_VERIFY_SECRET` matching the
+  `origin_secret` here. Rollback is `wrangler secret delete`, no redeploy.
 - **CI with OIDC.** #98 asks for plan and apply to run from CI on short-lived
   OIDC credentials. That needs an IAM role and trust policy that do not exist in
   the account yet, so the workflow is not written — a workflow without the role

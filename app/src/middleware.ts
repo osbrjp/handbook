@@ -8,6 +8,7 @@ import {
 } from "./lib/auth/github";
 import { SESSION_COOKIE, sessionCookieOptions } from "./lib/auth/cookies";
 import { getOrigin } from "./lib/auth/origin";
+import { edgeRequestAllowed, ORIGIN_VERIFY_HEADER } from "./lib/auth/originLock";
 import { decryptSession, encryptSession, type GhTokenSet } from "./lib/auth/session";
 import type { Visitor } from "./lib/auth/visitor";
 
@@ -34,6 +35,22 @@ const TOKEN_HEADROOM_MS = 2 * 60_000;
 // minted and is RE-VERIFIED here once it's older than ROLE_TTL_MS — no
 // database, no directory, no allow-list in the codebase.
 export const onRequest = defineMiddleware(async (ctx, next) => {
+  // Provenance FIRST: a request that did not come through CloudFront gets
+  // nothing — not a session decrypt, not a GitHub round-trip. Off until the
+  // ORIGIN_VERIFY_SECRET is set; see lib/auth/originLock.ts for why that
+  // default is deliberate and what order to engage it in.
+  if (
+    !edgeRequestAllowed(ctx.request.headers.get(ORIGIN_VERIFY_HEADER), env.ORIGIN_VERIFY_SECRET)
+  ) {
+    // 403 over 404 on purpose: the corpus is public, so this hides nothing,
+    // and an operator staring at the wrong hostname needs to be able to TELL
+    // that from the editor's other 403s (POC.md leans on exactly that).
+    return new Response(`Direct access is not allowed; use https://${PROD_HOST}/.\n`, {
+      status: 403,
+      headers: { "content-type": "text/plain; charset=utf-8" },
+    });
+  }
+
   ctx.locals.visitor = null;
   // The origin visitors typed. Behind a reverse proxy (CloudFront) the request
   // Host is the ORIGIN's hostname, so ctx.request/Astro.url identify the wrong
