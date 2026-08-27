@@ -7,15 +7,37 @@ data "aws_route53_zone" "root" {
   private_zone = false
 }
 
-# CloudFront's managed policies cover every case here, so the only policy we
-# own is the one that adds the header the Worker does not send (see below).
-#
-# NOTE the missing "Managed-" prefix: the two UseOriginCacheControlHeaders
-# policies are the only managed cache policies AWS does not prefix. Adding it
-# for consistency fails the lookup and blocks the whole distribution from
-# planning. Verified against list-cache-policies --type managed, 2026-08-27.
-data "aws_cloudfront_cache_policy" "use_origin_cache_control" {
-  name = "UseOriginCacheControlHeaders-QueryStrings"
+# Default-behaviour cache policy. This one is ours, not managed, for a reason
+# that cost an outage to learn (2026-08-27): every header a cache policy puts
+# in the cache key is ALSO forwarded to the origin, and the managed
+# UseOriginCacheControlHeaders-QueryStrings policy keys on `host`. That sent
+# the viewer's Host to the Worker — overriding AllViewerExceptHostHeader on
+# this behaviour alone — and Cloudflare's edge rejects any Host that is not
+# the workers.dev name, which CloudFront surfaced as a 502 on every page while
+# /api/* and /_astro/* (managed policies without `host`) worked. So: cookies
+# and query strings in the key (one reader's authenticated page is never
+# served to another), NO headers, and TTLs of 0 so the Worker's Cache-Control
+# decides what is cached and for how long.
+resource "aws_cloudfront_cache_policy" "pages" {
+  name        = "handbook-pages"
+  comment     = "Cookies + query strings in the key, no headers; origin Cache-Control governs."
+  min_ttl     = 0
+  default_ttl = 0
+  max_ttl     = 31536000
+
+  parameters_in_cache_key_and_forwarded_to_origin {
+    enable_accept_encoding_brotli = true
+    enable_accept_encoding_gzip   = true
+    cookies_config {
+      cookie_behavior = "all"
+    }
+    headers_config {
+      header_behavior = "none"
+    }
+    query_strings_config {
+      query_string_behavior = "all"
+    }
+  }
 }
 
 data "aws_cloudfront_cache_policy" "caching_optimized" {
@@ -130,10 +152,9 @@ resource "aws_cloudfront_distribution" "handbook" {
     }
   }
 
-  # Pages carry a session cookie and the Worker answers with Vary: Cookie.
-  # This managed policy keeps every cookie in the cache key, so one reader's
-  # authenticated page can never be served to another, and honours the
-  # Cache-Control the Worker already sends.
+  # Pages carry a session cookie and the Worker answers with Vary: Cookie;
+  # the handbook-pages policy above keeps every cookie in the cache key and
+  # forwards no headers — see its comment for why that last part matters.
   default_cache_behavior {
     target_origin_id       = local.origin_id
     viewer_protocol_policy = "redirect-to-https"
@@ -141,7 +162,7 @@ resource "aws_cloudfront_distribution" "handbook" {
     cached_methods         = ["GET", "HEAD"]
     compress               = true
 
-    cache_policy_id            = data.aws_cloudfront_cache_policy.use_origin_cache_control.id
+    cache_policy_id            = aws_cloudfront_cache_policy.pages.id
     origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.all_viewer_except_host.id
     response_headers_policy_id = aws_cloudfront_response_headers_policy.hsts.id
 

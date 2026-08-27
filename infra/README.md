@@ -31,7 +31,7 @@ yet, so plan and apply are run by hand today — see **Still open** below.
 | ACM certificate (us-east-1) | CloudFront reads its certificate from us-east-1 only. |
 | Distribution | Custom origin, HTTPS-only to the Worker, TLS 1.2+. |
 | `Managed-AllViewerExceptHostHeader` | workers.dev routes by `Host`; the origin must receive its own domain, not the viewer's. |
-| `UseOriginCacheControlHeaders-QueryStrings` (default) | Keeps every cookie in the cache key, so an authenticated page cannot be served to another reader, and honours the `Cache-Control` the Worker sends. |
+| `handbook-pages` cache policy (default) | Ours, not managed: every cookie and query string in the cache key (an authenticated page is never served to another reader), **no headers**, TTLs of 0 so the Worker's `Cache-Control` governs. The managed `UseOriginCacheControlHeaders-*` policies key on `host`, and cache-key headers are forwarded to the origin — that sent the viewer's Host to Cloudflare and 502'd every page. |
 | `Managed-CachingOptimized` (`/_astro/*`) | Astro's build output is content-hashed and identical for everyone — cached once, not once per cookie. |
 | `Managed-CachingDisabled` (`/api/*`) | The auth surface is never cached. |
 | `handbook-hsts` response headers policy | The Worker sets the other security headers; HSTS is the gap. |
