@@ -9,6 +9,12 @@ declare namespace Cloudflare {
     COOKIE_ENCRYPTION_KEY: string;
     DEV_LOGIN?: string;
     OAUTH_ORIGIN?: string;
+    // Shared secret CloudFront sends as X-Origin-Verify, so the Worker can
+    // refuse requests that bypassed the distribution. UNSET = lock off (the
+    // workers.dev host stays reachable) — see lib/auth/originLock.ts. Worker
+    // secret, never committed; the same value lives in Terraform's
+    // origin_secret.
+    ORIGIN_VERIFY_SECRET?: string;
     // GitHub App or classic OAuth App (login) — identity only, no scopes
     GITHUB_OAUTH_CLIENT_ID?: string;
     GITHUB_OAUTH_CLIENT_SECRET?: string;

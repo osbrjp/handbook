@@ -129,14 +129,6 @@ export async function readPageAtRef(
 }
 
 /**
- * Which branch content work should target. Normally `main` — but during the
- * POC period staging sets GITHUB_BRANCH to the POC branch so editor
- * submissions demo against the code that's actually deployed. The rule is
- * self-retiring: use the configured branch WHILE IT EXISTS; once it's deleted
- * (which happens when its PR merges), everything automatically targets `main`
- * — no config change needed at merge time.
- */
-/**
  * Discard a DRAFT-ONLY page (never merged/published): delete its edit branch.
  * GitHub auto-closes any open PR whose head branch is deleted, so this is the
  * whole "discard" in one call. No review step — nothing was ever public.
@@ -159,6 +151,13 @@ export async function discardDraft(
   return true;
 }
 
+/**
+ * Which branch content work should target: `main` unless GITHUB_BRANCH aims it
+ * elsewhere (a POC/demo period pointing editor PRs at the branch that's
+ * actually deployed). Self-retiring by design — the configured branch is used
+ * WHILE IT EXISTS, so once it's deleted (i.e. its PR merged) targeting falls
+ * back to `main` with no config change needed at merge time.
+ */
 export async function resolveBase(
   config: GithubConfig,
   fetchImpl: typeof fetch = fetch,

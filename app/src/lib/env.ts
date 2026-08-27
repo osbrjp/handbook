@@ -1,21 +1,9 @@
-// Which environment is this request being served from? ONE source of truth,
-// shared by the middleware (X-Robots-Tag: noindex off-prod) and the visible
-// environment ribbon (Base layout).
-//   local      — `astro dev` on a laptop
-//   poc        — a built Worker on any host that isn't the real domain
-//                (osbr-handbook.*.workers.dev, previews, ...). Named for what
-//                it IS during the evaluation period — a proof of concept, not
-//                the blessed staging of a production system. The real domain
-//                shows no ribbon at all, so the label retires with the POC.
-//   production — the one canonical host
+// The one canonical host. Every other host — workers.dev, previews, localhost
+// — is a copy, and the middleware serves those X-Robots-Tag: noindex so a
+// staging copy never reaches search results. That header is now the ONLY thing
+// distinguishing a copy from the real site: the on-page environment ribbon was
+// removed deliberately, so a reader cannot tell by looking.
 export const PROD_HOST = "handbook.osbrjp.com";
-
-export type EnvName = "local" | "poc" | "production";
-
-export function environmentName(host: string): EnvName {
-  if (import.meta.env.DEV) return "local";
-  return host === PROD_HOST ? "production" : "poc";
-}
 
 /**
  * Host of an origin URL, "" if unparseable.
@@ -24,8 +12,8 @@ export function environmentName(host: string): EnvName {
  * `Astro.url.host` or the request `Host` header. Behind the CloudFront reverse
  * proxy those carry the ORIGIN's hostname (the workers.dev name), never the
  * host the visitor typed, so a Host-based check reports the wrong environment:
- * the live handbook would render the "poc" ribbon and serve `X-Robots-Tag:
- * noindex` on every page, forever.
+ * the live handbook would serve `X-Robots-Tag: noindex` on every page, forever
+ * — invisibly keeping the real site out of search results.
  */
 export function hostOf(origin: string): string {
   try {

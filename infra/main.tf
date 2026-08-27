@@ -9,8 +9,13 @@ data "aws_route53_zone" "root" {
 
 # CloudFront's managed policies cover every case here, so the only policy we
 # own is the one that adds the header the Worker does not send (see below).
+#
+# NOTE the missing "Managed-" prefix: the two UseOriginCacheControlHeaders
+# policies are the only managed cache policies AWS does not prefix. Adding it
+# for consistency fails the lookup and blocks the whole distribution from
+# planning. Verified against list-cache-policies --type managed, 2026-08-27.
 data "aws_cloudfront_cache_policy" "use_origin_cache_control" {
-  name = "Managed-UseOriginCacheControlHeaders-QueryStrings"
+  name = "UseOriginCacheControlHeaders-QueryStrings"
 }
 
 data "aws_cloudfront_cache_policy" "caching_optimized" {

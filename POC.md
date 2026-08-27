@@ -250,9 +250,8 @@ Deploy-mechanics facts, learned the hard way — read before deploying:
   Storage: Edit** (the adapter provisions a SESSION KV namespace).
 
 Worker configuration (dashboard → Settings → Variables and Secrets):
-vars `GITHUB_OAUTH_CLIENT_ID`, `OAUTH_ORIGIN` (dashboard-managed), and
-`GITHUB_BRANCH` (pinned in `wrangler.toml` `[vars]` — losing it silently
-retargets editor PRs to `main`); Secrets `COOKIE_ENCRYPTION_KEY`,
+vars `GITHUB_OAUTH_CLIENT_ID`, `OAUTH_ORIGIN` (dashboard-managed);
+Secrets `COOKIE_ENCRYPTION_KEY`,
 `GITHUB_OAUTH_CLIENT_SECRET` (+ `GITHUB_TOKEN`, see below).
 
 **Current auth state (since 2026-07-09): the org GitHub App is live** —
@@ -267,15 +266,17 @@ PAT + demo OAuth app from the pre-App workaround. (For the record, the classic
 fallback's minimal PAT scope was live-verified as `public_repo` + `read:org` —
 lesser scopes fail the collaborator API.)
 
-**POC-period editing on staging:** `GITHUB_BRANCH=i68-handbook-poc` (pinned
-in `wrangler.toml` `[vars]`), so the draft→submit→approve→merge loop demos
-against the POC branch — merged pages land on the branch staging is actually
-built from. The targeting is **self-retiring**: when the POC branch is deleted
-(its PR merged), everything automatically targets `main`; the only follow-up
-is a cleanup task (delete the var for tidiness, prune any demo pages/branches).
+**POC-period branch targeting — RETIRED 2026-08-27.** While the POC ran,
+`GITHUB_BRANCH=i68-handbook-poc` aimed editor PRs at the branch staging was
+built from. PR #72 merged that branch and the pin is gone from
+`wrangler.toml` and from the Worker's dashboard vars, so content work targets
+`main` via `resolveBase()`'s default. Note for anyone re-adding a pin:
+`keep_vars = true` means deleting the line here does NOT clear the var from
+the deployed Worker — it must also be deleted in the dashboard, or a stale
+value keeps overriding the default invisibly.
 
 **Deploy-on-push CI:** `.github/workflows/deploy-worker.yml` deploys the
-Worker on pushes to the deployed branch (POC branch now, `main` post-merge) —
+Worker on pushes to the deployed branch (`main`) —
 this is what makes an approved submission actually appear on the site. It is
 INERT until a repo admin adds the `CLOUDFLARE_API_TOKEN` repo secret (Workers
 Scripts:Edit + Workers KV Storage:Edit); until then it skips with a notice and
@@ -437,10 +438,19 @@ documented there under `application-security.md` §3-16 — was considered and
   hostname. It is dashboard-managed and survives deploys via `keep_vars = true`
   (see `app/wrangler.toml`), so this is a dashboard change, not a commit.
 
-Note the `*.workers.dev` hostname stays publicly reachable alongside
-CloudFront. That is acceptable — the Worker enforces auth itself — but two
-hostnames then serve the same gated content, and the origin check should
-reject the one we don't intend.
+**The second hostname, and the origin lock (built 2026-08-27).** The
+`*.workers.dev` name stays publicly reachable alongside CloudFront — Cloudflare
+gives no way to switch it off — so two hostnames serve the same gated content.
+The Worker enforces auth on both, but the direct one skips everything the
+distribution adds: the WAF, HSTS, and the `Origin` rewrite the editor needs.
+
+`app/src/lib/auth/originLock.ts` closes it. CloudFront attaches
+`X-Origin-Verify` as an **origin custom header**, which it overwrites on every
+request, so a viewer cannot forge one; the Worker refuses anything that lacks
+the matching value. It is **engaged by setting `ORIGIN_VERIFY_SECRET`, not by
+deploying** — unset means off. That default is deliberate: the distribution has
+to be verified end-to-end *before* DNS moves, and that testing hits a Worker
+nothing fronts yet. Rollback is `wrangler secret delete`, not a redeploy.
 
 **Before the swap:** drop the `handbook` CNAME TTL in Route 53 from 3600 to
 60–300. It is free, has zero user impact, and it is what makes both the
@@ -524,7 +534,13 @@ be internal" as an open content question, not a solved one.
       - **The ACL still holds.** The corpus is currently all-`public`, so
         temporarily mark one page `internal` to test it: 404 anonymously,
         renders once signed in. Revert afterwards.
-   6. In Route 53 (TTL already lowered): point `handbook` at the distribution.
+   6. **Engage the origin lock** — only now, with the checks above green.
+      `wrangler secret put ORIGIN_VERIFY_SECRET` on the Worker, matching
+      Terraform's `origin_secret`. Re-run the editor save through the
+      distribution, then confirm `osbr-handbook.osbrjp.workers.dev` answers
+      **403 Direct access is not allowed**. Doing this before step 5 would 403
+      the very tests step 5 depends on.
+   7. In Route 53 (TTL already lowered): point `handbook` at the distribution.
 
    **Rollback** = restore `CNAME → osbrjp.github.io`. Keep Pages alive until
    step 8 precisely so rollback stays one step. Both sites stay up throughout —

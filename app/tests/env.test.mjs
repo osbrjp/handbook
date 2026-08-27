@@ -6,11 +6,11 @@ const { hostOf, PROD_HOST } = await import("../src/lib/env.ts");
 // Regression guard for a bug that is INVISIBLE at runtime: behind the
 // CloudFront reverse proxy the request Host is the workers.dev origin name,
 // never the host the visitor typed. Anything keyed on the request Host
-// therefore decides "this is not production" on the real handbook — which
-// renders the "poc" ribbon and, worse, sets X-Robots-Tag: noindex on every
-// page, keeping the live site out of search results indefinitely. The site
-// looks perfect while it happens. Identity must come from OAUTH_ORIGIN
-// (locals.publicOrigin), which is why hostOf takes an ORIGIN, not a host.
+// therefore decides "this is not production" on the real handbook — setting
+// X-Robots-Tag: noindex on every page and keeping the live site out of search
+// results indefinitely. The site looks perfect while it happens. Identity must
+// come from OAUTH_ORIGIN (locals.publicOrigin), which is why hostOf takes an
+// ORIGIN, not a host.
 test("hostOf extracts the host from a public origin", () => {
   assert.equal(hostOf("https://handbook.osbrjp.com"), PROD_HOST);
   assert.equal(hostOf("https://handbook.osbrjp.com/"), PROD_HOST);
@@ -20,7 +20,7 @@ test("hostOf extracts the host from a public origin", () => {
 
 test("hostOf returns '' for junk rather than throwing (fails closed to noindex)", () => {
   // A throw here would 500 every response; "" simply never equals PROD_HOST,
-  // so the safe outcome (noindex + ribbon) is what a malformed value gets.
+  // so the safe outcome (noindex) is what a malformed value gets.
   assert.equal(hostOf(""), "");
   assert.equal(hostOf("not-a-url"), "");
   assert.equal(hostOf("handbook.osbrjp.com"), ""); // bare host is NOT an origin
