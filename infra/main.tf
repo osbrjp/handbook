@@ -18,8 +18,8 @@ data "aws_route53_zone" "root" {
 # and query strings in the key (one reader's authenticated page is never
 # served to another), NO headers, and TTLs of 0 so the Worker's Cache-Control
 # decides what is cached and for how long.
-resource "aws_cloudfront_cache_policy" "pages" {
-  name        = "handbook-pages"
+resource "aws_cloudfront_cache_policy" "content" {
+  name        = "handbook-content"
   comment     = "Cookies + query strings in the key, no headers; origin Cache-Control governs."
   min_ttl     = 0
   default_ttl = 0
@@ -153,7 +153,7 @@ resource "aws_cloudfront_distribution" "handbook" {
   }
 
   # Pages carry a session cookie and the Worker answers with Vary: Cookie;
-  # the handbook-pages policy above keeps every cookie in the cache key and
+  # the handbook-content policy above keeps every cookie in the cache key and
   # forwards no headers — see its comment for why that last part matters.
   default_cache_behavior {
     target_origin_id       = local.origin_id
@@ -162,7 +162,7 @@ resource "aws_cloudfront_distribution" "handbook" {
     cached_methods         = ["GET", "HEAD"]
     compress               = true
 
-    cache_policy_id            = aws_cloudfront_cache_policy.pages.id
+    cache_policy_id            = aws_cloudfront_cache_policy.content.id
     origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.all_viewer_except_host.id
     response_headers_policy_id = aws_cloudfront_response_headers_policy.hsts.id
 
