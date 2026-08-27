@@ -1,3 +1,11 @@
+---
+title: "What is the OSBR Handbook?"
+section: "About"
+nav_label: "What is Handbook?"
+sort: 100
+visibility: public
+---
+
 # What is the OSBR Handbook?
 
 [[TOC]]

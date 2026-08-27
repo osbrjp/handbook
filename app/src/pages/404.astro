@@ -1,0 +1,41 @@
+---
+import Base from "../layouts/Base.astro";
+
+// Rendered for every 404 — unmatched routes AND pages the visitor may not
+// read (forbidden == not-found by design: one identical message, no existence
+// signal). The sign-in hint helps staff who simply aren't logged in yet.
+const visitor = Astro.locals.visitor;
+Astro.response.headers.set("Cache-Control", "private, no-store");
+---
+
+<Base title="Page not found" visitor={visitor}>
+  <div class="container nf">
+    <h1>Page not found</h1>
+    <p>This page doesn't exist — or isn't available to you.</p>
+    {
+      !visitor && (
+        <p>
+          If you're OSBR staff, <a href="/api/auth/login">sign in</a> — most of the handbook is
+          only visible to signed-in readers.
+        </p>
+      )
+    }
+    <p><a class="btn btn-brand" href="/">Back to the handbook</a></p>
+  </div>
+</Base>
+
+<style>
+  .nf {
+    max-width: 560px;
+    padding-top: 4rem;
+    padding-bottom: 6rem;
+    text-align: center;
+  }
+  .nf h1 {
+    margin-bottom: 0.75rem;
+  }
+  .nf p {
+    color: var(--text-2);
+    margin: 0.5rem 0 1.5rem;
+  }
+</style>

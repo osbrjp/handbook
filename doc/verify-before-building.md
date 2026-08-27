@@ -1,3 +1,12 @@
+---
+title: "Verify Before Building"
+section: "Guideline"
+parent: "development-guide"
+nav_label: "Verify Before Building"
+sort: 460
+visibility: public
+---
+
 # Verify Before Building
 
 This is the standard OSBR holds work to when an idea carries real **uncertainty**

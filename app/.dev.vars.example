@@ -1,0 +1,19 @@
+# Copy to app/.dev.vars for local dev.
+COOKIE_ENCRYPTION_KEY=generate-with-openssl-rand-hex-32-min-32-chars
+DEV_LOGIN=1
+OAUTH_ORIGIN=http://localhost:4321
+# GitHub OAuth App (login). Fill all three to test the real login locally; leave
+# blank to use the dev-login shim (/api/auth/dev-login?user=x&role=editor).
+# Callback URL on the OAuth App must be OAUTH_ORIGIN + /api/auth/callback.
+GITHUB_OAUTH_CLIENT_ID=
+GITHUB_OAUTH_CLIENT_SECRET=
+# FALLBACK bot token for role checks — only needed when the login app above is
+# a CLASSIC OAuth App (GitHub App sign-ins self-check with the user's own
+# token; leave this blank then). A fine-grained PAT scoped to the handbook repo
+# is enough. Never used for content writes. Unused by the dev-login shim.
+GITHUB_TOKEN=
+GITHUB_REPO=osbrjp/handbook
+# Editing AUTO-ENABLES when sign-in uses the GitHub App (its tokens carry a
+# refresh token; classic OAuth tokens don't). Unset = auto-detect; "1" forces
+# on; "0" = kill switch (instantly disables editing, readers unaffected).
+GITHUB_WRITE_ENABLED=

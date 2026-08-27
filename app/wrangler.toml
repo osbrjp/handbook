@@ -1,0 +1,43 @@
+name = "osbr-handbook"
+compatibility_date = "2026-06-01"
+compatibility_flags = ["nodejs_compat"]
+# The DASHBOARD is the source of truth for deploy config set only there
+# (GITHUB_OAUTH_CLIENT_ID, OAUTH_ORIGIN, ...): without this flag `wrangler
+# deploy` REPLACES all remote plain-text vars with this file's [vars] block,
+# silently wiping anything set only in the dashboard (encrypted Secrets are
+# never affected). keep_vars lets those dashboard-managed values survive
+# deploys — so credential swaps (e.g. demo OAuth app <-> org GitHub App) never
+# require a commit. (Vars that must NOT drift are pinned in [vars] below.)
+keep_vars = true
+
+# No datastore: content is git-backed markdown, and access control lives in
+# GitHub itself (repo collaborators / org membership — no allow-list in this
+# codebase). The Worker is stateless.
+
+# Non-secret vars. DEV_LOGIN is "0" here (prod-safe default); .dev.vars sets it
+# to "1" for local dev only. Secrets (COOKIE_ENCRYPTION_KEY, GITHUB_OAUTH_*,
+# GITHUB_TOKEN) live in .dev.vars locally and as Worker secrets in prod — never here.
+[vars]
+DEV_LOGIN = "0"
+GITHUB_REPO = "osbrjp/handbook"
+# Pinned in the repo (not dashboard-only) because losing it is SILENT and bad:
+# resolveBase() falls back to main, so POC-period editor submissions would
+# open PRs against the production source branch instead of the POC branch.
+# Identical in demo and end states; self-retiring — once the POC branch is
+# merged+deleted, resolveBase() falls back to main by design. Remove at cutover.
+GITHUB_BRANCH = "i68-handbook-poc"
+
+# NOTE: no [env.staging] here on purpose. The Cloudflare adapter flattens the
+# generated deploy config to the base environment, so named envs are inert —
+# `wrangler deploy --env staging` would deploy this same worker. The single
+# `osbr-handbook` worker IS staging until the production cutover (POC.md
+# "Deploy to staging" has the full story, incl. GITHUB_BRANCH POC targeting).
+
+# SESSION KV namespace (Astro Sessions). The adapter emits this binding WITHOUT
+# an id, so every deploy would otherwise show a config diff and risk rebinding
+# SESSION to a fresh namespace — logging everyone out. Pinning the existing id
+# keeps the same store across deploys. The id is an opaque namespace handle,
+# not a secret (it grants nothing without account credentials).
+[[kv_namespaces]]
+binding = "SESSION"
+id = "1e666ee51498443e8ef93d976bf1c678"

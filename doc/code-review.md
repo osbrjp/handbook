@@ -1,3 +1,12 @@
+---
+title: "Code Review"
+section: "Guideline"
+parent: "quality-gate"
+nav_label: "Code Review"
+sort: 560
+visibility: public
+---
+
 # Code Review
 
 This is the standard the [Quality Gate](/quality-gate)'s AI code review holds

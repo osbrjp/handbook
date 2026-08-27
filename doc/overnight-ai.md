@@ -1,3 +1,12 @@
+---
+title: "Overnight AI Operation"
+section: "Guideline"
+parent: "ai-usage-guideline"
+nav_label: "Overnight AI Operation"
+sort: 680
+visibility: public
+---
+
 # Overnight AI Operation
 
 This policy defines how an OSBR developer shapes the workday so that AI agents can

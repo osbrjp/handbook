@@ -1,3 +1,12 @@
+---
+title: "Coding Style Guide"
+section: "Guideline"
+parent: "development-guide"
+nav_label: "Style Guide"
+sort: 320
+visibility: public
+---
+
 # Coding Style Guide
 
 Language-agnostic coding style guide for OSBR repositories. Per-language guides:

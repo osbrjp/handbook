@@ -1,5 +1,12 @@
-Security Policy Standards
-========================
+---
+title: "Security Policy Standards"
+section: "Policies"
+nav_label: "Security Policy"
+sort: 820
+visibility: public
+---
+
+# Security Policy Standards
 
 This document outlines the security measures required of developers participating in development projects. All developers, including external collaborators, must comply with the standards set forth in this document upon joining a project.
 

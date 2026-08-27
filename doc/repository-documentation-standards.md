@@ -1,3 +1,12 @@
+---
+title: "Repository & Documentation Standards"
+section: "Guideline"
+parent: "quality-gate"
+nav_label: "Repository & Documentation Standards"
+sort: 630
+visibility: public
+---
+
 # Repository & Documentation Standards
 
 This is the standard the [Quality Gate](/quality-gate)'s **Sustainability** lens

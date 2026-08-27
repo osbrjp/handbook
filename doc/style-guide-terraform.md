@@ -1,3 +1,12 @@
+---
+title: "Terraform Style Guide"
+section: "Guideline"
+parent: "style-guide"
+nav_label: "Terraform"
+sort: 370
+visibility: public
+---
+
 # Terraform Style Guide
 
 Per-tool style guide for Terraform / OpenTofu (HCL) — OSBR's Infrastructure as

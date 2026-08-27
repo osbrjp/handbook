@@ -1,3 +1,12 @@
+---
+title: "CI/CD Pipeline"
+section: "Guideline"
+parent: "quality-gate"
+nav_label: "CI/CD Pipeline"
+sort: 570
+visibility: public
+---
+
 # CI/CD Pipeline
 
 This is the standard for how a change travels from a developer's machine to

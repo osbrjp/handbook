@@ -1,3 +1,12 @@
+---
+title: "Data Protection"
+section: "Guideline"
+parent: "quality-gate"
+nav_label: "Data Protection"
+sort: 600
+visibility: public
+---
+
 # Data Protection
 
 This is the standard the [Quality Gate](/quality-gate)'s **Security** lens holds
@@ -470,6 +479,44 @@ password resets and receipts too. Send only wanted mail, keep volume and cadence
 steady rather than spiky, warm up new sending domains/IPs, monitor bounce and
 complaint rates against provider thresholds, and remove addresses that bounce or
 complain. Reputation is earned slowly and lost in a single bad send.
+
+### 3-23. Keep personal identifiers out of version-control history
+
+Personal data in a git repository is the one place §3-6's minimization is hardest
+to undo: commits are content-addressed, so an address committed once survives every
+later edit, propagates to every clone and fork, and persists in the forge's API even
+after a rewrite. Treat the repository as **append-only for personal data** and
+prevent the write rather than plan the deletion.
+
+- Identity in a repository is a **platform username**, not an email. Configure
+  `user.email` to the forge's no-reply address (GitHub issues one per account) so
+  commit metadata carries no personal address. An unset `user.email` is the common
+  failure: git silently synthesises `user@hostname` and attributes the work to
+  nobody.
+- Never commit personal addresses in **file contents** either — config, fixtures,
+  seed data, tickets, docs. Function addresses owned by the org (`info@`, a
+  no-reply sender) are not personal data and are fine.
+- Enforce it mechanically. A CI guard that fails the build on a personal address in
+  tracked files is cheap; rely on it rather than review. Note what such a guard
+  cannot see: **commit author/committer metadata is not a tracked file**, so a guard
+  that scans file contents alone will pass a repository whose history is full of
+  personal addresses.
+- Public repositories raise the stakes but do not change the rule — a private repo
+  can be opened, transferred, or forked later.
+
+Once an address **is** in history, there are exactly two honest outcomes, and doing
+neither is not one of them:
+
+1. **Rewrite** — purge it and force-push. Complete, but it rewrites every affected
+   SHA, breaks existing clones and open pull requests, and the forge may retain the
+   unreferenced objects regardless. Coordinate with everyone holding a clone.
+2. **Accept** — record it as an accepted risk in the project's register (§4 of the
+   [Supply Chain & Risk](/supply-chain-risk) policy) with a named owner and the
+   reasoning, per the [Quality Gate](/quality-gate)'s rule that every accepted risk
+   is named and owned.
+
+Record the acceptance **without restating the address** — a register entry that
+quotes the personal data it is about defeats its own purpose.
 
 ## 4. Design-time checklist
 

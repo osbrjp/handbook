@@ -1,0 +1,1558 @@
+@import "tailwindcss";
+
+/* ===== single design: VitePress-style, dark default + light mode ===== */
+:root {
+  --font: "Montserrat", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --maxw: 1152px;
+  --sidebar-w: 240px;
+  --toc-w: 220px;
+  --header-h: 64px;
+  /* dark (default) */
+  --bg: #1b1b1f;
+  --soft: #202127;
+  --text: #dfdfd6;
+  --text-2: #b8b8bf;
+  --muted: #8b8b93;
+  --brand: #a8b1ff;
+  --brand-solid: #3e63dd;
+  --divider: #2e2e32;
+  --header-bg: #161618;
+  --code-bg: #161618;
+}
+:root[data-theme="light"] {
+  --bg: #ffffff;
+  --soft: #f6f6f7;
+  --text: #3c3c43;
+  --text-2: #50505a;
+  --muted: #8e8e93;
+  --brand: #3451b2;
+  --brand-solid: #3451b2;
+  --divider: #e2e2e3;
+  --header-bg: #ffffff;
+  --code-bg: #f6f6f7;
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+}
+a {
+  color: var(--brand);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* ===== top nav bar ===== */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-h);
+  padding: 0 1.5rem;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--divider);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  color: var(--text);
+  /* Never let a crowded nav-right crush the logo to zero width. */
+  flex-shrink: 0;
+}
+.brand:hover {
+  text-decoration: none;
+}
+.brand-logo {
+  height: 2rem;
+  width: auto;
+  display: block;
+}
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+.nav-links a {
+  color: var(--text);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+.nav-links a:hover {
+  color: var(--brand);
+  text-decoration: none;
+}
+.nav-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--divider);
+}
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+  border-radius: 8px;
+}
+.icon-btn:hover {
+  color: var(--text);
+  background: var(--soft);
+}
+/* Profile: avatar button + dropdown (theme toggle, editor link, sign out). */
+.profile {
+  position: relative;
+  display: inline-flex;
+}
+.avatar-btn {
+  position: relative;
+  display: inline-flex;
+  /* Fixed box: the fallback initial is absolutely positioned, so the button
+     must keep its size even if the <img> 404s and removes itself. */
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 50%;
+}
+.avatar-btn:hover .avatar,
+.avatar-btn[aria-expanded="true"] .avatar {
+  border-color: var(--brand-solid);
+}
+.avatar {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--divider);
+}
+/* Sits behind the avatar; visible only if the image 404s and removes itself. */
+.avatar-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--soft);
+  border: 1px solid var(--divider);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  min-width: 12rem;
+  padding: 0.35rem;
+  background: var(--header-bg);
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+  z-index: 30;
+}
+.profile-who {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  /* Left padding = item padding (0.65) + icon slot (1.25) + gap (0.5), so the
+     name shares ONE text edge with the menu labels below it. */
+  padding: 0.5rem 0.65rem 0.6rem 2.4rem;
+  border-bottom: 1px solid var(--divider);
+  margin-bottom: 0.35rem;
+}
+.profile-role {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+.profile-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+/* Fixed-width leading icon slot — every row's LABEL starts at the same x. */
+.item-icon {
+  display: inline-flex;
+  justify-content: center;
+  width: 1.25rem;
+  flex-shrink: 0;
+}
+.profile-item:hover {
+  background: var(--soft);
+  text-decoration: none;
+  color: var(--text);
+}
+.profile-dropdown form {
+  margin: 0;
+}
+/* Dark-mode switch row: label left, animated track+knob right. State drives
+   off aria-checked ("on" = dark) — the knob slides across with a full spin
+   and the emoji crossfades sun <-> moon. */
+.theme-switch {
+  position: relative;
+  margin-left: auto;
+  flex-shrink: 0;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--soft);
+  border: 1px solid var(--divider);
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+.theme-item[aria-checked="true"] .theme-switch {
+  background: var(--brand-solid);
+  border-color: var(--brand-solid);
+}
+.theme-knob {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.theme-item[aria-checked="true"] .theme-knob {
+  transform: translateX(16px) rotate(360deg);
+}
+/* Sun and moon stacked in the knob; opacity crossfade picks one. */
+.theme-knob::before,
+.theme-knob::after {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
+  transition: opacity 0.25s ease;
+}
+.theme-knob::before {
+  content: "☀️";
+  opacity: 1;
+}
+.theme-knob::after {
+  content: "🌙";
+  opacity: 0;
+}
+.theme-item[aria-checked="true"] .theme-knob::before {
+  opacity: 0;
+}
+.theme-item[aria-checked="true"] .theme-knob::after {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-switch,
+  .theme-knob,
+  .theme-knob::before,
+  .theme-knob::after {
+    transition: none;
+  }
+}
+.nav-edit {
+  color: var(--text);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+.nav-edit:hover {
+  color: var(--brand);
+  text-decoration: none;
+}
+
+/* ===== navbar search ===== */
+/* Its own header slot between brand and nav-right: auto margins float it in
+   the middle of the free space (desktop); mobile overrides make it fill. */
+.search {
+  position: relative;
+  flex: 1 1 auto;
+  max-width: 22rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+.search-input {
+  width: 100%;
+  height: 2rem;
+  padding: 0 0.7rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--soft);
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  outline: none;
+}
+.search-input::placeholder {
+  color: var(--muted);
+}
+.search-input:focus {
+  border-color: var(--brand-solid);
+}
+.search-results {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  /* Align with the pill's edge (the .search box carries 1rem side padding). */
+  right: 1rem;
+  width: 22rem;
+  max-width: 90vw;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--header-bg);
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+  padding: 0.35rem;
+  z-index: 30;
+}
+.search-hit {
+  display: block;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  color: var(--text);
+}
+.search-hit:hover,
+.search-hit:focus {
+  background: var(--soft);
+  text-decoration: none;
+  outline: none;
+}
+.search-hit-title {
+  display: block;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+.search-hit-section {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: 0.1rem;
+}
+.search-hit-snippet {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-2);
+  margin-top: 0.2rem;
+  line-height: 1.35;
+}
+.search-empty {
+  padding: 0.6rem 0.65rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+@media (max-width: 560px) {
+  /* The repo link is a nicety; on the narrowest screens the row needs the room. */
+  .gh-btn {
+    display: none;
+  }
+}
+
+/* ===== home (hero + features), full width, left-aligned ===== */
+.home {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 3.5rem;
+}
+.hero {
+  padding: 1rem 0 1.5rem;
+}
+.hero-name {
+  font-size: clamp(2.5rem, 6vw, 3.5rem);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--brand);
+  margin: 0;
+}
+.hero-text {
+  font-size: clamp(1.6rem, 4vw, 2rem);
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0.15em 0 0.4em;
+  max-width: 44rem;
+}
+.hero-tagline {
+  color: var(--muted);
+  font-size: 1.125rem;
+  max-width: 42rem;
+  margin: 0 0 1.6rem;
+}
+.hero-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+/* ===== THE button system — the ONLY way to style an action control. =====
+   Base `.btn` + ONE colour variant (+ optional `.btn-sm`); text-style actions
+   use `.btn-link` / `.btn-link-danger`. Do not invent new one-off button CSS.
+     .btn-brand   filled, primary action        (Publish, + New page, Approve)
+     .btn-alt     soft neutral                  (Save draft, Cancel, secondary nav)
+     .btn-danger  OUTLINE at rest, fills on hover (Delete, Reject)
+     .btn-sm      compact — for buttons inside table rows
+     .btn-link        text-style action (Sign out, row Edit/View)
+     .btn-link-danger text-style destructive (row Delete)
+     .btn-cancel      muted back-navigation link (“← Back …”)
+   Disabled state is uniform: dimmed, inert, and hover effects (incl. the
+   danger fill) never fire. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 20px;
+  padding: 0.5rem 1.1rem;
+  min-height: 2.4rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn:hover {
+  text-decoration: none;
+}
+.btn-sm {
+  padding: 0.3rem 0.75rem;
+  min-height: 1.9rem;
+  font-size: 0.8rem;
+}
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none; /* also suppresses the danger hover-fill */
+}
+.btn-brand {
+  background: var(--brand-solid);
+  color: #fff;
+  border-color: var(--brand-solid);
+}
+.btn-brand:hover {
+  filter: brightness(1.08);
+}
+.btn-alt {
+  background: var(--soft);
+  color: var(--text);
+  border-color: var(--divider);
+}
+.btn-alt:hover {
+  border-color: var(--text-2);
+}
+.btn-danger {
+  background: transparent;
+  color: #d9534f;
+  border-color: #d9534f;
+}
+.btn-danger:hover {
+  background: #d9534f;
+  color: #fff;
+}
+/* Text-style actions (buttons or links) — used inside table rows and the navbar. */
+.btn-link,
+.btn-link-danger {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-link {
+  color: var(--brand);
+}
+.btn-link-danger {
+  color: #d9534f;
+}
+.btn-link:hover,
+.btn-link-danger:hover {
+  text-decoration: underline;
+}
+/* Muted back-navigation link (“← Back to handbook”). */
+.btn-cancel {
+  padding: 0.5rem 0.6rem;
+  color: var(--text-2);
+  text-decoration: none;
+}
+.btn-cancel:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin: 2.5rem 0 0;
+}
+.feature {
+  background: var(--soft);
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+.feature h2 {
+  font-size: 1.1rem;
+  margin: 0 0 0.6rem;
+}
+.feature p {
+  margin: 0;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+@media (max-width: 768px) {
+  .features {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== doc shell: sidebar | content | on-this-page ===== */
+.doc {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--toc-w);
+  /* Cap + center the WHOLE shell on big screens: uncapped, the sidebar pins
+     to the left viewport edge and the TOC to the right, and on ultrawide the
+     three columns drift apart into disconnected islands. */
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.doc-sidebar {
+  position: sticky;
+  top: var(--header-h);
+  align-self: start;
+  height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+  padding: 2rem 1.25rem 2rem 1.5rem;
+  border-right: 1px solid var(--divider);
+}
+/* Mobile sidebar disclosure button (Sidebar.astro); desktop never shows it. */
+.sb-menu-btn {
+  display: none;
+}
+.sb-group {
+  margin-bottom: 1rem;
+}
+.sb-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem;
+  color: var(--text);
+}
+.sb-title::-webkit-details-marker {
+  display: none;
+}
+.sb-title::after {
+  content: "▸";
+  font-size: 0.7rem;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+.sb-group[open] > .sb-title::after {
+  transform: rotate(90deg);
+}
+.sb-link {
+  display: block;
+  padding: 0.25rem 0;
+  color: var(--text-2);
+  font-size: 0.9rem;
+}
+/* Collapsible nav nodes (pages with children). The label <a> inside the
+   summary navigates without toggling (it's its own activation target); the
+   chevron / row remainder toggles. */
+.sb-node > .sb-node-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.sb-node-head::-webkit-details-marker {
+  display: none;
+}
+.sb-node-head .sb-link {
+  flex: 1 1 auto;
+}
+.sb-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  color: var(--muted);
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.sb-node-head:hover .sb-chevron {
+  background: var(--soft);
+  color: var(--text);
+}
+.sb-node[open] > .sb-node-head .sb-chevron {
+  transform: rotate(90deg);
+}
+/* Nested level: indent + rule line; the line brightens under the pointer so
+   the branch you're scanning reads as connected. Levels compound naturally
+   because trees nest inside trees. */
+.sb-subs-tree {
+  margin-left: 0.35rem;
+  padding-left: 0.85rem;
+  border-left: 1px solid var(--divider);
+  transition: border-color 0.15s ease;
+}
+.sb-subs-tree:hover {
+  border-left-color: var(--text-2);
+}
+.sb-link:hover {
+  color: var(--text);
+  text-decoration: none;
+}
+.sb-link.active {
+  color: var(--brand);
+  font-weight: 600;
+}
+.doc-main {
+  min-width: 0;
+  padding: 2.5rem 3.5rem 5rem;
+  max-width: 880px;
+  margin: 0 auto;
+}
+.doc-toc {
+  position: sticky;
+  top: var(--header-h);
+  align-self: start;
+  padding: 2rem 1rem;
+  font-size: 0.85rem;
+}
+.doc-toc .toc-title {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.6rem;
+}
+.doc-toc a {
+  color: var(--muted);
+  text-decoration: none;
+}
+.doc-toc a:hover {
+  color: var(--brand);
+}
+.toc-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+.toc-chevron {
+  width: 1rem;
+  flex-shrink: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.toc-group.open .toc-chevron {
+  transform: rotate(90deg);
+}
+.toc-chevron-spacer {
+  display: inline-block;
+  width: 1rem;
+  flex-shrink: 0;
+}
+.toc-h2 {
+  display: block;
+  padding: 0.2rem 0;
+}
+.toc-subs {
+  display: none;
+}
+.toc-group.open .toc-subs {
+  display: block;
+}
+.toc-sub {
+  display: block;
+  padding: 0.15rem 0 0.15rem 1.25rem;
+  font-size: 0.95em;
+}
+@media (max-width: 1100px) {
+  .doc {
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+  }
+  .doc-toc {
+    display: none;
+  }
+}
+@media (max-width: 760px) {
+  /* Header: logo + search + icon buttons + session actions only — the brand
+     text, external link and separators don't fit a phone-width row. The
+     username stays (truncated): it's the only sign of WHICH account is signed
+     in, and commits are attributed to it. */
+  /* 1.25rem matches the menu bar and page content below — logo, ☰ Menu and
+     headings all share one left edge (1rem left the header hanging offset). */
+  .site-header {
+    padding: 0 1.25rem;
+  }
+  .nav-right {
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  /* The Editor link lives in the profile dropdown on mobile; identity is one
+     tap away behind the avatar (which IS the signed-in indicator now). */
+  .brand-text,
+  .nav-links,
+  .nav-sep,
+  .nav-edit {
+    display: none;
+  }
+  /* Session actions must not wrap inside the fixed-height header row. */
+  .site-header .btn-link,
+  .nav-right > a {
+    white-space: nowrap;
+  }
+  /* Bigger anchors so the search bar doesn't dwarf them — logo and avatar
+     the SAME size so the row's bookends match. */
+  .brand-logo {
+    height: 2.4rem;
+  }
+  .avatar-btn,
+  .avatar {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+  .search {
+    /* static: the results panel anchors to the sticky header (the nearest
+       positioned ancestor) instead of this tiny box, so it can span the
+       viewport instead of hanging off-screen. */
+    position: static;
+    /* Deterministic alignment: the pill fills the middle FLUSH, exactly
+       0.75rem from the logo and the icons on either side — no auto-margin
+       drift, no desktop cap/padding. */
+    flex: 1 1 auto;
+    min-width: 3rem;
+    max-width: none;
+    margin: 0 0.75rem;
+    padding: 0;
+  }
+  .search-input {
+    width: 100%;
+    min-width: 0;
+    /* Taller + larger text: search is the header's primary tool on mobile. */
+    height: 2.25rem;
+    font-size: 0.95rem;
+    /* Placeholder ellipsizes instead of clipping mid-glyph at min width. */
+    text-overflow: ellipsis;
+  }
+  .search-results {
+    left: 0.75rem;
+    right: 0.75rem;
+    width: auto;
+    max-width: none;
+    top: calc(100% + 0.5rem);
+  }
+
+  .doc {
+    grid-template-columns: 1fr;
+  }
+  /* Sidebar collapses behind a closed-by-default "Menu" bar so the page
+     content is immediately visible; tapping it reveals the section tree. */
+  .doc-sidebar {
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--divider);
+    padding: 0;
+  }
+  .sb-menu-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.7rem 1.25rem;
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    user-select: none;
+    color: var(--text);
+  }
+  .sb-groups {
+    display: none;
+    padding: 0.25rem 1.25rem 1rem;
+    /* Cap the open menu so a long nav scrolls inside itself instead of
+       pushing the page content off-screen. */
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  .sb-menu-btn[aria-expanded="true"] + .sb-groups {
+    display: block;
+  }
+  .doc-main {
+    padding: 1.5rem 1.25rem 4rem;
+  }
+  .admin-head {
+    flex-wrap: wrap;
+  }
+  /* Editor save bar: four buttons can't share one phone-width row. */
+  .actions {
+    flex-wrap: wrap;
+  }
+  /* NOTE: the admin-list column overrides live AFTER the base table rules
+     (search "admin-list mobile") — same-specificity rules here would lose to
+     the later base block by source order and silently do nothing. */
+}
+
+/* on-page edit button (editors only) */
+.doc-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.doc-head h1 {
+  margin-top: 0;
+}
+.edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  margin-top: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--brand);
+  background: var(--soft);
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.edit-btn:hover {
+  text-decoration: none;
+  border-color: var(--brand);
+}
+
+/* ===== prose (VitePress doc typography) ===== */
+.prose h1 {
+  font-size: 2rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  margin: 0 0 1rem;
+}
+.prose h2 {
+  font-size: 1.5rem;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  margin: 48px 0 16px;
+  padding-top: 24px;
+  border-top: 1px solid var(--divider);
+}
+.prose h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 32px 0 0;
+}
+.prose p,
+.prose li {
+  line-height: 1.7;
+}
+.prose a {
+  color: var(--brand);
+  font-weight: 500;
+}
+.prose code {
+  background: var(--soft);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+.prose pre {
+  background: var(--code-bg);
+  color: #dfdfd6;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow: auto;
+  border: 1px solid var(--divider);
+}
+.prose pre code {
+  background: none;
+  padding: 0;
+}
+/* Emitted by rehypeTableWrap (markdown.ts): wide tables scroll inside this
+   wrapper on small screens while the <table> keeps its a11y semantics. */
+.prose .table-wrap {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+.prose .table-wrap table {
+  margin: 0;
+}
+.prose table {
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+.prose th,
+.prose td {
+  border: 1px solid var(--divider);
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+}
+.prose blockquote {
+  border-left: 3px solid var(--divider);
+  margin: 1rem 0;
+  padding-left: 1rem;
+  color: var(--muted);
+}
+.prose img {
+  max-width: 100%;
+}
+
+/* in-content [[TOC]] -> simple bulleted link list (no box) */
+.prose .toc {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 1rem 0 2.5rem;
+}
+.prose .toc li {
+  margin: 0.25rem 0;
+}
+.prose .toc ul {
+  list-style: circle;
+  padding-left: 1.5rem;
+  margin: 0.25rem 0;
+}
+
+/* callouts */
+.callout {
+  border-left: 4px solid var(--divider);
+  background: var(--soft);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin: 1rem 0;
+}
+.callout-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.callout-info {
+  border-color: #3b82f6;
+}
+.callout-tip {
+  border-color: #10b981;
+}
+.callout-warning,
+.callout-caution {
+  border-color: #f59e0b;
+}
+.callout-danger,
+.callout-important {
+  border-color: #ef4444;
+}
+.mermaid {
+  margin: 1rem 0;
+}
+
+/* ===== editor / admin ===== */
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+.notice {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid #10b981;
+  color: var(--text);
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  margin: 0 0 1.25rem;
+}
+.notice a {
+  font-weight: 600;
+}
+/* Warning/info variant (e.g. deferred in-browser editing). */
+.notice-warn {
+  background: rgba(234, 179, 8, 0.12);
+  border-color: #eab308;
+  line-height: 1.5;
+}
+.notice-warn code {
+  background: var(--code-bg);
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+.admin-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 1.5rem;
+}
+/* Button group on the right of the heading (Reviews · + New page). */
+.admin-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+/* Breadcrumb: small, muted, flush with the title's left edge, sitting close
+   above it — context, not a competing action (overrides .btn-cancel's
+   button-ish padding/size). */
+.admin-back {
+  display: inline-block;
+  padding: 0;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.admin-back:hover {
+  color: var(--text-2);
+}
+.admin-head > h1 {
+  font-size: 2rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  margin: 0;
+}
+/* Pages grouped by section, each collapsible. */
+.admin-section {
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+/* Work-in-progress drafts: brand-tinted (same hue as the "draft in progress"
+   badge) so active work reads differently from the plain content sections. */
+.admin-drafts {
+  border-color: rgba(99, 102, 241, 0.45);
+  background: rgba(71, 73, 199, 0.07);
+}
+.admin-drafts > .admin-section-title {
+  color: #8b8dff;
+}
+.admin-section-title {
+  cursor: pointer;
+  padding: 0.6rem 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  list-style: none;
+}
+.admin-section-title::-webkit-details-marker {
+  display: none;
+}
+.admin-section-title::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 0.5rem;
+  color: var(--text-2);
+  transition: transform 0.15s ease;
+}
+.admin-section[open] > .admin-section-title::before {
+  transform: rotate(90deg);
+}
+.admin-count {
+  font-size: 0.72rem;
+  color: var(--text-2);
+  margin-left: 0.25rem;
+}
+.admin-list {
+  width: 100%;
+  border-collapse: collapse;
+  /* Fixed layout so every section's columns line up identically. */
+  table-layout: fixed;
+}
+.admin-section .admin-list {
+  border-top: 1px solid var(--divider);
+}
+.admin-list th,
+.admin-list td {
+  text-align: left;
+  padding: 0.4rem 0.9rem;
+  border-bottom: 1px solid var(--divider);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-list .col-right {
+  text-align: right;
+}
+/* Shared column widths across all section tables (table-layout is FIXED, so
+   these MUST match the markup: 3 columns — Title | Visibility | Actions.
+   The Status column was removed; when these said 4 columns, Actions inherited
+   Status's 7rem and "Edit View Delete" got ellipsized to "Edit Vie…". */
+.admin-list th:nth-child(2),
+.admin-list td:nth-child(2) {
+  width: 8rem;
+}
+.admin-list th:nth-child(3),
+.admin-list td:nth-child(3) {
+  /* Fits "Edit View Delete" WITH their icons (icons add ~60px vs text-only). */
+  width: 15.5rem;
+}
+/* The 2-column drafts table ("New pages in progress") sizes its own columns. */
+.admin-list-2col th:nth-child(2),
+.admin-list-2col td:nth-child(2) {
+  width: 13rem;
+}
+.admin-list-2col th:nth-child(3),
+.admin-list-2col td:nth-child(3) {
+  width: auto;
+}
+/* Actions cell: a real table-cell (display:flex on a <td> breaks the table's
+   width negotiation); plain inline links spaced by margins. */
+.row-actions > * + * {
+  margin-left: 0.75rem;
+}
+/* Row action links: icon + label on desktop, icon-only under 760px (labels
+   hidden there; aria-label/title keep the name for AT and tooltips). */
+.action-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  vertical-align: middle;
+}
+.admin-section .admin-list tr:last-child td {
+  border-bottom: none;
+}
+/* admin-list mobile. MUST come after the base rules above: the widths/padding
+   are same-specificity overrides, so source order is what makes them win.
+   Strategy: drop the Visibility column entirely (secondary info) so Title
+   keeps readable width even at 320px, instead of shrinking every column. */
+@media (max-width: 760px) {
+  .admin-list th,
+  .admin-list td {
+    padding: 0.4rem 0.5rem;
+  }
+  .admin-list:not(.admin-list-2col) th:nth-child(2),
+  .admin-list:not(.admin-list-2col) td:nth-child(2) {
+    display: none;
+  }
+  /* Icon-only actions: hide the labels (aria-label/title carry the names),
+     so all three actions fit one narrow line and Title gets the width. */
+  .row-actions .action-label {
+    display: none;
+  }
+  .admin-list:not(.admin-list-2col) th:nth-child(3),
+  .admin-list:not(.admin-list-2col) td:nth-child(3) {
+    width: 5rem;
+  }
+  /* Drafts table (2col): column 2 is the actions cell — never hide it. */
+  .admin-list-2col th:nth-child(2),
+  .admin-list-2col td:nth-child(2) {
+    width: 5rem;
+  }
+  .row-actions > * + * {
+    margin-left: 0.5rem;
+  }
+}
+/* metadata fields sit in a tidy column; the body/preview grid spans full width */
+.editor-meta {
+  max-width: 680px;
+}
+.editor label {
+  display: block;
+  margin: 0 0 1rem;
+  font-weight: 600;
+}
+/* Required-field marker */
+.editor .req {
+  color: #d9534f;
+  font-weight: 700;
+}
+/* No "* required" legend: the asterisk is a universal convention (each marked
+   label also carries title="required" and the input the required attribute). */
+.editor label small {
+  display: block;
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: 0.3rem;
+}
+/* TEXT inputs only — never radios/checkboxes (they have name attrs too) */
+.editor input[type="text"],
+.editor input:not([type]) {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.5rem 0.65rem;
+  font: inherit;
+  background: var(--soft);
+  color: var(--text);
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+}
+/* Section combobox: themed replacement for the native <datalist> dropdown. */
+.combo {
+  position: relative;
+}
+.combo-list {
+  position: absolute;
+  top: calc(100% + 0.3rem);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 14rem;
+  overflow-y: auto;
+  padding: 0.3rem;
+  background: var(--soft);
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+}
+.combo-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.45rem 0.6rem;
+  font: inherit;
+  color: var(--text);
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.combo-item:hover,
+.combo-item:focus {
+  background: var(--bg);
+  outline: none;
+}
+.editor fieldset {
+  margin: 1rem 0;
+  padding: 0.75rem 1.25rem 1rem;
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+}
+.editor fieldset legend {
+  font-weight: 600;
+  padding: 0 0.4rem;
+}
+.editor fieldset label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 400;
+  margin: 0.4rem 0;
+}
+.editor fieldset input {
+  width: auto;
+  margin: 0;
+}
+/* near-full-width editor with comfortable side gutters */
+.editor-page {
+  max-width: none;
+  padding-left: clamp(1.5rem, 4vw, 4rem);
+  padding-right: clamp(1.5rem, 4vw, 4rem);
+}
+.editor-page > h1 {
+  font-size: 2rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  margin: 0 0 1.25rem;
+}
+.editor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: stretch;
+}
+.editor-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.editor-grid textarea {
+  flex: 1;
+  width: 100%;
+  min-height: 70vh;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding: 0.8rem;
+  background: var(--soft);
+  color: var(--text);
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+}
+.preview-wrap {
+  flex: 1;
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  min-height: 70vh;
+  overflow: auto;
+}
+/* Top bar: Back on the left, Delete on the right. */
+.editor-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.editor-topbar .delete-form {
+  margin: 0;
+}
+/* Collapsible "Page settings" block. */
+.meta-details {
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+}
+.meta-summary {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.6rem 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  list-style: none;
+}
+.meta-summary::-webkit-details-marker {
+  display: none;
+}
+.meta-summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 0.5rem;
+  color: var(--text-2);
+  transition: transform 0.15s ease;
+}
+.meta-details[open] .meta-summary::before {
+  transform: rotate(90deg);
+}
+.meta-details .editor-meta,
+.meta-details .editor-grid {
+  padding: 0 0.9rem 0.9rem;
+}
+/* Save/Publish go bottom-right (primary commit actions) and stick to the
+   viewport bottom while editing, so they're reachable without scrolling
+   whether the sections are collapsed (short) or expanded (long). */
+.actions {
+  position: sticky;
+  bottom: 0;
+  margin-top: 1rem;
+  padding: 0.85rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  background: var(--bg);
+  border-top: 1px solid var(--divider);
+}
+/* Edit-state chips on the Pages listing (draft in progress / pending approval). */
+.badge-state-draft,
+.badge-state-pending {
+  margin-left: 0.5rem;
+}
+.badge-state-draft {
+  background: rgba(71, 73, 199, 0.18);
+  color: #8b8dff;
+}
+.badge-state-pending {
+  background: rgba(185, 137, 0, 0.18);
+  color: #d9a514;
+}
+
+/* Pending-reviews LIST. flex-wrap is the whole responsive story: actions sit
+   right of the text when they fit, and wrap below it on narrow screens — no
+   table min-widths to force sideways scrolling. */
+.review-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+/* Card per review — same visual language as the Manage pages sections. */
+.review-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+.review-what {
+  min-width: 0;
+}
+.review-sub {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.review-do {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.review-gh {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Internal review page (reviews/[number]): meta strip, action row, and the
+   rendered proposed/published panes. */
+.review-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-2);
+  margin: 0 0 1rem;
+}
+.review-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin: 0 0 1.5rem;
+}
+.review-pane {
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+.review-pane-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--divider);
+}
+summary.review-pane-toggle {
+  cursor: pointer;
+  list-style: none;
+  border-bottom: none;
+  user-select: none;
+}
+summary.review-pane-toggle::before {
+  content: "▸ ";
+  color: var(--text-2);
+}
+details[open] > summary.review-pane-toggle {
+  border-bottom: 1px solid var(--divider);
+}
+details[open] > summary.review-pane-toggle::before {
+  content: "▾ ";
+}
+.review-preview {
+  padding: 1rem 1.25rem;
+}
+
+/* Environment ribbon — sits above the header on local/staging (never prod). */
+.env-ribbon {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.3rem 1rem;
+}
+.env-ribbon-local {
+  background: #4749c7;
+  color: #fff;
+}
+.env-ribbon-poc {
+  background: #b98900;
+  color: #fff;
+}
+
+/* Delete confirmation modal. */
+.confirm-dialog {
+  /* the global `* { margin: 0 }` reset kills the UA's dialog centering
+     (margin: auto) — restore it so modals open dead-center, not top-left */
+  margin: auto;
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  padding: 1.5rem;
+  /* min(): our fixed cap replaces the UA's viewport-aware max-width, so
+     restore the "never wider than the phone" guarantee ourselves */
+  max-width: min(26rem, calc(100vw - 2rem));
+  background: var(--bg);
+  color: var(--text);
+}
+.confirm-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+.confirm-dialog h2 {
+  margin: 0 0 0.6rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.confirm-dialog p {
+  margin: 0 0 1.25rem;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+.badge {
+  font-size: 0.68rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  margin-left: 0.4rem;
+  background: var(--soft);
+  color: var(--text-2);
+}
+@media (max-width: 720px) {
+  .editor-grid {
+    grid-template-columns: 1fr;
+  }
+}

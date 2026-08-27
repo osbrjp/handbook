@@ -1,3 +1,12 @@
+---
+title: "Cost Estimation"
+section: "Guideline"
+parent: "development-guide"
+nav_label: "Cost Estimation"
+sort: 470
+visibility: public
+---
+
 # Cost Estimation
 
 This is the standard OSBR holds its cost and effort estimates to: how we

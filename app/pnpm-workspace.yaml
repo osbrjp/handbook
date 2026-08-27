@@ -1,0 +1,8 @@
+# Marks app/ as its own pnpm workspace root.
+#
+# Without this file, `pnpm install` run from app/ walks up, finds the repo
+# root's pnpm-workspace.yaml and installs the *root* (VitePress) project
+# instead — leaving app/node_modules absent and every script failing with
+# "astro: not found". app/ is deliberately not a member of the root
+# workspace: it pins its own pnpm and keeps its own lockfile.
+packages: []

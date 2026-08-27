@@ -1,3 +1,12 @@
+---
+title: "Incident Management"
+section: "Guideline"
+parent: "quality-gate"
+nav_label: "Incident Management"
+sort: 550
+visibility: public
+---
+
 # Incident Management
 
 This is the standard the [Quality Gate](/quality-gate)'s **Reliability** lens

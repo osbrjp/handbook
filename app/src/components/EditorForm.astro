@@ -1,0 +1,282 @@
+---
+import type { PageRow } from "../lib/content/pages";
+import AlertDialog from "./AlertDialog.astro";
+import CollapsePersistence from "./CollapsePersistence.astro";
+
+interface Props {
+  page?: PageRow | null;
+  csrf: string;
+  sections: string[];
+  writable?: boolean; // true when a content-store write path is available (dev)
+  draftResume?: boolean; // editing an existing unpublished draft (merges the two banners into one)
+  reviewMode?: boolean; // true when saves become draft-branch commits / review PRs
+}
+const {
+  page = null,
+  csrf,
+  sections,
+  writable = false,
+  reviewMode = false,
+  draftResume = false,
+} = Astro.props;
+const visibility = page?.visibility ?? "internal";
+---
+
+<div class="editor-topbar">
+  <a class="btn-cancel" href="/edit-pages" id="back-link">← Back</a>
+  {
+    page && (
+      <button type="button" class="btn btn-danger" id="delete-open">
+        Delete page
+      </button>
+    )
+  }
+</div>
+
+{
+  writable && reviewMode && draftResume ? (
+    <div class="notice">
+      ✎ <strong>Continuing your unpublished draft.</strong> Readers don't see this version yet —
+      “Save draft” keeps it private, “Submit for approval” sends it to an admin and it goes live
+      once approved.
+    </div>
+  ) : writable && reviewMode ? (
+    <div class="notice">
+      ✎ <strong>Draft &amp; review.</strong> “Save draft” keeps your work-in-progress private (it
+      isn't reviewed or published). “Submit for approval” sends it to an admin — it goes live once
+      approved.
+    </div>
+  ) : writable ? (
+    <div class="notice">
+      ✎ <strong>Local editing.</strong> Saving writes the page's markdown file and makes a git
+      commit on this machine (via the local content agent). In production, saves commit through
+      the GitHub API.
+    </div>
+  ) : (
+    <div class="notice notice-warn">
+      ✎ <strong>Preview only.</strong> Saving isn't enabled in this environment — you can edit and
+      preview freely, but a Save/Publish/Delete here returns an error. To change the page for real,
+      commit its markdown to the repository (or use an environment with editing enabled).
+    </div>
+  )
+}
+
+{
+  page && (
+    <>
+      <form method="POST" action="/edit-pages/delete" id="delete-form" class="delete-form">
+        <input type="hidden" name="csrf" value={csrf} />
+        <input type="hidden" name="slug" value={page.slug} />
+      </form>
+      <dialog id="delete-dialog" class="confirm-dialog">
+        <h2>Delete this page?</h2>
+        <p>
+          Are you sure you want to delete “<strong>{page.title}</strong>”? This cannot be undone.
+        </p>
+        <div class="confirm-actions">
+          <button type="button" class="btn btn-alt" id="delete-cancel">
+            Cancel
+          </button>
+          <button type="submit" form="delete-form" class="btn btn-danger" data-busy="Deleting…">
+            Delete page
+          </button>
+        </div>
+      </dialog>
+    </>
+  )
+}
+
+<form method="POST" action="/edit-pages/save" class="editor" data-readonly={String(!writable)}>
+  <input type="hidden" name="csrf" value={csrf} />
+  <input type="hidden" name="orig_slug" value={page?.slug ?? ""} />
+  <input type="hidden" name="sort" value={page?.sort ?? 0} />
+  {/* No UI yet — carried through so a save never strips sidebar nesting. */}
+  <input type="hidden" name="parent" value={page?.parent ?? ""} />
+
+  <details class="meta-details" data-section="settings">
+  <summary class="meta-summary">Page settings</summary>
+  <div class="editor-meta">
+  <label>Title <span class="req" title="required">*</span><input name="title" id="title" value={page?.title ?? ""} required /></label>
+  <label>Page URL
+    <input name="slug" id="slug" value={page?.slug ?? ""} placeholder="auto-generated from title" />
+    <small>The web address for this page (lowercase, hyphens) — e.g. <code>on-boarding</code> becomes <code>/on-boarding</code>. Filled in from the title automatically; change it only if you want a custom address.</small>
+  </label>
+  <label>Nav label<input name="nav_label" value={page?.nav_label ?? ""} /></label>
+  <label>Section <span class="req" title="required">*</span>
+    <div class="combo" id="section-combo">
+      <input
+        name="section"
+        id="section"
+        value={page?.section ?? ""}
+        autocomplete="off"
+        placeholder="Pick an existing section or type a new one"
+        required
+      />
+      <div class="combo-list" id="section-list" role="listbox" hidden>
+        {sections.map((s) => (
+          <button type="button" class="combo-item" data-value={s}>
+            {s}
+          </button>
+        ))}
+      </div>
+    </div>
+  </label>
+
+  <fieldset class="vis">
+    <legend>Who can read this</legend>
+    <label><input type="radio" name="visibility" value="public" checked={visibility === "public"} /> Anyone (public)</label>
+    <label><input type="radio" name="visibility" value="internal" checked={visibility === "internal"} /> Signed-in staff</label>
+  </fieldset>
+  </div>
+  </details>
+
+  <details class="meta-details" data-section="content">
+  <summary class="meta-summary">Content — markdown &amp; live preview</summary>
+  <div class="editor-grid">
+    <div class="editor-pane">
+      <textarea
+        name="body"
+        id="body"
+        placeholder="Markdown — supports ::: callouts, [[TOC]] and ```mermaid``` blocks">{page?.body ?? ""}</textarea>
+    </div>
+    <div class="editor-pane">
+      <article class="prose preview-wrap" id="preview"></article>
+    </div>
+  </div>
+  </details>
+
+  <div class="actions">
+    {
+      reviewMode ? (
+        <>
+          <button type="submit" name="action" value="draft" class="btn btn-alt" data-busy="Saving…">
+            Save draft
+          </button>
+          <button
+            type="submit"
+            name="action"
+            value="submit"
+            class="btn btn-brand"
+            data-busy="Submitting…"
+          >
+            Submit for approval
+          </button>
+        </>
+      ) : (
+        <button type="submit" name="action" value="draft" class="btn btn-brand" data-busy="Saving…">
+          Save
+        </button>
+      )
+    }
+  </div>
+</form>
+
+<script>
+  import { wireBackLink } from "../lib/ui/backLink";
+  import { READONLY_MSG, showAlert, submitForm, wireConfirmDelete } from "../lib/ui/editorForms";
+
+  const body = document.getElementById("body") as HTMLTextAreaElement | null;
+  const preview = document.getElementById("preview");
+  let timer: ReturnType<typeof setTimeout>;
+  async function render() {
+    if (!body || !preview) return;
+    const res = await fetch("/edit-pages/preview", {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: body.value,
+    });
+    if (!res.ok) return;
+    // Server already sanitized (rehype-sanitize) — same trust boundary as the reader page.
+    preview.innerHTML = await res.text();
+    if (preview.querySelector(".mermaid")) {
+      const m = await import("mermaid");
+      m.default.initialize({ startOnLoad: false, theme: "neutral" });
+      m.default.run({ nodes: preview.querySelectorAll(".mermaid") });
+    }
+  }
+  body?.addEventListener("input", () => {
+    clearTimeout(timer);
+    timer = setTimeout(render, 250);
+  });
+
+  // Auto-fill the slug from the title until the user edits the slug directly.
+  const titleEl = document.getElementById("title") as HTMLInputElement | null;
+  const slugEl = document.getElementById("slug") as HTMLInputElement | null;
+  const slugify = (s: string) =>
+    s
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  let slugTouched = !!slugEl?.value;
+  slugEl?.addEventListener("input", () => {
+    slugTouched = true;
+  });
+  titleEl?.addEventListener("input", () => {
+    if (!slugTouched && slugEl) slugEl.value = slugify(titleEl.value);
+  });
+
+  render();
+
+  // Back returns to wherever the editor was opened from (page or list).
+  wireBackLink("back-link");
+
+  // Section combobox: themed dropdown of existing sections; clicking one fills
+  // the input, but typing a brand-new section name is still allowed (free text).
+  const combo = document.getElementById("section-combo");
+  const sectionInput = document.getElementById("section") as HTMLInputElement | null;
+  const sectionList = document.getElementById("section-list");
+  if (combo && sectionInput && sectionList) {
+    const items = Array.from(sectionList.querySelectorAll<HTMLButtonElement>(".combo-item"));
+    const sync = () => {
+      const q = sectionInput.value.trim().toLowerCase();
+      let any = false;
+      for (const it of items) {
+        const match = (it.dataset.value ?? "").toLowerCase().includes(q);
+        it.hidden = !match;
+        if (match) any = true;
+      }
+      sectionList.hidden = !any;
+    };
+    sectionInput.addEventListener("focus", sync);
+    sectionInput.addEventListener("input", sync);
+    for (const it of items) {
+      it.addEventListener("click", () => {
+        sectionInput.value = it.dataset.value ?? "";
+        sectionList.hidden = true;
+        sectionInput.focus();
+      });
+    }
+    sectionInput.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") sectionList.hidden = true;
+    });
+    document.addEventListener("click", (e) => {
+      if (!combo.contains(e.target as Node)) sectionList.hidden = true;
+    });
+  }
+
+  // Preview-only: controls stay live (so they hover/look real) but there's no
+  // write path — pop the notice instead of round-tripping a save that can't
+  // happen. When writable, submit via fetch so server errors pop up too.
+  const editorForm = document.querySelector("form.editor") as HTMLFormElement | null;
+  const readonly = editorForm?.dataset.readonly === "true";
+
+  editorForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (readonly) return showAlert(READONLY_MSG);
+    submitForm(editorForm, (e as SubmitEvent).submitter);
+  });
+
+  // Delete → shared confirm dialog (same rules as the Pages listing).
+  const deleteOpen = document.getElementById("delete-open");
+  wireConfirmDelete({
+    dialog: document.getElementById("delete-dialog") as HTMLDialogElement | null,
+    form: document.getElementById("delete-form") as HTMLFormElement | null,
+    openButtons: deleteOpen ? [deleteOpen] : [],
+    cancel: document.getElementById("delete-cancel"),
+    readonly,
+  });
+</script>
+
+<AlertDialog />
+<CollapsePersistence selector=".editor details[data-section]" storageKey="editorSections" />

@@ -1,3 +1,11 @@
+---
+title: "Infrastructure Planning Policy"
+section: "Policies"
+nav_label: "Infrastructure Planning Policy"
+sort: 810
+visibility: public
+---
+
 # Infrastructure Planning Policy
 
 This policy defines the defaults every OSBR project starts from when planning and provisioning infrastructure. It complements the [Security Policy](/security-policy) and the [Non-functional Requirements](/predefining-non-functional-requirements) guide: those describe *what* a system must guarantee, while this describes *how* we shape infrastructure to get there.
