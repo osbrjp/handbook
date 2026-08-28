@@ -110,7 +110,9 @@ the file and the offending key.
 
 ## 6. How it reaches production
 
-**The Cloudflare Worker is the live site** — DNS points at it. Content is
+**The Cloudflare Worker is the live site.** The live chain is Route 53 →
+CloudFront → the Worker (`POC.md`), so a response carries CloudFront's
+`via:` header while the page itself is rendered by the Worker. Content is
 **bundled at build time**: a merged change to `doc/**` on `main` triggers the
 Worker deploy (`.github/workflows/deploy-worker.yml`), and until that deploy
 finishes the new page does not exist for the Worker. Adding a file to the repo
