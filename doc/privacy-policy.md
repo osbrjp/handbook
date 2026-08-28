@@ -1,3 +1,11 @@
+---
+title: "Privacy Policy"
+section: "Policies"
+nav_label: "Privacy Policy"
+sort: 840
+visibility: public
+---
+
 # Privacy Policy
 
 This is OSBR's organisation-level commitment on personal data — the promise, made to the people whose data we hold, that stands behind everything else in this handbook. It is the counterpart of the [Security Policy](/security-policy) (which protects information assets) and the [SHEQ Policy](/sheq-policy) (which commits us on safety, health, environment, and quality): where those govern what we protect, this governs the trust of the person the data describes. It is a **notice**, not an engineering spec — the concrete technical controls that satisfy these commitments live in the [Data Protection](/data-protection) standard, and the legal judgement calls behind them in [Legal Compliance](/legal-compliance). This document is the promise those pages keep.

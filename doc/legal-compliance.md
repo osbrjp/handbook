@@ -1,3 +1,12 @@
+---
+title: "Legal Compliance"
+section: "Guideline"
+parent: "development-guide"
+nav_label: "Legal Compliance"
+sort: 490
+visibility: public
+---
+
 # Legal Compliance
 
 This is the standard for enumerating the legal and regulatory constraints on a

@@ -1,3 +1,12 @@
+---
+title: "Self-Explanatory UI"
+section: "Guideline"
+parent: "design-guidelines"
+nav_label: "Self-Explanatory UI"
+sort: 400
+visibility: public
+---
+
 # Self-Explanatory UI
 
 This policy defines what OSBR means by a finished screen: **every screen MUST

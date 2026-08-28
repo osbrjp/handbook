@@ -1,3 +1,12 @@
+---
+title: "Testing Standards"
+section: "Guideline"
+parent: "quality-gate"
+nav_label: "Testing Standards"
+sort: 530
+visibility: public
+---
+
 # Testing Standards
 
 This is the standard the [Quality Gate](/quality-gate)'s **Reliability** lens

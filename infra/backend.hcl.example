@@ -1,0 +1,6 @@
+bucket = "osbr-terraform-state"
+key    = "handbook/cloudfront.tfstate"
+region = "ap-northeast-1"
+
+# S3-native state locking; no DynamoDB table to maintain.
+use_lockfile = true

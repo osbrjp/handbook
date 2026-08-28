@@ -1,3 +1,12 @@
+---
+title: "Observability & Resilience"
+section: "Guideline"
+parent: "quality-gate"
+nav_label: "Observability & Resilience"
+sort: 540
+visibility: public
+---
+
 # Observability & Resilience
 
 This is the standard the [Quality Gate](/quality-gate)'s **Reliability** lens
