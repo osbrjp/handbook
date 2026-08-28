@@ -228,6 +228,11 @@ resource "aws_cloudfront_distribution" "handbook" {
 }
 
 ## Cutover
+#
+# The A alias was created by hand in the console at cutover, while this flag
+# was still false (POC.md, cutover step 4.7). Terraform will not create a
+# record that already exists, so it has to be imported before the first apply
+# with the flag on — see README.md. The AAAA is Terraform's alone.
 
 resource "aws_route53_record" "handbook" {
   for_each = var.enable_dns_cutover ? toset(["A", "AAAA"]) : toset([])

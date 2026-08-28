@@ -506,7 +506,10 @@ be internal" as an open content question, not a solved one.
    Workers live in the company Cloudflare account. If any of these sat on a
    personal account, that person leaving/losing access would break sign-in or
    force a mass logout.
-4. **DNS cutover — CloudFront distribution + `Origin` rewrite.** The chosen
+4. **DNS cutover — CloudFront distribution + `Origin` rewrite — DONE
+   (August 2026).** `handbook.osbrjp.com` resolves to the distribution and the
+   origin lock is engaged; `infra/` owns the AWS side, and the alias record
+   made by hand in step 7 needs the one-time import in `infra/README.md`. The chosen
    path (see "CHOSEN: CloudFront rewrites the `Origin` header" above).
    `osbrjp.com` stays on Route 53 throughout; nothing about DNS hosting or the
    Google Workspace mail records changes.

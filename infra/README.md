@@ -56,38 +56,50 @@ branch.
 
 ## The DNS cutover
 
-`handbook.osbrjp.com` currently resolves to GitHub Pages. `enable_dns_cutover`
-is `false` so the distribution can be built and tested on its own CloudFront
-domain first:
+`handbook.osbrjp.com` resolves to this distribution (cut over August 2026;
+GitHub Pages 301s here). `enable_dns_cutover` is `true`: it declares the
+Route 53 alias records and compiles the canonical-host redirect into the
+function, so the `*.cloudfront.net` domain answers 301 to the alias instead of
+serving the site under a second name. The `Origin` rewrite runs either way.
+
+The cutover itself was done by hand in the console (POC.md, cutover step 4.7)
+while the flag was still `false`, which leaves a one-time chore: Terraform will
+not create a record that already exists, so the A alias must be imported before
+the first apply with the flag on. `aws_route53_record` import ids are
+`ZONEID_NAME_TYPE`:
 
 ```sh
-$ curl -sI https://$(terraform output -raw distribution_domain_name)/
+$ terraform init -backend-config=backend.hcl -input=false
+$ ZONE_ID=$(aws route53 list-hosted-zones-by-name --dns-name osbrjp.com \
+    --query 'HostedZones[0].Id' --output text | sed 's|/hostedzone/||')
+$ terraform import 'aws_route53_record.handbook["A"]' "${ZONE_ID}_handbook.osbrjp.com_A"
+$ sh scripts/plan.sh
 ```
 
-The flag also compiles the canonical-host redirect in or out of the function.
-While it is `false` the CloudFront domain serves the site directly, which is
-what makes that `curl` a 200 rather than a 301 to a name that still points at
-GitHub Pages. The `Origin` rewrite runs either way — the editor has to work
-before the cutover as well as after it.
+The plan should add the AAAA alias (the console cutover only made an A) and
+republish the function with the redirect on — nothing else. Until it is
+applied, that is the drift: no AAAA, and the CloudFront domain still answering
+200 directly.
 
-To cut over: delete the existing `handbook.osbrjp.com` record (Route 53 will not
-hold a CNAME and an alias A record for the same name), set
-`enable_dns_cutover = true`, plan, and apply. Retiring the GitHub Pages
-deployment is a separate change in this repository.
+Verifying a distribution on its own domain again means the flag back to
+`false` for that apply, or the redirect turns every check into a 301.
 
-Also set **`OAUTH_ORIGIN = https://handbook.osbrjp.com`** on the Worker. The
-rewrite fixes the CSRF check, not the app's sense of its own identity — see
-`POC.md`. That is a Cloudflare dashboard change, not a Terraform one.
+Two things the cutover depends on live outside Terraform, both in place:
+**`OAUTH_ORIGIN = https://handbook.osbrjp.com`** on the Worker (a Cloudflare
+dashboard variable — the rewrite fixes the CSRF check, not the app's sense of
+its own identity; `/llms.txt` emitting `handbook.osbrjp.com` links is the proof
+it is right, see `POC.md`), and the **origin lock**: `ORIGIN_VERIFY_SECRET` is
+set on the Worker, matching `origin_secret` here, so
+`osbr-handbook.osbrjp.workers.dev` answers 403. Rollback of the lock is
+`wrangler secret delete ORIGIN_VERIFY_SECRET`, no redeploy.
 
 ## Still open
 
-- **Origin lock — code landed, not yet engaged.** The Worker checks
-  `X-Origin-Verify` (`app/src/lib/auth/originLock.ts`) and refuses anything
-  without it, but only once `ORIGIN_VERIFY_SECRET` is set on the Worker; unset
-  means off, so the workers.dev URL is still reachable today. Engage it AFTER
-  this distribution is applied and verified — setting it first 403s every
-  reader — with `wrangler secret put ORIGIN_VERIFY_SECRET` matching the
-  `origin_secret` here. Rollback is `wrangler secret delete`, no redeploy.
+- **Retire GitHub Pages.** The old static site is still published with the
+  custom domain attached. Keep it until this distribution has days of
+  confidence, then POC.md cutover step 6. Rollback until then is the flag back
+  to `false`, the alias records removed, and a CNAME to `osbrjp.github.io` —
+  Route 53 will not hold a CNAME and an alias A for the same name.
 - **CI with OIDC.** #98 asks for plan and apply to run from CI on short-lived
   OIDC credentials. That needs an IAM role and trust policy that do not exist in
   the account yet, so the workflow is not written — a workflow without the role

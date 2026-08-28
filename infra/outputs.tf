@@ -1,6 +1,6 @@
 output "canonical_url" {
   value       = "https://${var.domain_name}/"
-  description = "Public address of the handbook once the DNS cutover is enabled."
+  description = "Public address of the handbook."
 }
 
 output "certificate_arn" {
@@ -10,7 +10,7 @@ output "certificate_arn" {
 
 output "distribution_domain_name" {
   value       = aws_cloudfront_distribution.handbook.domain_name
-  description = "CloudFront domain to test against before the DNS cutover."
+  description = "The distribution's own domain. Answers 301 to canonical_url while enable_dns_cutover is on, so it is only worth testing against with the flag off."
 }
 
 output "distribution_id" {
