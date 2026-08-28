@@ -5,6 +5,11 @@ legacy VitePress site. `POC.md` records architecture decisions, deploy
 mechanics, and the cutover plan — read it before changing auth, deploy
 config, or the content workflow.
 
+**Editing handbook pages (`doc/*.md`): read `CONTENT-GUIDE.md` first.** Those
+files carry a required frontmatter block with a strict schema — a plain
+markdown file dropped into `doc/` fails the build and never reaches the
+Worker.
+
 ## Code quality (apply to every change)
 
 - **No duplicates.** Before finishing any change, sweep for copy-pasted
