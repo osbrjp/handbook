@@ -1,3 +1,12 @@
+---
+title: "Python Style Guide"
+section: "Guideline"
+parent: "style-guide"
+nav_label: "Python"
+sort: 350
+visibility: public
+---
+
 # Python Style Guide
 
 Per-language style guide for Python. Shared rules: the

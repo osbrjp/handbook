@@ -1,0 +1,125 @@
+---
+import Base from "../../../layouts/Base.astro";
+import { requireEditor } from "../../../lib/auth/requireEditor";
+import { issueCsrf } from "../../../lib/csrf";
+import { getReview, reviewLabel } from "../../../lib/content/reviews";
+import { EDIT_BRANCH_PREFIX, readPageAtRef, resolveBase } from "../../../lib/content/store.github";
+import { getEditablePageBySlug } from "../../../lib/content/pages";
+import { renderMarkdown } from "../../../lib/markdown";
+
+// Internal review page: read a pending change WITHOUT leaving the handbook —
+// the proposed version rendered like a real page, the currently-published
+// version for comparison, and approve/reject in place. GitHub stays the
+// audit trail (link provided), not a required stop.
+const denied = requireEditor(Astro.locals);
+if (denied) return denied;
+
+Astro.response.headers.set("Cache-Control", "private, no-store");
+Astro.response.headers.set("Vary", "Cookie");
+
+const raw = Astro.params.number ?? "";
+if (!/^[0-9]{1,8}$/.test(raw)) return new Response(null, { status: 404 });
+
+const gh = Astro.locals.contentStore.github;
+if (!gh?.token || !gh.repo) return Astro.redirect("/edit-pages/reviews", 302);
+
+const cfg = { token: gh.token, repo: gh.repo, base: await resolveBase(gh) };
+const review = await getReview(cfg, Number(raw));
+if (!review) return new Response(null, { status: 404 });
+
+// Proposed version = the file at the PR's head branch. Null means the review
+// DELETES the page. Published = what readers see today (null for new pages).
+const proposed = await readPageAtRef(gh, review.slug, `${EDIT_BRANCH_PREFIX}${review.slug}`);
+const published = await getEditablePageBySlug(review.slug);
+
+const kind = !proposed ? "deletion" : !published ? "new page" : "update";
+const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
+
+const CHECK_LABEL = {
+  passing: "✓ checks passed",
+  failing: "✗ checks failing",
+  pending: "… checks running",
+  none: "– no checks yet",
+} as const;
+---
+
+<Base title={`Review #${review.number}`} visitor={Astro.locals.visitor}>
+  <div class="container admin-page">
+    <a class="btn-cancel admin-back" href="/edit-pages/reviews">← Back to reviews</a>
+    <div class="admin-head">
+      <h1>Review: {reviewLabel(review.title)}</h1>
+    </div>
+
+    <div class="review-meta">
+      <span class="badge">{kind}</span>
+      <code>{review.slug}</code>
+      <span>by <strong>{review.author}</strong></span>
+      <span>{CHECK_LABEL[review.checks]}</span>
+      <a href={review.url} target="_blank" rel="noopener" title="Raw diff & history on GitHub">
+        GitHub ↗
+      </a>
+    </div>
+
+    <div class="review-actions">
+      <form method="POST" action="/edit-pages/reviews/approve" class="inline-form">
+        <input type="hidden" name="csrf" value={csrf} />
+        <input type="hidden" name="pr" value={review.number} />
+        <button type="submit" class="btn btn-brand" data-busy="Approving…">
+          Approve &amp; publish
+        </button>
+      </form>
+      <form method="POST" action="/edit-pages/reviews/reject" class="inline-form review-reject">
+        <input type="hidden" name="csrf" value={csrf} />
+        <input type="hidden" name="pr" value={review.number} />
+        <button type="submit" class="btn btn-danger" data-busy="Rejecting…">Reject</button>
+      </form>
+    </div>
+
+    {
+      kind === "deletion" ? (
+        <div class="notice notice-warn">
+          ✎ This review <strong>deletes</strong> “{published?.title ?? review.slug}”. Approving
+          removes the page from the handbook.
+        </div>
+      ) : (
+        <section class="review-pane">
+          <h2 class="review-pane-title">
+            Proposed version {kind === "new page" && <span class="badge">not published yet</span>}
+          </h2>
+          <article class="prose review-preview" set:html={renderMarkdown(proposed?.body ?? "")} />
+        </section>
+      )
+    }
+
+    {
+      published && kind !== "deletion" && (
+        <details class="review-pane">
+          <summary class="review-pane-title review-pane-toggle">
+            Currently published version (for comparison)
+          </summary>
+          <article class="prose review-preview" set:html={renderMarkdown(published.body)} />
+        </details>
+      )
+    }
+  </div>
+</Base>
+
+<script>
+  // Same busy/confirm rules as the reviews list.
+  for (const form of document.querySelectorAll("form.review-reject")) {
+    form.addEventListener("submit", (e) => {
+      if (!confirm("Reject this change? The submitted edits will be discarded.")) {
+        e.preventDefault();
+      }
+    });
+  }
+  for (const form of document.querySelectorAll<HTMLFormElement>("form.inline-form")) {
+    form.addEventListener("submit", (e) => {
+      if (e.defaultPrevented) return;
+      const btn = (e as SubmitEvent).submitter as HTMLButtonElement | null;
+      if (!btn) return;
+      btn.disabled = true;
+      btn.textContent = btn.dataset.busy ?? "Working…";
+    });
+  }
+</script>

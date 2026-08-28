@@ -1,0 +1,43 @@
+---
+// Remembers the open/closed state of <details data-section> elements per tab.
+//  - RELOAD  → reset to the server-rendered default (clears stored state)
+//  - NAVIGATE → restore whatever the user had opened
+// Rendered as an inline script (define:vars ⇒ inline) so it runs before paint
+// and there's no collapse/expand flash. Shared by the sidebar and the editor.
+interface Props {
+  selector: string; // CSS selector for the <details> elements
+  storageKey: string; // sessionStorage key namespace
+}
+const { selector, storageKey } = Astro.props;
+---
+
+<script is:inline define:vars={{ selector, storageKey }}>
+  (function () {
+    const navEntry = performance.getEntriesByType("navigation")[0];
+    const isReload = navEntry && navEntry.type === "reload";
+    let state = {};
+    if (isReload) {
+      try {
+        sessionStorage.removeItem(storageKey);
+      } catch (_) {}
+    } else {
+      try {
+        state = JSON.parse(sessionStorage.getItem(storageKey) || "{}");
+      } catch (_) {}
+    }
+    for (const d of document.querySelectorAll(selector)) {
+      const key = d.getAttribute("data-section");
+      if (!isReload && state[key]) d.open = true;
+      d.addEventListener("toggle", () => {
+        let s = {};
+        try {
+          s = JSON.parse(sessionStorage.getItem(storageKey) || "{}");
+        } catch (_) {}
+        s[key] = d.open;
+        try {
+          sessionStorage.setItem(storageKey, JSON.stringify(s));
+        } catch (_) {}
+      });
+    }
+  })();
+</script>

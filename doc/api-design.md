@@ -1,3 +1,12 @@
+---
+title: "API Design"
+section: "Guideline"
+parent: "quality-gate"
+nav_label: "API Design"
+sort: 640
+visibility: public
+---
+
 # API Design
 
 This is the standard the [Quality Gate](/quality-gate)'s **Sustainability**

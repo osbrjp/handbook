@@ -1,6 +1,6 @@
 ---
 created_at: 2026-07-13T20:02:57+09:00
-author: po.ching.yu.alex@oz-design.jp
+author:
 type: housekeeping
 layer: [UX, Config]
 effort:

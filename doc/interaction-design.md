@@ -1,3 +1,12 @@
+---
+title: "Interaction Design"
+section: "Guideline"
+parent: "design-guidelines"
+nav_label: "Interaction Design"
+sort: 420
+visibility: public
+---
+
 # Interaction Design
 
 This is the standard OSBR holds interaction design to, and the consistency

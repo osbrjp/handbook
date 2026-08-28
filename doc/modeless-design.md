@@ -1,3 +1,12 @@
+---
+title: "Modeless Design"
+section: "Guideline"
+parent: "design-guidelines"
+nav_label: "Modeless Design"
+sort: 410
+visibility: public
+---
+
 # Modeless Design
 
 This policy defines OSBR's default posture for interaction: **modelessness is the default; a mode is the exception that must justify itself.** A *mode* is any state where the same user action produces a different result depending on where the interface currently is — the classic example being a modal dialog that seizes the screen and refuses every action but its own. Whenever a design reaches for a mode, the burden is on the design to prove the mode is warranted, and to record why. It sits under the [Design Guidelines](/design-guidelines) and sharpens one thread of [Interaction Design](/interaction-design) down to the altitude of a single interaction. Deviations are allowed, but — as everywhere in the handbook — they must be deliberate and recorded in the project's design notes.

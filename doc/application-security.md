@@ -1,3 +1,12 @@
+---
+title: "Application Security"
+section: "Guideline"
+parent: "quality-gate"
+nav_label: "Application Security"
+sort: 580
+visibility: public
+---
+
 # Application Security
 
 This is the standard the [Quality Gate](/quality-gate)'s **Security** lens holds

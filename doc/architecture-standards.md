@@ -1,3 +1,12 @@
+---
+title: "Architecture Standards"
+section: "Guideline"
+parent: "quality-gate"
+nav_label: "Architecture Standards"
+sort: 620
+visibility: public
+---
+
 # Architecture Standards
 
 This is the standard the [Quality Gate](/quality-gate) holds structural and

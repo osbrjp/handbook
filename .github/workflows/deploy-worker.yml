@@ -1,0 +1,83 @@
+name: Deploy Worker
+# Deploys the handbook Worker whenever app code or content lands on the
+# deployed branch — this is what makes an approved "Submit for approval" merge
+# actually appear on the site. That branch is main (the POC branch merged in
+# PR #72 on 2026-08-27 and its targeting was retired with it).
+#
+# INERT UNTIL CONFIGURED: requires the CLOUDFLARE_API_TOKEN repo secret
+# (repo admin: Settings → Secrets and variables → Actions; token needs
+# Workers Scripts:Edit + Workers KV Storage:Edit). Until it exists, runs
+# skip with a notice instead of failing every merge.
+#
+# Deploy safety: wrangler.toml sets keep_vars=true and pins the SESSION KV id,
+# so CI deploys never wipe dashboard vars/secrets or rebind the session store.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "app/**"
+      # content is doc/*.md (single source since the doc/ refactor) — an
+      # approved editor merge touches ONLY doc/, and it must redeploy too
+      - "doc/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy at a time, never cancelled mid-upload; queued runs collapse to
+# the latest.
+concurrency:
+  group: deploy-worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for Cloudflare credentials
+        id: creds
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -n "$TOKEN" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::CLOUDFLARE_API_TOKEN secret not set — skipping deploy (a repo admin must add it; see workflow header)."
+          fi
+      - uses: actions/checkout@v7
+        if: steps.creds.outputs.ok == 'true'
+      - name: Set up pnpm
+        if: steps.creds.outputs.ok == 'true'
+        # Pin pnpm from app/package.json, exactly as run-tests.yml does. A bare
+        # `version:` here conflicts with the ROOT package.json's
+        # `packageManager` field (the action defaults to the root file) and the
+        # action hard-fails: "Multiple versions of pnpm specified". That bug sat
+        # here unnoticed because this job skipped on every run until the
+        # CLOUDFLARE_API_TOKEN secret existed.
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: app/package.json
+      - name: Set up Node.js
+        if: steps.creds.outputs.ok == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+      - name: Install dependencies
+        if: steps.creds.outputs.ok == 'true'
+        run: pnpm install --frozen-lockfile
+        working-directory: app
+      - name: Test & build
+        if: steps.creds.outputs.ok == 'true'
+        run: pnpm test && pnpm build
+        working-directory: app
+      - name: Deploy
+        if: steps.creds.outputs.ok == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: app
+          command: deploy

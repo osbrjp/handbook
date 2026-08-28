@@ -1,0 +1,63 @@
+---
+interface Heading {
+  depth: number;
+  text: string;
+  id: string;
+}
+interface Props {
+  headings: Heading[];
+}
+const { headings } = Astro.props;
+
+// Group h3s under the preceding h2 so each top heading is collapsible.
+type Group = Heading & { subs: Heading[] };
+const groups: Group[] = [];
+for (const h of headings) {
+  if (h.depth === 2 || groups.length === 0) {
+    groups.push({ ...h, subs: [] });
+  } else {
+    groups[groups.length - 1].subs.push(h);
+  }
+}
+---
+
+{
+  headings.length > 0 && (
+    <nav class="doc-toc">
+      <p class="toc-title">On this page</p>
+      {groups.map((g) => (
+        <div class="toc-group">
+          <div class="toc-row">
+            {g.subs.length > 0 ? (
+              <button class="toc-chevron" type="button" aria-label="Toggle subsections">
+                ▸
+              </button>
+            ) : (
+              <span class="toc-chevron-spacer" />
+            )}
+            <a href={`#${g.id}`} class="toc-h2">
+              {g.text}
+            </a>
+          </div>
+          {g.subs.length > 0 && (
+            <div class="toc-subs">
+              {g.subs.map((s) => (
+                <a href={`#${s.id}`} class="toc-sub">
+                  {s.text}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </nav>
+  )
+}
+
+<script is:inline>
+  for (const btn of document.querySelectorAll(".doc-toc .toc-chevron")) {
+    btn.addEventListener("click", () => {
+      btn.closest(".toc-group")?.classList.toggle("open");
+    });
+  }
+</script>

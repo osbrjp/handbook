@@ -1,3 +1,12 @@
+---
+title: "Accessibility"
+section: "Guideline"
+parent: "design-guidelines"
+nav_label: "Accessibility"
+sort: 390
+visibility: public
+---
+
 # Accessibility
 
 We put **accessibility at the start of the experience, not at the end of it.**

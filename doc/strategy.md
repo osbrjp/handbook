@@ -1,3 +1,11 @@
+---
+title: "Strategy Overview"
+section: "About"
+nav_label: "Strategy"
+sort: 110
+visibility: public
+---
+
 # Strategy Overview
 
 [[TOC]]

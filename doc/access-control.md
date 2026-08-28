@@ -1,3 +1,12 @@
+---
+title: "Access Control"
+section: "Guideline"
+parent: "quality-gate"
+nav_label: "Access Control"
+sort: 590
+visibility: public
+---
+
 # Access Control
 
 This is the standard the [Quality Gate](/quality-gate)'s **Security** lens holds

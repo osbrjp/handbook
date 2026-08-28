@@ -1,0 +1,92 @@
+---
+import Base from "../../../layouts/Base.astro";
+import EditorForm from "../../../components/EditorForm.astro";
+import ReadonlyNotice from "../../../components/ReadonlyNotice.astro";
+import { requireEditor } from "../../../lib/auth/requireEditor";
+import { issueCsrf } from "../../../lib/csrf";
+import { getEditablePageBySlug, listAllPages, type PageRow } from "../../../lib/content/pages";
+import { isReviewMode, isWritable } from "../../../lib/content/store";
+import { prLinkFromParam } from "../../../lib/content/reviews";
+import { readDraft } from "../../../lib/content/store.github";
+import { isSafeSlug } from "../../../lib/content/serialize";
+
+const denied = requireEditor(Astro.locals);
+if (denied) return denied;
+
+Astro.response.headers.set("Cache-Control", "private, no-store");
+Astro.response.headers.set("Vary", "Cookie");
+
+const slug = Astro.params.slug;
+if (!slug || !isSafeSlug(slug)) return new Response(null, { status: 404 });
+
+// Three independent reads — the published version, the visitor's unmerged work
+// (draft/pending commits on handbook/<slug>), and the section list — fetched
+// CONCURRENTLY (readDraft alone is 2-3 GitHub round-trips). When a draft
+// exists the FORM MUST show it, else a second editing session would silently
+// start from the published text and clobber the draft; covers brand-new pages
+// too (draft exists, nothing published yet).
+const cfg = Astro.locals.contentStore;
+const [published, draft, allPages] = await Promise.all([
+  getEditablePageBySlug(slug),
+  cfg.kind === "github" && cfg.github?.token ? readDraft(cfg.github, slug) : Promise.resolve(null),
+  listAllPages(),
+]);
+
+if (!published && !draft) return new Response(null, { status: 404 });
+
+const page: PageRow = draft
+  ? { slug, body: draft.body, ...draft.frontmatter }
+  : (published as PageRow);
+
+const csrf = issueCsrf(Astro.cookies, Astro.url.protocol === "https:");
+const sections = [...new Set(allPages.map((p) => p.section))];
+
+// Outcome banners (set by /edit-pages/save redirects): local-dev save,
+// review-mode draft save, review-mode submit (validated PR link).
+const saved = Astro.url.searchParams.get("saved");
+const drafted = Astro.url.searchParams.get("drafted");
+const submittedPr = prLinkFromParam(
+  Astro.locals.contentStore.github?.repo,
+  Astro.url.searchParams.get("submitted"),
+);
+---
+
+<Base title={`Edit: ${page.title}`} visitor={Astro.locals.visitor}>
+  <div class="container editor-page">
+    <h1>Edit: {page.title}</h1>
+    <ReadonlyNotice />
+    {/* Draft-resume messaging lives INSIDE EditorForm (draftResume prop) so
+        the page shows ONE banner below Back/Delete, not two around it. */}
+    {
+      saved && (
+        <div class="notice">
+          ✓ Saved. <a href={`/${page.slug}`}>View page →</a>
+        </div>
+      )
+    }
+    {drafted && <div class="notice">✓ Draft saved — private until you submit it for approval.</div>}
+    {
+      submittedPr && (
+        <div class="notice">
+          ✓ <strong>Submitted for approval</strong> (
+          {submittedPr.url ? (
+            <a href={submittedPr.url} target="_blank" rel="noopener">
+              review #{submittedPr.number}
+            </a>
+          ) : (
+            `review #${submittedPr.number}`
+          )}
+          ). It goes live once an admin approves it — further edits here join the same review.
+        </div>
+      )
+    }
+    <EditorForm
+      page={page}
+      csrf={csrf}
+      sections={sections}
+      writable={isWritable(Astro.locals.contentStore)}
+      reviewMode={isReviewMode(Astro.locals.contentStore)}
+      draftResume={!!draft && !drafted && !submittedPr}
+    />
+  </div>
+</Base>
