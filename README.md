@@ -18,9 +18,14 @@ Pages, but it is no longer what readers get — the live site is the Worker.
 
 ## Editing handbook pages
 
-`doc/*.md` pages carry a **required** frontmatter block. Read
-[`.claude/CONTENT-GUIDE.md`](.claude/CONTENT-GUIDE.md) before adding, editing,
-renaming or deleting a page: a plain markdown file dropped into `doc/` fails
+**People edit on the site, not in this repository.** Sign in at
+https://handbook.osbrjp.com with your GitHub account and use the in-browser
+editor; submitting a page for approval opens a pull request for it. Repository
+access is the only permission there is — no separate accounts, no allow-list.
+
+**AI agents editing `doc/*.md` directly** follow
+[`.claude/CONTENT-GUIDE.md`](.claude/CONTENT-GUIDE.md). Those files carry a
+required frontmatter block, and a plain markdown file dropped into `doc/` fails
 the build and never reaches the Worker.
 
 ## Development Guide
