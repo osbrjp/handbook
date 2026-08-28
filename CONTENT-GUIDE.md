@@ -1,0 +1,128 @@
+# Editing handbook content (guide for AI agents)
+
+Read this before creating, editing, renaming or deleting any page under `doc/`.
+A markdown file dropped into `doc/` **without** the frontmatter block below
+fails the build — the Cloudflare Worker serves pages from a build-time content
+collection with a strict schema, not from raw files at runtime.
+
+Source of truth for everything here: `app/src/content.config.ts` (schema),
+`app/src/lib/content/serialize.ts` (on-disk format), `app/src/lib/markdown.ts`
+(what a body may contain).
+
+## 1. Where a page lives
+
+- `doc/<slug>.md` — **top level only**. Files in subdirectories are not pages.
+- The filename stem **is** the slug **is** the URL: `doc/code-review.md` → `/code-review`.
+- Slug must match `^[a-z0-9][a-z0-9-]*$` (lowercase, digits, hyphens; no dots, no slashes).
+- `doc/index.md` is excluded — it's the legacy VitePress home page, not a handbook page.
+- The same files feed the legacy VitePress site, whose build still runs in CI
+  and still deploys to GitHub Pages — so both builds must stay green — but the
+  live handbook is the Cloudflare Worker (see §6).
+
+## 2. The frontmatter block
+
+Copy this shape exactly. String values are double-quoted; `sort` and
+`visibility` are bare.
+
+```markdown
+---
+title: "Access Control"
+section: "Guideline"
+parent: "quality-gate"
+nav_label: "Access Control"
+sort: 590
+visibility: public
+---
+
+# Access Control
+
+Body starts here.
+```
+
+| Key | Required | Rules |
+| --- | --- | --- |
+| `title` | yes | Quoted string. Also rendered as the page `<h1>` by the app. |
+| `section` | yes | Quoted string. Sidebar group. Use an existing one: `About`, `People & Culture`, `Guideline`, `Policies`. A new value creates a new group. |
+| `parent` | no | Slug of the parent page, **in the same section**. A parent in another section (or a missing one) silently makes the page top-level. Nesting is capped at 4 levels. |
+| `nav_label` | no | Quoted string; sidebar label when it should differ from `title`. Empty string = fall back to `title`. |
+| `sort` | no (defaults 0) | Number. Orders pages within a section **and** orders the sections themselves (a section sits where its lowest-`sort` page falls). |
+| `visibility` | no (defaults `internal`) | `public` (anyone) or `internal` (signed-in only). **Fails closed** — a typo means internal. |
+| `updated_by` / `updated_at` | no | Written by the in-app editor. Do not hand-author them. |
+
+No other keys. Anything else is ignored by the app and just noise.
+
+`sort` bands currently in use — pick a free number in the right band, step 10:
+
+- `100–199` About · `200–299` People & Culture · `300–759` Guideline · `800–899` Policies
+
+## 3. The body
+
+- The body **must open with `# <title>`** (same text as `title`), then a blank
+  line. The VitePress build renders that H1 as the page title; the app strips it
+  and renders its own `<h1>` from frontmatter. Omit it and VitePress loses the
+  title; duplicate a different H1 and the two sites disagree.
+- Allowed: GitHub-flavoured markdown (tables, task lists, strikethrough),
+  fenced code, `:::info` / `:::tip` / `:::warning` / `:::danger` / `:::note` /
+  `:::caution` / `:::important` / `:::details` callouts (with or without a
+  label), ` ```mermaid ` diagrams, and `[[TOC]]` on its own line for an
+  auto table of contents.
+- **Raw HTML is dropped** — the renderer parses no HTML and sanitizes its own
+  output. Never reach for `<div>`, `<br>`, `<details>` or inline styles.
+- Internal links are root-relative slugs: `[Quality Gate](/quality-gate)`.
+- **Never commit a personal email address.** `pnpm guard` fails CI on any
+  `@osbrjp.com` / `@oz-design.jp` address other than `handbook@` and `info@`.
+  Identity in this repo is GitHub usernames. The repo is public — the same
+  applies to tokens, account ids and non-production URLs.
+
+## 4. Task recipes
+
+**Add a page**
+
+1. Create `doc/<slug>.md` with the frontmatter block and the `# Title` H1.
+2. Pick `section` + `sort` + `parent` so it lands where intended in the sidebar.
+3. Add it to the VitePress sidebar too: `doc/.vitepress/config.mts` — that
+   sidebar is hand-maintained and does **not** read frontmatter.
+4. Run the gates (§5).
+
+**Edit a page** — edit the body; leave frontmatter alone unless the change is
+about placement, title or visibility. Run the gates.
+
+**Rename / move a page** — the filename is the slug, so `git mv` the file, then
+fix every reference: `parent:` in child pages, `](/old-slug)` links across
+`doc/`, and the entry in `doc/.vitepress/config.mts`. Old URL will 404.
+
+**Delete a page** — remove the file, then the same three reference sweeps.
+
+## 5. Gates before commit (non-negotiable)
+
+Run in `app/`:
+
+```sh
+pnpm check   # typecheck + content schema
+pnpm test
+pnpm guard   # no personal emails, no module client
+pnpm build   # the real schema gate: bad frontmatter fails here
+```
+
+CI runs exactly these plus the VitePress build (`pnpm run docs:build` at repo
+root). A frontmatter mistake surfaces as an `astro build` schema error naming
+the file and the offending key.
+
+## 6. How it reaches production
+
+**The Cloudflare Worker is the live site** — DNS points at it. Content is
+**bundled at build time**: a merged change to `doc/**` on `main` triggers the
+Worker deploy (`.github/workflows/deploy-worker.yml`), and until that deploy
+finishes the new page does not exist for the Worker. Adding a file to the repo
+is not publishing.
+
+The GitHub Pages pipeline is still in place — `.github/workflows/release.yml`
+builds VitePress from `doc/` on a push to the `release` branch and deploys it
+to Pages. Nothing about it changed except that DNS no longer resolves there, so
+a Pages deploy alone publishes nothing to readers. Treat it as a build that
+must not break, not as the release path.
+
+Drafts and pending edits from the in-app editor live on `handbook/<slug>`
+branches and their PRs — never as hidden pages in `doc/`. Everything in `doc/`
+on `main` is published. `visibility` decides who may read it, not whether it is
+live.
