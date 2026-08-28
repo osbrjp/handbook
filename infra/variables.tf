@@ -13,12 +13,13 @@ variable "domain_name" {
 variable "enable_dns_cutover" {
   type        = bool
   description = <<-EOT
-    Whether to point domain_name at this distribution in Route 53. Left false so the
-    distribution can be verified on its own CloudFront domain first; the name still
-    resolves to GitHub Pages until this flips. Deleting the existing record for
-    domain_name is a separate, deliberate step — see README.md.
+    Whether domain_name points at this distribution in Route 53: declares the alias
+    records and compiles the canonical-host redirect into the viewer function. True
+    since the cutover; false only while a distribution is being verified on its own
+    CloudFront domain, where the redirect would get in the way. See README.md for
+    the one-time import the by-hand cutover left behind.
   EOT
-  default     = false
+  default     = true
 }
 
 variable "hosted_zone_name" {
