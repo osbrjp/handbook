@@ -58,14 +58,20 @@ No other keys. Anything else is ignored by the app and just noise.
 ## 3. The body
 
 - The body **must open with `# <title>`** (same text as `title`), then a blank
-  line. The VitePress build renders that H1 as the page title; the app strips it
-  and renders its own `<h1>` from frontmatter. Omit it and VitePress loses the
-  title; duplicate a different H1 and the two sites disagree.
+  line. This is the on-disk format: `serializePageFile` re-adds that H1 every
+  time the in-browser editor saves, and the app strips it on load
+  (`stripLeadingH1`) before rendering its own `<h1>` from frontmatter. Omit it
+  and your file diverges from every file the editor writes; use different text
+  and the page contradicts its own frontmatter.
 - Allowed: GitHub-flavoured markdown (tables, task lists, strikethrough),
   fenced code, `:::info` / `:::tip` / `:::warning` / `:::danger` / `:::note` /
   `:::caution` / `:::important` / `:::details` callouts (with or without a
   label), ` ```mermaid ` diagrams, and `[[TOC]]` on its own line for an
-  auto table of contents.
+  in-body table of contents.
+- **Every page already gets an "On this page" outline** — `[...slug].astro`
+  calls `extractHeadings`, which collects **`##` and `###` only** (fenced code
+  skipped). Anything deeper never appears in it, so carry the page's structure
+  on h2/h3. `[[TOC]]` is a separate, optional in-body list.
 - **Raw HTML is dropped** — the renderer parses no HTML and sanitizes its own
   output. Never reach for `<div>`, `<br>`, `<details>` or inline styles.
 - Internal links are root-relative slugs: `[Quality Gate](/quality-gate)`.
@@ -79,19 +85,25 @@ No other keys. Anything else is ignored by the app and just noise.
 **Add a page**
 
 1. Create `doc/<slug>.md` with the frontmatter block and the `# Title` H1.
-2. Pick `section` + `sort` + `parent` so it lands where intended in the sidebar.
-3. Add it to the VitePress sidebar too: `doc/.vitepress/config.mts` — that
-   sidebar is hand-maintained and does **not** read frontmatter.
-4. Run the gates (§5).
+2. Pick `section` + `sort` + `parent` so it lands where intended in the
+   sidebar. That is the whole job — the live sidebar is generated from
+   frontmatter (`Sidebar.astro` groups by `section`, nests by `parent`, orders
+   by `sort`, labels with `nav_label` or `title`). There is nothing to register.
+3. Run the gates (§5).
 
 **Edit a page** — edit the body; leave frontmatter alone unless the change is
 about placement, title or visibility. Run the gates.
 
 **Rename / move a page** — the filename is the slug, so `git mv` the file, then
-fix every reference: `parent:` in child pages, `](/old-slug)` links across
-`doc/`, and the entry in `doc/.vitepress/config.mts`. Old URL will 404.
+fix every reference: `parent:` in child pages and `](/old-slug)` links across
+`doc/`. Old URL will 404.
 
-**Delete a page** — remove the file, then the same three reference sweeps.
+**Delete a page** — remove the file, then the same two reference sweeps.
+
+**A note on `doc/.vitepress/config.mts`.** It holds a second, hand-maintained
+sidebar. It belongs to the legacy VitePress build that ships to GitHub Pages —
+the Astro app never reads it. Since that site is no longer what readers get,
+leave it alone unless you are deliberately working on the Pages version.
 
 ## 5. Gates before commit (non-negotiable)
 
