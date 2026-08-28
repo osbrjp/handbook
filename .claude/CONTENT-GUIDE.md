@@ -14,10 +14,8 @@ Source of truth for everything here: `app/src/content.config.ts` (schema),
 - `doc/<slug>.md` — **top level only**. Files in subdirectories are not pages.
 - The filename stem **is** the slug **is** the URL: `doc/code-review.md` → `/code-review`.
 - Slug must match `^[a-z0-9][a-z0-9-]*$` (lowercase, digits, hyphens; no dots, no slashes).
-- `doc/index.md` is excluded — it's the legacy VitePress home page, not a handbook page.
-- The same files feed the legacy VitePress site, whose build still runs in CI
-  and still deploys to GitHub Pages — so both builds must stay green — but the
-  live handbook is the Cloudflare Worker (see §6).
+- `doc/index.md` is excluded from the collection — the app has its own root
+  page, so `index.md` is not a handbook page.
 
 ## 2. The frontmatter block
 
@@ -100,10 +98,7 @@ fix every reference: `parent:` in child pages and `](/old-slug)` links across
 
 **Delete a page** — remove the file, then the same two reference sweeps.
 
-**A note on `doc/.vitepress/config.mts`.** It holds a second, hand-maintained
-sidebar. It belongs to the legacy VitePress build that ships to GitHub Pages —
-the Astro app never reads it. Since that site is no longer what readers get,
-leave it alone unless you are deliberately working on the Pages version.
+Nothing in `doc/.vitepress/` is part of any of this — see §7.
 
 ## 5. Gates before commit (non-negotiable)
 
@@ -116,9 +111,8 @@ pnpm guard   # no personal emails, no module client
 pnpm build   # the real schema gate: bad frontmatter fails here
 ```
 
-CI runs exactly these plus the VitePress build (`pnpm run docs:build` at repo
-root). A frontmatter mistake surfaces as an `astro build` schema error naming
-the file and the offending key.
+A frontmatter mistake surfaces as an `astro build` schema error naming the file
+and the offending key. CI runs the same four, plus one legacy build (§7).
 
 ## 6. How it reaches production
 
@@ -132,13 +126,20 @@ Worker deploy (`.github/workflows/deploy-worker.yml`), and until that deploy
 finishes the new page does not exist for the Worker. Adding a file to the repo
 is not publishing.
 
-The GitHub Pages pipeline is still in place — `.github/workflows/release.yml`
-builds VitePress from `doc/` on a push to the `release` branch and deploys it
-to Pages. Nothing about it changed except that DNS no longer resolves there, so
-a Pages deploy alone publishes nothing to readers. Treat it as a build that
-must not break, not as the release path.
-
 Drafts and pending edits from the in-app editor live on `handbook/<slug>`
 branches and their PRs — never as hidden pages in `doc/`. Everything in `doc/`
 on `main` is published. `visibility` decides who may read it, not whether it is
 live.
+
+## 7. The one legacy thing, so you can ignore it deliberately
+
+`doc/.vitepress/` is the old VitePress site — the GitHub Pages version, which
+predates the app. **The Astro app never reads any of it**, including the
+hand-maintained sidebar in `doc/.vitepress/config.mts`. Its build
+(`pnpm run docs:build` at the repo root) is still a CI check, so don't break
+it, and `.github/workflows/release.yml` still ships it to Pages on a push to
+`release` — but DNS no longer resolves there, so that deploy publishes nothing
+to readers.
+
+Practical rule: write for the app. Leave `doc/.vitepress/` alone unless you
+were asked to work on the Pages version.
