@@ -134,3 +134,9 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Claude Code: agent instruction docs under .claude/ ARE tracked; the
+# machine-local scratch written into the same directory is not.
+.claude/worktrees/
+.claude/tmp/
+.claude/settings.local.json
